@@ -27,67 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-017: paymaster-api — 서버 스캘폴드 + 헬스체크
-
-**Milestone:** M3
-**Effort:** S
-**Depends on:** T-016
-
-**Goal:**
-Express 또는 Hono 기반 paymaster API 서버의 기본 구조를 설정한다. 환경변수 로딩, viem PublicClient 초기화, `/healthz` 엔드포인트를 포함한다.
-
-**Files to create:**
-```
-apps/paymaster-api/package.json
-apps/paymaster-api/tsconfig.json
-apps/paymaster-api/src/
-  index.ts               # 서버 진입점
-  config.ts              # env 변수 파싱 + 검증
-  client.ts              # viem PublicClient + WalletClient (quoteSigner)
-  routes/
-    health.ts
-  middleware/
-    errorHandler.ts
-apps/paymaster-api/.env.example
-```
-
-**Scope:**
-환경변수 (`.env.example`):
-```
-RPC_URL_TESTNET=https://eth-rpc-testnet.polkadot.io/
-CHAIN_ID=420420417
-PAYMASTER_ADDRESS=0x...
-PERMIT2_ADDRESS=0x...
-QUOTE_SIGNER_PRIVATE_KEY=0x...
-TOKEN_REGISTRY_ADDRESS=0x...
-CAMPAIGN_REGISTRY_ADDRESS=0x...
-ENTRYPOINT_ADDRESS=0x...
-TREASURY_ADDRESS=0x...
-PORT=3001
-QUOTE_TTL_SECONDS=300
-```
-
-`config.ts`: zod 스키마로 env 검증; 누락 시 즉시 종료
-`client.ts`: `createPublicClient({ chain: polkadotHub, transport: http(RPC_URL_TESTNET) })`
-`GET /healthz`: `{ status: "ok", chainId, paymasterAddress, blockNumber }` 반환
-
-**AC:**
-- [ ] `pnpm --filter paymaster-api dev` 실행 → 포트 3001 listen.
-- [ ] `curl http://localhost:3001/healthz` → `200 { "status": "ok" }`.
-- [ ] env 누락 시 startup에서 에러 메시지 출력 후 종료.
-
-**Test command:**
-```bash
-pnpm --filter paymaster-api build 2>&1 | tail -5
-```
-
-**Commit message:**
-```
-feat(api): scaffold paymaster-api with env config, viem client, and healthz endpoint
-```
-
----
-
 ### T-018: paymaster-api — POST /v1/quote/token
 
 **Milestone:** M3

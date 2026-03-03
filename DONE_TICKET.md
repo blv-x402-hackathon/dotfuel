@@ -203,3 +203,51 @@ feat(contracts): add UserOperation struct and core interfaces (IEntryPoint, IPer
 
 ---
 
+### T-004: Permit2 소스 벤더링
+
+**Milestone:** M0
+**Effort:** S
+**Depends on:** T-003
+
+**Goal:**
+Uniswap Permit2 소스 파일을 `contracts/vendor/permit2/` 에 벤더링한다. Hub에 배포된 Permit2의 소스와 일치해야 하며, 특히 `EIP712.sol`, `SignatureTransfer.sol`, `PermitHash.sol` 이 포함되어야 한다.
+
+**Files to create:**
+```
+contracts/vendor/permit2/src/
+  EIP712.sol
+  SignatureTransfer.sol
+  libraries/
+    PermitHash.sol
+    SignatureVerification.sol
+```
+
+**Scope:**
+- GitHub `Uniswap/permit2` main 브랜치에서 필요한 소스 파일을 직접 복사 (서브모듈 X)
+  - 복사 대상: `src/EIP712.sol`, `src/SignatureTransfer.sol`, `src/libraries/PermitHash.sol`, `src/libraries/SignatureVerification.sol`, `src/interfaces/ISignatureTransfer.sol`
+- `remappings.txt` 에 `@permit2/=vendor/permit2/` 확인 (T-002에서 이미 설정됨)
+- 벤더링 이유 주석: `// Vendored from Uniswap/permit2 main. Hub address is NOT canonical.`
+
+**AC:**
+- [ ] `contracts/vendor/permit2/src/SignatureTransfer.sol` 이 존재한다.
+- [ ] `contracts/vendor/permit2/src/libraries/PermitHash.sol` 이 존재한다.
+- [ ] `forge build` 가 에러 없이 실행된다.
+- [ ] Permit2 소스 파일 상단에 벤더링 출처 주석이 있다.
+
+**Test command:**
+```bash
+cd contracts && forge build 2>&1 | grep -c "Compiling"
+```
+
+**Commit message:**
+```
+chore(contracts): vendor Uniswap Permit2 source (SignatureTransfer + PermitHash)
+```
+
+---
+
+## M1 — GasStationAccount + Factory
+
+
+---
+

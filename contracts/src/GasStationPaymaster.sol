@@ -86,6 +86,12 @@ contract GasStationPaymaster is IPaymaster {
         uint48 validUntil;
     }
 
+    struct SponsorPostOpContext {
+        uint8 mode;
+        bytes32 campaignId;
+        address sender;
+    }
+
     bytes32 private immutable _DOMAIN_SEPARATOR;
 
     event TokenGasPaid(address indexed sender, address indexed token, uint256 charge, uint256 gasCost);
@@ -190,46 +196,31 @@ contract GasStationPaymaster is IPaymaster {
     function validatePaymasterUserOp(
         UserOperation calldata userOp,
         bytes32,
-        uint256
+        uint256 maxCost
     ) external view override onlyEntryPoint returns (bytes memory context, uint256 validationData) {
         PaymasterData memory data = _decodePaymasterData(userOp.paymasterAndData);
 
         if (data.mode == MODE_TOKEN_PERMIT2) {
             return _validateTokenMode(userOp, data);
         }
+        if (data.mode == MODE_SPONSOR) {
+            return _validateSponsorMode(userOp, data, maxCost);
+        }
 
         revert("unsupported mode");
     }
 
     function postOp(PostOpMode, bytes calldata context, uint256 actualGasCost) external override onlyEntryPoint {
-        TokenPostOpContext memory ctx = abi.decode(context, (TokenPostOpContext));
-        require(ctx.mode == MODE_TOKEN_PERMIT2, "unsupported mode");
-
-        (, , uint16 markupBps,,) = tokenRegistry.tokenConfig(ctx.token);
-
-        uint256 raw = (actualGasCost * ctx.tokenPerNativeScaled + 1e18 - 1) / 1e18;
-        uint256 charge = raw + (raw * markupBps + 9999) / 10_000;
-        if (charge > ctx.maxTokenCharge) {
-            charge = ctx.maxTokenCharge;
+        uint8 mode = abi.decode(context, (uint8));
+        if (mode == MODE_TOKEN_PERMIT2) {
+            _postOpTokenMode(context, actualGasCost);
+            return;
         }
-
-        bytes32 witness =
-            _computeWitness(ctx.sender, ctx.callDataHash, ctx.token, ctx.maxTokenCharge, ctx.validUntil);
-
-        IPermit2(permit2).permitWitnessTransferFrom(
-            IPermit2.PermitTransferFrom({
-                permitted: IPermit2.TokenPermissions({token: ctx.token, amount: ctx.maxTokenCharge}),
-                nonce: ctx.permit2Nonce,
-                deadline: ctx.permit2Deadline
-            }),
-            IPermit2.SignatureTransferDetails({to: treasury, requestedAmount: charge}),
-            ctx.sender,
-            witness,
-            WITNESS_TYPESTRING,
-            ctx.permit2Signature
-        );
-
-        emit TokenGasPaid(ctx.sender, ctx.token, charge, actualGasCost);
+        if (mode == MODE_SPONSOR) {
+            _postOpSponsorMode(context, actualGasCost);
+            return;
+        }
+        revert("unsupported mode");
     }
 
     function _decodePaymasterData(bytes calldata paymasterAndData) internal pure returns (PaymasterData memory data) {
@@ -277,6 +268,34 @@ contract GasStationPaymaster is IPaymaster {
         validationData = _packValidationData(0, data.validUntil, 0);
     }
 
+    function _validateSponsorMode(UserOperation calldata userOp, PaymasterData memory data, uint256 maxCost)
+        internal
+        view
+        returns (bytes memory context, uint256 validationData)
+    {
+        require(block.timestamp <= data.validUntil, "expired");
+
+        CampaignRegistry.Campaign memory campaign = campaignRegistry.getCampaign(data.campaignId);
+        require(campaign.enabled, "campaign disabled");
+        require(block.timestamp >= campaign.start && block.timestamp <= campaign.end, "campaign inactive");
+
+        bytes32 callDataHash = keccak256(userOp.callData);
+        _verifySponsorQuote(userOp.sender, callDataHash, data);
+        _validateSponsorExecuteBatchTargets(data.campaignId, userOp.callData);
+
+        uint32 used = campaignRegistry.userOpsUsed(data.campaignId, userOp.sender);
+        if (campaign.perUserMaxOps > 0) {
+            require(used < campaign.perUserMaxOps, "quota exceeded");
+        }
+
+        require(campaign.budget >= campaign.spent + maxCost, "budget exceeded");
+
+        SponsorPostOpContext memory ctx =
+            SponsorPostOpContext({mode: MODE_SPONSOR, campaignId: data.campaignId, sender: userOp.sender});
+        context = abi.encode(ctx);
+        validationData = _packValidationData(0, data.validUntil, 0);
+    }
+
     function _computePermit2Digest(PaymasterData memory data, bytes32 witness) internal view returns (bytes32) {
         bytes32 tokenPermissionsHash = keccak256(abi.encode(TOKEN_PERMISSIONS_TYPEHASH, data.token, data.maxTokenCharge));
         bytes32 typeHash = keccak256(abi.encodePacked(PERMIT_WITNESS_TRANSFER_FROM_TYPEHASH_STUB, WITNESS_TYPESTRING));
@@ -284,6 +303,41 @@ contract GasStationPaymaster is IPaymaster {
             abi.encode(typeHash, tokenPermissionsHash, address(this), data.permit2Nonce, data.permit2Deadline, witness)
         );
         return keccak256(abi.encodePacked("\x19\x01", IPermit2(permit2).DOMAIN_SEPARATOR(), dataHash));
+    }
+
+    function _postOpTokenMode(bytes calldata context, uint256 actualGasCost) internal {
+        TokenPostOpContext memory ctx = abi.decode(context, (TokenPostOpContext));
+        (, , uint16 markupBps,,) = tokenRegistry.tokenConfig(ctx.token);
+
+        uint256 raw = (actualGasCost * ctx.tokenPerNativeScaled + 1e18 - 1) / 1e18;
+        uint256 charge = raw + (raw * markupBps + 9999) / 10_000;
+        if (charge > ctx.maxTokenCharge) {
+            charge = ctx.maxTokenCharge;
+        }
+
+        bytes32 witness =
+            _computeWitness(ctx.sender, ctx.callDataHash, ctx.token, ctx.maxTokenCharge, ctx.validUntil);
+
+        IPermit2(permit2).permitWitnessTransferFrom(
+            IPermit2.PermitTransferFrom({
+                permitted: IPermit2.TokenPermissions({token: ctx.token, amount: ctx.maxTokenCharge}),
+                nonce: ctx.permit2Nonce,
+                deadline: ctx.permit2Deadline
+            }),
+            IPermit2.SignatureTransferDetails({to: treasury, requestedAmount: charge}),
+            ctx.sender,
+            witness,
+            WITNESS_TYPESTRING,
+            ctx.permit2Signature
+        );
+
+        emit TokenGasPaid(ctx.sender, ctx.token, charge, actualGasCost);
+    }
+
+    function _postOpSponsorMode(bytes calldata context, uint256 actualGasCost) internal {
+        SponsorPostOpContext memory ctx = abi.decode(context, (SponsorPostOpContext));
+        campaignRegistry.recordUsage(ctx.campaignId, ctx.sender, actualGasCost);
+        emit Sponsored(ctx.sender, ctx.campaignId, actualGasCost);
     }
 
     function _validateExecuteBatchTargets(bytes calldata callData, address token) internal view {
@@ -302,6 +356,21 @@ contract GasStationPaymaster is IPaymaster {
                 continue;
             }
             require(allowedTargets[calls[i].to], "target not allowed");
+        }
+    }
+
+    function _validateSponsorExecuteBatchTargets(bytes32 campaignId, bytes calldata callData) internal view {
+        require(callData.length >= 4, "invalid calldata");
+        bytes4 selector;
+        assembly {
+            selector := calldataload(callData.offset)
+        }
+        require(selector == EXECUTE_BATCH_SELECTOR, "unsupported call selector");
+
+        AccountCall[] memory calls = abi.decode(callData[4:], (AccountCall[]));
+        uint256 length = calls.length;
+        for (uint256 i = 0; i < length; i++) {
+            require(campaignRegistry.isAllowedTarget(campaignId, calls[i].to), "target not allowed");
         }
     }
 

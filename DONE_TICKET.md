@@ -840,3 +840,60 @@ feat(contracts): implement GasStationPaymaster MODE_TOKEN_PERMIT2 validate and p
 
 ---
 
+### T-013: GasStationPaymaster — MODE_SPONSOR 구현
+
+**Milestone:** M2
+**Effort:** M
+**Depends on:** T-012
+
+**Goal:**
+스폰서 모드의 `validatePaymasterUserOp` 검증과 `postOp` 사용 기록을 구현한다. 캠페인 시간창, target allowlist, 사용자별 쿼터를 on-chain에서 검증한다.
+
+**Files to modify:**
+```
+contracts/src/GasStationPaymaster.sol
+```
+
+**Scope (validatePaymasterUserOp — MODE_SPONSOR):**
+1. `PaymasterData` 파싱
+2. `block.timestamp > validUntil` → revert
+3. `campaignRegistry.campaigns[campaignId].enabled` → false면 revert
+4. `block.timestamp < start || block.timestamp > end` → revert
+5. `callDataHash = keccak256(userOp.callData)`
+6. paymaster quote 서명 검증 (`_verifySponsorQuote`)
+7. executeBatch calldata decode → 각 `Call.to` 가 캠페인의 `allowedTargets` 에 있는지 확인
+8. 사용자별 쿼터 확인: `userOpsUsed[campaignId][sender] < campaign.perUserMaxOps`
+9. 예산 확인: `campaign.budget >= campaign.spent + estimatedGas`
+10. context 반환: `abi.encode(campaignId, sender, estimatedGas)`
+11. `validationData`: `_packValidationData(0, validUntil, 0)`
+
+**Scope (postOp — MODE_SPONSOR):**
+```solidity
+// campaignRegistry.recordUsage(campaignId, sender, actualGasCost)
+emit Sponsored(sender, campaignId, actualGasCost);
+```
+
+**AC:**
+- [ ] 유효한 캠페인 + 올바른 quote sig → validate 통과.
+- [ ] 만료된 캠페인 시간창 → revert.
+- [ ] non-allowlisted target → revert.
+- [ ] 쿼터 초과 → revert.
+- [ ] 예산 초과 → revert.
+- [ ] `postOp` 에서 `campaign.spent` 가 증가한다 (CampaignRegistry를 통해).
+- [ ] `Sponsored` 이벤트 emit.
+
+**Test command:**
+```bash
+cd contracts && forge build 2>&1 | grep -E "^error"
+```
+
+**Commit message:**
+```
+feat(contracts): implement GasStationPaymaster MODE_SPONSOR validate and postOp
+```
+
+---
+
+
+---
+

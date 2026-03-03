@@ -1426,3 +1426,70 @@ feat(infra): add docker-compose with ERC-4337 bundler and paymaster-api services
 
 ---
 
+### T-022: scripts/bootstrap-assets.ts
+
+**Milestone:** M3.5
+**Effort:** M
+**Depends on:** T-001
+
+**Goal:**
+Polkadot Hub Assets pallet에 tUSDT 테스트 토큰을 생성하고, 테스트 계정들에게 민팅하며, ERC20 precompile 주소를 계산하고, TokenRegistry에 등록하는 스크립트를 작성한다.
+
+**Files to create:**
+```
+scripts/package.json
+scripts/tsconfig.json
+scripts/bootstrap-assets.ts
+scripts/lib/
+  precompile.ts       # ERC20 precompile 주소 계산 공식
+  assetsPallet.ts     # Assets pallet extrinsic 헬퍼
+```
+
+**Scope:**
+```typescript
+// bootstrap-assets.ts
+// 1. WSS 연결: wss://asset-hub-paseo-rpc.n.dwellir.com
+// 2. Create asset (Assets.create) → assetId 기록
+// 3. Set metadata (Assets.setMetadata): name="Test USDT", symbol="tUSDT", decimals=6
+// 4. Mint to: deployer EOA, counterfactual smart account, test user EOA
+// 5. Compute ERC20 precompile address
+// 6. Register in TokenRegistry (via viem + ABI)
+// Output: assetId, precompileAddress, txHashes
+```
+
+`precompile.ts`:
+```typescript
+// address = 0x[assetId 8hex][24 zeros][prefix 8hex]
+// Polkadot Hub prefix: 01200000 (ERC20 precompile prefix)
+export function assetIdToPrecompileAddress(assetId: number): Address {
+  const assetHex = assetId.toString(16).padStart(8, "0");
+  return `0x${assetHex}${"0".repeat(24)}01200000` as Address;
+}
+```
+
+**AC:**
+- [ ] `pnpm --filter scripts bootstrap-assets` 가 에러 없이 실행 (실제 WSS 없이 dry-run 모드 지원).
+- [ ] `assetIdToPrecompileAddress(1984)` → `0x000007C000000000000000000000000001200000`.
+- [ ] 스크립트 완료 시 assetId, precompileAddress, txHashes 가 stdout 출력.
+- [ ] `scripts/precompile.ts` 의 변환 공식이 PROJECT.md §4 스펙과 일치.
+
+**Test command:**
+```bash
+cd scripts && pnpm ts-node -e "
+  const { assetIdToPrecompileAddress } = require('./lib/precompile');
+  const addr = assetIdToPrecompileAddress(1984);
+  console.assert(addr === '0x000007C000000000000000000000000001200000', 'FAIL: ' + addr);
+  console.log('PASS:', addr);
+"
+```
+
+**Commit message:**
+```
+feat(scripts): add bootstrap-assets.ts for Assets pallet token creation and TokenRegistry registration
+```
+
+---
+
+
+---
+

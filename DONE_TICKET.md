@@ -584,3 +584,55 @@ feat(contracts): implement CampaignRegistry with budget, allowlist, and per-user
 
 ---
 
+### T-010: DemoDapp.sol 구현
+
+**Milestone:** M1.5
+**Effort:** S
+**Depends on:** T-002
+
+**Goal:**
+데모에서 UserOp의 실제 실행 타겟이 되는 간단한 컨트랙트를 구현한다. 허용리스트에 추가되며, 실제 기능보다 on-chain 기록(이벤트)이 목적이다.
+
+**Files to create:**
+```
+contracts/src/DemoDapp.sol
+```
+
+**Scope:**
+```solidity
+contract DemoDapp {
+    event ActionExecuted(address indexed account, string message, uint256 timestamp);
+
+    mapping(address => uint256) public actionCount;
+
+    function execute(string calldata message) external {
+        actionCount[msg.sender]++;
+        emit ActionExecuted(msg.sender, message, block.timestamp);
+    }
+
+    function getActionCount(address account) external view returns (uint256);
+}
+```
+
+**AC:**
+- [ ] `forge build` 에러 없음.
+- [ ] `execute` 호출 시 `ActionExecuted` 이벤트가 emit 된다.
+- [ ] `actionCount` 가 호출자별로 누적된다.
+
+**Test command:**
+```bash
+cd contracts && forge build 2>&1 | grep -E "^error"
+```
+
+**Commit message:**
+```
+feat(contracts): implement DemoDapp as safe allowlisted demo target
+```
+
+---
+
+## M2 — GasStationPaymaster (핵심)
+
+
+---
+

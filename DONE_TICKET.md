@@ -897,3 +897,65 @@ feat(contracts): implement GasStationPaymaster MODE_SPONSOR validate and postOp
 
 ---
 
+### T-014: GasStationPaymaster 전체 테스트
+
+**Milestone:** M2
+**Effort:** L
+**Depends on:** T-012, T-013
+
+**Goal:**
+페이마스터의 모든 검증 경로, Permit2 digest 계산, postOp 정산을 포함한 완전한 테스트 스위트를 작성한다. off-chain 타입드 데이터와 on-chain digest가 일치함을 검증한다.
+
+**Files to create:**
+```
+contracts/test/GasStationPaymaster.t.sol    # 전체 유닛 테스트
+contracts/test/Permit2Digest.t.sol          # off-chain/on-chain digest 일치 검증
+contracts/test/PostOpSettlement.t.sol       # postOp 정산 단독 테스트
+```
+
+**Scope:**
+
+`GasStationPaymaster.t.sol` 테스트 케이스:
+1. `test_tokenMode_validateOk` — 완전한 유효 UserOp → context 반환 확인
+2. `test_tokenMode_expiredValidUntil` → revert
+3. `test_tokenMode_disabledToken` → revert
+4. `test_tokenMode_invalidQuoteSig` → revert
+5. `test_tokenMode_invalidPermit2Sig` → revert
+6. `test_tokenMode_nonAllowlistedTarget` → revert
+7. `test_sponsorMode_validateOk`
+8. `test_sponsorMode_expiredCampaign` → revert
+9. `test_sponsorMode_quotaExceeded` → revert
+10. `test_sponsorMode_budgetExceeded` → revert
+
+`Permit2Digest.t.sol` 테스트:
+- TypeScript/off-chain에서 계산한 expected digest와 `_computeWitness()` + EIP-712 digest 결과를 hardcode 비교
+- 주석에 계산 과정 명시
+- 이 테스트가 통과하면 API ↔ 컨트랙트 호환성 보장
+
+`PostOpSettlement.t.sol` 테스트:
+1. `test_postOp_chargeAtCeiling` — charge가 maxTokenCharge에 cap 됨
+2. `test_postOp_chargeRounding` — ceiling 라운딩 검증 (특수 경수 포함)
+3. `test_postOp_onlyEntryPoint` — 외부 호출 revert
+4. `test_postOp_permit2CalledCorrectly` — MockPermit2로 호출 인자 검증
+
+**AC:**
+- [ ] `forge test -vvv` 가 전체 통과.
+- [ ] `Permit2Digest.t.sol` 의 expected digest 값이 off-chain 계산값과 일치.
+- [ ] ceiling 라운딩 테스트가 정수 경계 케이스(remainder=1, remainder=0) 모두 포함.
+- [ ] 각 파일에 최소 4개 이상 테스트 케이스.
+
+**Test command:**
+```bash
+cd contracts && forge test -vvv 2>&1 | tail -30
+```
+
+**Commit message:**
+```
+test(contracts): add full paymaster test suite (validate, Permit2 digest, postOp settlement)
+```
+
+---
+
+
+---
+

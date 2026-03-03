@@ -211,7 +211,19 @@ contract GasStationPaymaster is IPaymaster {
     }
 
     function postOp(PostOpMode, bytes calldata context, uint256 actualGasCost) external override onlyEntryPoint {
-        uint8 mode = abi.decode(context, (uint8));
+        uint256 head;
+        assembly {
+            head := calldataload(context.offset)
+        }
+
+        uint8 mode;
+        if (head == 0x20 && context.length >= 64) {
+            assembly {
+                mode := calldataload(add(context.offset, 0x20))
+            }
+        } else {
+            mode = uint8(head);
+        }
         if (mode == MODE_TOKEN_PERMIT2) {
             _postOpTokenMode(context, actualGasCost);
             return;
@@ -387,7 +399,7 @@ contract GasStationPaymaster is IPaymaster {
         address spender;
         assembly {
             selector := mload(add(payload, 0x20))
-            spender := shr(96, mload(add(payload, 0x24)))
+            spender := and(mload(add(payload, 0x24)), 0xffffffffffffffffffffffffffffffffffffffff)
         }
 
         return selector == ERC20_APPROVE_SELECTOR && spender == permit2;

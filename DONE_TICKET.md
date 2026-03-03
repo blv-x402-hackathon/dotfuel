@@ -755,3 +755,88 @@ feat(contracts): add GasStationPaymaster skeleton with EIP-712 domain and type h
 
 ---
 
+### T-012: GasStationPaymaster — MODE_TOKEN_PERMIT2 구현
+
+**Milestone:** M2
+**Effort:** L
+**Depends on:** T-011
+
+**Goal:**
+`validatePaymasterUserOp` (MODE_TOKEN_PERMIT2) 와 `postOp` (토큰 정산) 를 완전히 구현한다. Permit2 witness 서명 검증, calldata 크기 제한, executeBatch allowlist 검사, postOp ceiling 라운딩 정산이 포함된다.
+
+**Files to modify:**
+```
+contracts/src/GasStationPaymaster.sol    # T-011 스텁 교체
+```
+
+**Scope (validatePaymasterUserOp — MODE_TOKEN_PERMIT2):**
+1. `abi.decode(userOp.paymasterAndData[20:], (PaymasterData))` 로 데이터 파싱
+2. `block.timestamp > validUntil` → revert ("expired")
+3. `tokenRegistry.tokenConfig[token].enabled` → false면 revert
+4. `userOp.callData.length > MAX_CALLDATA_BYTES` → revert
+5. `callDataHash = keccak256(userOp.callData)`
+6. paymaster quote 서명 검증 (`_verifyTokenQuote`)
+7. Permit2 witness 해시 계산 (`_computeWitness`)
+8. Permit2 EIP-712 digest 계산 (PROJECT.md §6.6 스펙 그대로):
+   ```
+   TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)")
+   typeHash = keccak256(PERMIT_WITNESS_STUB ++ WITNESS_TYPESTRING)
+   dataHash = keccak256(abi.encode(typeHash, tokenPermissionsHash, paymaster, nonce, deadline, witness))
+   digest = keccak256("\x19\x01" ++ permit2.DOMAIN_SEPARATOR() ++ dataHash)
+   ```
+9. `SignatureChecker.isValidSignatureNow(sender, digest, permit2Signature)` 검증
+10. executeBatch calldata decode → `Call[]` 확인 → 각 `Call.to` 가 토큰 approve 예외 또는 allowlisted target인지 검사
+11. context 반환: `abi.encode(token, maxTokenCharge, tokenPerNativeScaled, permit2Nonce, permit2Deadline, permit2Signature, sender, callDataHash, validUntil)`
+12. `validationData`: `_packValidationData(0, validUntil, 0)` (ERC-4337 표준 인코딩)
+
+**Scope (postOp — MODE_TOKEN_PERMIT2):**
+```solidity
+// 1. context decode
+// 2. gas → token 변환 (ceiling 라운딩)
+uint256 raw    = (actualGasCost * tokenPerNativeScaled + 1e18 - 1) / 1e18;  // ceiling!
+uint16  markup = tokenRegistry.tokenConfig[token].markupBps;
+uint256 charge = raw + (raw * markup + 9999) / 10_000;                       // ceiling!
+if (charge > maxTokenCharge) charge = maxTokenCharge;
+
+// 3. Permit2 signatureTransfer 호출
+IPermit2(permit2).permitWitnessTransferFrom(
+    PermitTransferFrom({ permitted: TokenPermissions({ token: token, amount: maxTokenCharge }), nonce: permit2Nonce, deadline: permit2Deadline }),
+    SignatureTransferDetails({ to: treasury, requestedAmount: charge }),
+    sender,
+    witness,
+    WITNESS_TYPESTRING,
+    permit2Signature
+);
+
+emit TokenGasPaid(sender, token, charge, actualGasCost);
+```
+
+**중요 불변식:**
+- `charge` 는 항상 ceiling 라운딩 (페이마스터 보호)
+- Permit2 호출은 `postOp` 내부에서만 발생
+- `postOp` 는 `onlyEntryPoint` modifier 적용
+
+**AC:**
+- [ ] 유효한 PaymasterData + permit2Signature → `validatePaymasterUserOp` 통과.
+- [ ] 만료된 `validUntil` → revert.
+- [ ] 비활성화 토큰 → revert.
+- [ ] 잘못된 permit2 서명 → revert.
+- [ ] executeBatch 중 non-allowlisted target → revert.
+- [ ] `postOp` 에서 `charge <= maxTokenCharge` 항상 보장.
+- [ ] `raw` 와 `charge` 모두 ceiling 라운딩 (테스트에서 정수 산술 검증).
+
+**Test command:**
+```bash
+cd contracts && forge build 2>&1 | grep -E "^error"
+```
+
+**Commit message:**
+```
+feat(contracts): implement GasStationPaymaster MODE_TOKEN_PERMIT2 validate and postOp
+```
+
+---
+
+
+---
+

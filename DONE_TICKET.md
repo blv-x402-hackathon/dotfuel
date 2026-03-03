@@ -387,3 +387,56 @@ feat(contracts): implement GasStationFactory with CREATE2 counterfactual deploym
 
 ---
 
+### T-007: GasStationAccount + Factory 유닛 테스트
+
+**Milestone:** M1
+**Effort:** M
+**Depends on:** T-005, T-006
+
+**Goal:**
+계정 서명 검증, executeBatch, 카운터팩추얼 주소 일관성, EIP-1271을 포함한 GasStationAccount + Factory 전체 유닛 테스트를 작성한다.
+
+**Files to create:**
+```
+contracts/test/GasStationAccount.t.sol
+```
+
+**Scope:**
+테스트 케이스:
+1. `test_validateUserOp_validSig` — 올바른 EOA 서명 → `validationData == 0`
+2. `test_validateUserOp_invalidSig` — 잘못된 서명 → `validationData == 1`
+3. `test_validateUserOp_onlyEntryPoint` — 외부 호출자 → revert
+4. `test_executeBatch_success` — 3개 Call 순서대로 실행
+5. `test_executeBatch_revertsIfCallFails` — 중간 Call revert → 전체 revert
+6. `test_isValidSignature_owner` — owner sig → `0x1626ba7e`
+7. `test_isValidSignature_nonOwner` — 다른 sig → `0xffffffff`
+8. `test_factory_deterministicAddress` — getAddress == createAccount address
+9. `test_factory_idempotent` — createAccount 두 번 호출 → 동일 주소, no revert
+10. `test_factory_ownerCorrect` — 배포된 계정의 owner 확인
+
+Foundry Cheatcodes 활용:
+- `vm.prank`, `vm.sign`, `vm.deal`
+- MockEntryPoint 작성 (EntryPoint 전체 배포 없이 콜백 시뮬레이션)
+
+**AC:**
+- [ ] `forge test --match-path test/GasStationAccount.t.sol -vvv` 가 모두 통과.
+- [ ] 10개 테스트 케이스가 모두 존재하고 통과.
+- [ ] 테스트 가스 리포트에 `executeBatch` 가 포함된다.
+
+**Test command:**
+```bash
+cd contracts && forge test --match-path "test/GasStationAccount.t.sol" -vvv 2>&1 | tail -20
+```
+
+**Commit message:**
+```
+test(contracts): add GasStationAccount and Factory unit tests (10 cases)
+```
+
+---
+
+## M1.5 — 지원 컨트랙트
+
+
+---
+

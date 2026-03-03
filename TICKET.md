@@ -27,64 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-019: paymaster-api — POST /v1/quote/sponsor
-
-**Milestone:** M3
-**Effort:** M
-**Depends on:** T-017
-
-**Goal:**
-스폰서 모드 quote 엔드포인트를 구현한다. 캠페인 상태 확인 → SponsorQuote EIP-712 서명 → paymasterAndData 반환.
-
-**Files to create:**
-```
-apps/paymaster-api/src/services/sponsorQuoteBuilder.ts
-```
-
-**Files to modify:**
-```
-apps/paymaster-api/src/routes/quote.ts    # /v1/quote/sponsor 라우트 추가
-```
-
-**Scope:**
-`POST /v1/quote/sponsor` 요청:
-```json
-{
-  "chainId": 420420417,
-  "sender": "0x...",
-  "callData": "0x...",
-  "initCode": "0x...",
-  "campaignId": "0x..."
-}
-```
-
-처리 순서:
-1. 입력 검증
-2. `CampaignRegistry.campaigns[campaignId]` 읽기 → enabled/time window/budget 확인
-3. `callDataHash` = `keccak256(callData)`
-4. `validUntil` = `min(now + QUOTE_TTL_SECONDS, campaign.end)`
-5. EIP-712 `SponsorQuote` 해시 서명
-6. `paymasterAndData` 인코딩 (full — permit2 서명 불필요)
-7. 응답 반환
-
-**AC:**
-- [ ] 유효한 캠페인 → 200 + `paymasterAndData`.
-- [ ] 비활성화 캠페인 → 400.
-- [ ] `validUntil` 이 캠페인 종료 시간을 초과하지 않는다.
-- [ ] `paymasterSignature` 가 quoteSigner로 복원 가능.
-
-**Test command:**
-```bash
-pnpm --filter paymaster-api build 2>&1 | tail -5
-```
-
-**Commit message:**
-```
-feat(api): implement POST /v1/quote/sponsor with campaign validation and EIP-712 signing
-```
-
----
-
 ### T-020: paymaster-api — 캠페인 어드민 엔드포인트
 
 **Milestone:** M3

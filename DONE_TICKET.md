@@ -251,3 +251,89 @@ chore(contracts): vendor Uniswap Permit2 source (SignatureTransfer + PermitHash)
 
 ---
 
+### T-005: GasStationAccount.sol 구현
+
+**Milestone:** M1
+**Effort:** M
+**Depends on:** T-003
+
+**Goal:**
+최소화된 ERC-4337 스마트 계정을 구현한다. EOA owner 서명 검증(EIP-1271), executeBatch, EntryPoint 앞으로만 노출된 검증 진입점을 포함한다.
+
+**Files to create:**
+```
+contracts/src/GasStationAccount.sol
+```
+
+**Scope:**
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+struct Call {
+    address to;
+    uint256 value;
+    bytes   data;
+}
+
+contract GasStationAccount {
+    address         public owner;
+    IEntryPoint     public immutable entryPoint;
+    uint256 private _nonce;
+
+    // EIP-1271 magic value
+    bytes4 constant EIP1271_SUCCESS = 0x1626ba7e;
+
+    modifier onlyEntryPoint() {
+        require(msg.sender == address(entryPoint), "not entrypoint");
+        _;
+    }
+
+    constructor(IEntryPoint _entryPoint, address _owner) { ... }
+
+    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
+        external onlyEntryPoint returns (uint256 validationData);
+
+    function execute(address to, uint256 value, bytes calldata data)
+        external onlyEntryPoint;
+
+    function executeBatch(Call[] calldata calls)
+        external onlyEntryPoint;
+
+    function isValidSignature(bytes32 hash, bytes calldata signature)
+        external view returns (bytes4);
+
+    receive() external payable {}
+}
+```
+
+구현 상세:
+- `validateUserOp`: ECDSA recover → owner와 비교; 미스매치 시 `validationData = 1`; `missingAccountFunds` 만큼 EntryPoint에 `call{value}("")`
+- `executeBatch`: Call 배열을 순서대로 실행; 하나라도 revert하면 전체 revert
+- `isValidSignature`: ECDSA verify → owner 일치시 `EIP1271_SUCCESS`, 아니면 `0xffffffff`
+- `_validateSignature` internal 헬퍼 분리 (validateUserOp + isValidSignature 공유)
+- `validationData` 인코딩: 실패=1, 성공=0 (validUntil/validAfter 없음, 계정 레벨에서는 불필요)
+
+**AC:**
+- [ ] `forge build` 에러 없음.
+- [ ] owner 서명 검증 통과 → `validationData == 0`.
+- [ ] 잘못된 서명 → `validationData == 1` (revert 아님).
+- [ ] `executeBatch` 가 Call 배열 전체를 순서대로 실행한다.
+- [ ] EntryPoint 이외 주소가 `validateUserOp` 호출 시 revert.
+- [ ] `isValidSignature` 가 owner 서명에 대해 `0x1626ba7e` 반환.
+
+**Test command:**
+```bash
+cd contracts && forge build 2>&1 | grep -E "^error"
+```
+
+**Commit message:**
+```
+feat(contracts): implement GasStationAccount with EIP-1271 and executeBatch
+```
+
+---
+
+
+---
+

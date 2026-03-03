@@ -1,0 +1,120 @@
+"use client";
+
+import { useState } from "react";
+import { getAddress, hexToBigInt, keccak256, toBytes } from "viem";
+import { useAccount, useWalletClient } from "wagmi";
+
+import { fetchSponsorQuote } from "@/lib/paymaster-client";
+import {
+  estimateUserOperationGas,
+  sendUserOperation,
+  waitForUserOperationReceipt
+} from "@/lib/bundlerClient";
+import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
+
+interface SponsorResult {
+  userOpHash: string;
+  txHash?: string;
+  explorerUrl?: string;
+}
+
+export function useSponsorModeUserOp() {
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<SponsorResult | null>(null);
+
+  async function executeSponsored() {
+    if (!address || !walletClient) {
+      setError("Wallet not connected");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
+      const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
+      const campaignId = process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}`;
+
+      const sender = getAddress((process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}`) || address);
+      const initCode = (process.env.NEXT_PUBLIC_ACCOUNT_INIT_CODE as `0x${string}` | undefined) ?? "0x";
+
+      const callData = encodeExecuteBatch([
+        {
+          to: demoDapp,
+          value: 0n,
+          data: "0x5c36b1860000000000000000000000000000000000000000000000000000000000000020"
+        }
+      ]);
+
+      let userOp = buildTokenModeUserOp({
+        sender,
+        initCode,
+        callData,
+        paymasterAndData: "0x"
+      });
+
+      const quote = await fetchSponsorQuote({
+        chainId: walletClient.chain?.id ?? 420420417,
+        sender,
+        callData,
+        initCode,
+        campaignId
+      });
+
+      userOp = {
+        ...userOp,
+        paymasterAndData: quote.paymasterAndData
+      };
+
+      const gasEstimate = await estimateUserOperationGas(userOp, entryPoint);
+      userOp = {
+        ...userOp,
+        callGasLimit: hexToBigInt(gasEstimate.callGasLimit),
+        verificationGasLimit: hexToBigInt(gasEstimate.verificationGasLimit),
+        preVerificationGas: hexToBigInt(gasEstimate.preVerificationGas)
+      };
+
+      const pseudoUserOpHash = keccak256(
+        toBytes(
+          JSON.stringify({
+            ...userOp,
+            nonce: userOp.nonce.toString(),
+            callGasLimit: userOp.callGasLimit.toString(),
+            verificationGasLimit: userOp.verificationGasLimit.toString(),
+            preVerificationGas: userOp.preVerificationGas.toString(),
+            maxFeePerGas: userOp.maxFeePerGas.toString(),
+            maxPriorityFeePerGas: userOp.maxPriorityFeePerGas.toString()
+          })
+        )
+      );
+
+      userOp.signature = await walletClient.signMessage({
+        message: { raw: pseudoUserOpHash }
+      });
+
+      const userOpHash = await sendUserOperation(userOp, entryPoint);
+      const receipt = await waitForUserOperationReceipt(userOpHash);
+      const txHash = receipt?.receipt?.transactionHash;
+      const explorerUrl = txHash ? `https://blockscout-testnet.polkadot.io/tx/${txHash}` : undefined;
+
+      setResult({ userOpHash, txHash, explorerUrl });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to execute sponsor mode flow");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return {
+    executeSponsored,
+    isLoading,
+    error,
+    result
+  };
+}

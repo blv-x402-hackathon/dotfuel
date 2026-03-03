@@ -1,5 +1,5 @@
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
-import { TokenModeFlow } from "@/components/TokenModeFlow";
+import { FlowTabs } from "@/components/FlowTabs";
 import { WalletConnect } from "@/components/WalletConnect";
 
 export default function HomePage() {
@@ -15,7 +15,7 @@ export default function HomePage() {
       <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
         <CounterfactualAddress />
       </section>
-      <TokenModeFlow />
+      <FlowTabs />
     </main>
   );
 }

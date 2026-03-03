@@ -2,35 +2,29 @@
 
 import { useEffect } from "react";
 
-import { useTokenModeUserOp } from "@/hooks/useTokenModeUserOp";
+import type { FlowResult } from "@/components/TokenModeFlow";
+import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
 
-export interface FlowResult {
-  hash?: string;
-  explorerUrl?: string;
-  mode: "token" | "sponsor";
-}
-
-export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) {
-  const { executeTokenMode, isLoading, error, result } = useTokenModeUserOp();
+export function SponsorModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) {
+  const { executeSponsored, isLoading, error, result } = useSponsorModeUserOp();
 
   useEffect(() => {
     if (!result) return;
-    onTx({ mode: "token", hash: result.txHash ?? result.userOpHash, explorerUrl: result.explorerUrl });
+    onTx({ mode: "sponsor", hash: result.txHash ?? result.userOpHash, explorerUrl: result.explorerUrl });
   }, [result, onTx]);
 
   return (
     <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-      <h2 style={{ marginTop: 0 }}>Flow A — Token Mode (0 PAS)</h2>
-      <button disabled={isLoading} onClick={executeTokenMode}>
-        {isLoading ? "Submitting..." : "Pay gas in tUSDT"}
+      <h2 style={{ marginTop: 0 }}>Flow B — Sponsor Mode</h2>
+      <button disabled={isLoading} onClick={executeSponsored}>
+        {isLoading ? "Submitting..." : "Execute Sponsored"}
       </button>
 
       {error ? <p style={{ color: "#b91c1c" }}>{error}</p> : null}
 
       {result ? (
         <div style={{ marginTop: 12, display: "grid", gap: 6 }}>
-          <div>Gas cost: 0 PAS</div>
-          <div>Paid: check TokenGasPaid event on explorer</div>
+          <div>Gas: Sponsored by campaign</div>
           <div>UserOp: {result.userOpHash}</div>
           {result.explorerUrl ? (
             <a href={result.explorerUrl} target="_blank" rel="noreferrer">

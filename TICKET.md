@@ -27,61 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-026: demo-web — Flow B (Sponsor Mode) + UI polish
-
-**Milestone:** M4
-**Effort:** M
-**Depends on:** T-025, T-019
-
-**Goal:**
-스폰서 모드 UserOp 플로우와 UI 개선을 구현한다. Flow A/B 탭 전환, 트랜잭션 히스토리, 로딩 상태 표시를 포함한다.
-
-**Files to create:**
-```
-apps/demo-web/src/
-  components/
-    SponsorModeFlow.tsx
-    TxHistory.tsx
-    LoadingOverlay.tsx
-  hooks/
-    useSponsorModeUserOp.ts
-```
-
-**Scope:**
-Flow B 단계 (PROJECT.md §10 Flow B):
-1. "Execute Sponsored" 버튼 클릭
-2. `POST /v1/quote/sponsor` 호출
-3. `paymasterAndData` 조립
-4. UserOp 빌드 + 서명
-5. `eth_sendUserOperation`
-6. 결과: "Gas: Sponsored by [campaign name] | Tx: [link]"
-
-UI 개선:
-- 탭: "Token Mode" / "Sponsor Mode"
-- 상단: 연결 계정 + counterfactual 주소 + tUSDT 잔고
-- 하단: 트랜잭션 히스토리 (최근 5건)
-- 에러 상태 명확히 표시
-
-**AC:**
-- [ ] Flow B 실행 → tx hash + "Sponsored" 라벨 표시.
-- [ ] 탭 전환 가능.
-- [ ] 에러(bundler 거부, 잔고 부족 등)가 UI에 표시된다.
-- [ ] `pnpm --filter demo-web build` 에러 없음.
-
-**Test command:**
-```bash
-pnpm --filter demo-web build 2>&1 | tail -10
-```
-
-**Commit message:**
-```
-feat(web): implement Flow B sponsor mode and UI polish (tabs, tx history, loading states)
-```
-
----
-
-## M4.5 — TestNet 배포
-
 ### T-027: Polkadot Hub TestNet 전체 배포
 
 **Milestone:** M4.5

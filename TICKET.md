@@ -27,61 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-025: demo-web — Flow A (Token Mode, 0 PAS)
-
-**Milestone:** M4
-**Effort:** L
-**Depends on:** T-024, T-018
-
-**Goal:**
-"Pay gas in tUSDT" 버튼을 클릭하면 전체 토큰 모드 UserOp 플로우를 실행하는 UI를 구현한다. Permit2 서명 → UserOp 빌드 → bundler 전송 → 결과 표시.
-
-**Files to create:**
-```
-apps/demo-web/src/
-  components/
-    TokenModeFlow.tsx
-  hooks/
-    useTokenModeUserOp.ts
-  lib/
-    userOpBuilder.ts       # UserOp 조립 + bundler 전송
-    bundlerClient.ts       # eth_sendUserOperation wrapper
-```
-
-**Scope:**
-UI 단계 (PROJECT.md §10 Flow A):
-1. "Pay gas in tUSDT" 버튼 클릭
-2. `POST /v1/quote/token` 호출 → Permit2 typed data 수신
-3. `walletClient.signTypedData(permit2TypedData)` → permit2Signature
-4. `paymasterAndData` 조립 (permit2Signature 삽입)
-5. `eth_estimateUserOperationGas` 호출
-6. UserOp 서명 (`walletClient.signMessage(userOpHash)`)
-7. `eth_sendUserOperation` 전송
-8. tx hash → Blockscout 링크 표시
-9. 결과: "Gas cost: 0 PAS | Paid: X tUSDT | Tx: [link]"
-
-`userOpBuilder.ts`:
-- `buildTokenModeUserOp(params)` — initCode 포함 여부 자동 판단
-- executeBatch callData 인코딩: `[approve(permit2, max), demoDapp.execute("Hello DotFuel!")]`
-
-**AC:**
-- [ ] MetaMask 연결 + tUSDT 잔고 있는 계정으로 Flow A 실행 → tx hash 수신.
-- [ ] initCode 포함 UserOp (첫 배포)과 미포함 UserOp 모두 작동.
-- [ ] Blockscout 링크가 클릭 가능하고 mined tx를 가리킨다.
-- [ ] PAS 잔고 0인 계정으로 실행 가능.
-
-**Test command:**
-```bash
-pnpm --filter demo-web build 2>&1 | tail -10
-```
-
-**Commit message:**
-```
-feat(web): implement Flow A token mode UserOp (Permit2 sign → bundler submit → Blockscout link)
-```
-
----
-
 ### T-026: demo-web — Flow B (Sponsor Mode) + UI polish
 
 **Milestone:** M4

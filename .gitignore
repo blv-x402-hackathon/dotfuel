@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+out/
+cache/
+broadcast/
+deployments/testnet.json
+.DS_Store
+.idea/

@@ -9,6 +9,7 @@ const envSchema = z.object({
   PAYMASTER_ADDRESS: z.string(),
   PERMIT2_ADDRESS: z.string(),
   QUOTE_SIGNER_PRIVATE_KEY: z.string(),
+  ADMIN_PRIVATE_KEY: z.string().optional(),
   TOKEN_REGISTRY_ADDRESS: z.string(),
   CAMPAIGN_REGISTRY_ADDRESS: z.string(),
   ENTRYPOINT_ADDRESS: z.string(),

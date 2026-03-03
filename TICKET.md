@@ -27,48 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-020: paymaster-api — 캠페인 어드민 엔드포인트
-
-**Milestone:** M3
-**Effort:** M
-**Depends on:** T-017
-
-**Goal:**
-스폰서가 캠페인을 생성/펀딩/허용리스트 설정/조회할 수 있는 어드민 API를 구현한다.
-
-**Files to create:**
-```
-apps/paymaster-api/src/routes/campaign.ts
-apps/paymaster-api/src/services/campaignService.ts
-```
-
-**Scope:**
-- `POST /v1/campaign/create` — CampaignRegistry.createCampaign 트랜잭션 전송
-- `POST /v1/campaign/fund` — CampaignRegistry.fundCampaign + ETH 송금
-- `POST /v1/campaign/allowlist` — allowedTargets 업데이트
-- `GET  /v1/campaign/:id/status` — campaigns[] 상태 + userOpsUsed 조회
-
-모든 변경 트랜잭션은 admin WalletClient로 서명 (`ADMIN_PRIVATE_KEY` env 추가).
-
-**AC:**
-- [ ] `POST /v1/campaign/create` → 트랜잭션 해시 반환.
-- [ ] `GET /v1/campaign/:id/status` → `{ enabled, budget, spent, remainingBudget }`.
-- [ ] admin 키 없이 변경 요청 시 401.
-
-**Test command:**
-```bash
-pnpm --filter paymaster-api build 2>&1 | tail -5
-```
-
-**Commit message:**
-```
-feat(api): add campaign admin endpoints (create, fund, allowlist, status)
-```
-
----
-
-## M3.5 — 인프라
-
 ### T-021: docker-compose (bundler + paymaster-api)
 
 **Milestone:** M3.5

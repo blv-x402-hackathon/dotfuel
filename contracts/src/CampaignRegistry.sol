@@ -21,6 +21,7 @@ contract CampaignRegistry {
     event CampaignCreated(bytes32 indexed campaignId, Campaign cfg);
     event CampaignFunded(bytes32 indexed campaignId, uint256 amount);
     event CampaignDisabled(bytes32 indexed campaignId);
+    event CampaignTargetsUpdated(bytes32 indexed campaignId, address[] allowedTargets);
     event PaymasterSet(address indexed paymaster);
 
     modifier onlyAdmin() {
@@ -76,6 +77,19 @@ contract CampaignRegistry {
         require(c.end != 0, "campaign not found");
         c.enabled = false;
         emit CampaignDisabled(campaignId);
+    }
+
+    function setAllowedTargets(bytes32 campaignId, address[] calldata allowedTargets) external onlyAdmin {
+        Campaign storage c = _campaigns[campaignId];
+        require(c.end != 0, "campaign not found");
+
+        delete c.allowedTargets;
+        uint256 length = allowedTargets.length;
+        for (uint256 i = 0; i < length; i++) {
+            c.allowedTargets.push(allowedTargets[i]);
+        }
+
+        emit CampaignTargetsUpdated(campaignId, allowedTargets);
     }
 
     function isAllowedTarget(bytes32 campaignId, address target) external view returns (bool) {

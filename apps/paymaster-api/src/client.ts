@@ -30,3 +30,11 @@ export const quoteSignerClient = createWalletClient({
   chain: polkadotHubTestnet,
   transport: http(config.RPC_URL_TESTNET)
 });
+
+export const adminClient = config.ADMIN_PRIVATE_KEY
+  ? createWalletClient({
+      account: privateKeyToAccount(config.ADMIN_PRIVATE_KEY as `0x${string}`),
+      chain: polkadotHubTestnet,
+      transport: http(config.RPC_URL_TESTNET)
+    })
+  : null;

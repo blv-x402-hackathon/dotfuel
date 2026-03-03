@@ -959,3 +959,69 @@ test(contracts): add full paymaster test suite (validate, Permit2 digest, postOp
 
 ---
 
+### T-015: Deploy.s.sol — Foundry 배포 스크립트
+
+**Milestone:** M2
+**Effort:** M
+**Depends on:** T-014
+
+**Goal:**
+전체 컨트랙트를 올바른 순서로 배포하는 Foundry script를 작성한다. 배포 후 주소를 `deployments/testnet.json` 에 저장한다.
+
+**Files to create:**
+```
+contracts/script/Deploy.s.sol
+contracts/.env.example              # PRIVATE_KEY, 배포자 주소 추가
+deployments/.gitkeep
+```
+
+**Scope:**
+배포 순서 (의존성 기준):
+1. `EntryPoint` — account-abstraction 라이브러리에서 가져오거나 직접 배포
+2. `Permit2` — 벤더 소스에서 배포 (Hub에 아직 없는 경우) / 이미 배포된 경우 주소만 사용
+3. `TokenRegistry(admin=deployer)`
+4. `CampaignRegistry(admin=deployer, paymaster=TBD)`
+5. `GasStationFactory(entryPoint)`
+6. `GasStationPaymaster(entryPoint, treasury, quoteSigner, permit2, tokenRegistry, campaignRegistry)`
+7. `CampaignRegistry.setPaymaster(paymaster)` — 순환 의존성 해결
+8. `DemoDapp`
+
+스크립트 출력:
+```json
+{
+  "chainId": 420420417,
+  "entryPoint": "0x...",
+  "permit2": "0x...",
+  "tokenRegistry": "0x...",
+  "campaignRegistry": "0x...",
+  "factory": "0x...",
+  "paymaster": "0x...",
+  "demoDapp": "0x...",
+  "deployedAt": "2026-..."
+}
+```
+→ `deployments/testnet.json` 에 기록 (vm.writeJson 사용)
+
+**AC:**
+- [ ] `forge script script/Deploy.s.sol --rpc-url $RPC_URL_TESTNET --broadcast` 로컬 anvil 시뮬레이션 통과.
+- [ ] 배포 순서가 의존성 역순이 아님 (EntryPoint → Permit2 → Registry → Paymaster).
+- [ ] `deployments/testnet.json` 이 올바른 구조로 생성된다.
+- [ ] CampaignRegistry의 paymaster 주소가 배포 후 올바르게 설정된다.
+
+**Test command:**
+```bash
+cd contracts && forge script script/Deploy.s.sol --fork-url http://127.0.0.1:8545 2>&1 | tail -20
+```
+
+**Commit message:**
+```
+feat(contracts): add Deploy.s.sol with ordered deployment and testnet.json output
+```
+
+---
+
+## M3 — Paymaster API
+
+
+---
+

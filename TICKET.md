@@ -27,66 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-021: docker-compose (bundler + paymaster-api)
-
-**Milestone:** M3.5
-**Effort:** M
-**Depends on:** T-017
-
-**Goal:**
-ERC-4337 bundler와 paymaster-api를 단일 `docker-compose up` 으로 실행할 수 있도록 설정한다.
-
-**Files to create:**
-```
-docker/docker-compose.yml
-docker/.env.example
-docker/paymaster-api.Dockerfile
-```
-
-**Scope:**
-`docker-compose.yml`:
-```yaml
-services:
-  bundler:
-    image: stackup/stackup-bundler:latest   # 또는 alto/silius
-    environment:
-      - ERC4337_BUNDLER_ETH_CLIENT_URL=${RPC_URL_TESTNET}
-      - ERC4337_BUNDLER_PRIVATE_KEY=${BUNDLER_PRIVATE_KEY}
-      - ERC4337_BUNDLER_MAX_BATCH_GAS_LIMIT=5000000
-    ports:
-      - "4337:4337"
-
-  paymaster-api:
-    build:
-      context: ..
-      dockerfile: docker/paymaster-api.Dockerfile
-    env_file: .env
-    ports:
-      - "3001:3001"
-    depends_on:
-      - bundler
-```
-
-`docker/.env.example`: bundler private key 추가된 env 템플릿
-
-**AC:**
-- [ ] `docker-compose -f docker/docker-compose.yml up` 가 두 서비스를 모두 시작한다.
-- [ ] bundler가 Hub TestNet RPC에 연결된다.
-- [ ] `curl http://localhost:3001/healthz` → `200 ok`.
-- [ ] bundler의 `eth_supportedEntryPoints` 가 EntryPoint 주소를 반환한다.
-
-**Test command:**
-```bash
-docker-compose -f docker/docker-compose.yml config 2>&1 | tail -5
-```
-
-**Commit message:**
-```
-feat(infra): add docker-compose with ERC-4337 bundler and paymaster-api services
-```
-
----
-
 ### T-022: scripts/bootstrap-assets.ts
 
 **Milestone:** M3.5

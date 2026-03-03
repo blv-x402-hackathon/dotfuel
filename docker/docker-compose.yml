@@ -1,0 +1,21 @@
+services:
+  bundler:
+    image: stackup/stackup-bundler:latest
+    environment:
+      ERC4337_BUNDLER_ETH_CLIENT_URL: ${RPC_URL_TESTNET}
+      ERC4337_BUNDLER_PRIVATE_KEY: ${BUNDLER_PRIVATE_KEY}
+      ERC4337_BUNDLER_MAX_BATCH_GAS_LIMIT: 5000000
+      ERC4337_BUNDLER_ENTRY_POINTS: ${ENTRYPOINT_ADDRESS}
+    ports:
+      - "4337:4337"
+
+  paymaster-api:
+    build:
+      context: ..
+      dockerfile: docker/paymaster-api.Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"
+    depends_on:
+      - bundler

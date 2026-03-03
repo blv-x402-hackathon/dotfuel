@@ -1025,3 +1025,95 @@ feat(contracts): add Deploy.s.sol with ordered deployment and testnet.json outpu
 
 ---
 
+### T-016: packages/shared — ABI + TypeScript 타입 + Permit2 헬퍼
+
+**Milestone:** M3
+**Effort:** M
+**Depends on:** T-014
+
+**Goal:**
+API와 프론트엔드가 공유하는 TypeScript 패키지를 만든다. 컨트랙트 ABI, UserOperation 타입, Permit2 타입드데이터 생성 헬퍼, paymasterAndData 인코딩 함수를 포함한다.
+
+**Files to create:**
+```
+packages/shared/package.json
+packages/shared/tsconfig.json
+packages/shared/src/
+  abis/
+    GasStationPaymaster.abi.json      # forge build 결과에서 추출
+    TokenRegistry.abi.json
+    CampaignRegistry.abi.json
+    GasStationAccount.abi.json
+    GasStationFactory.abi.json
+    DemoDapp.abi.json
+  types.ts                            # PaymasterData, UserOperation TS 타입
+  permit2.ts                          # Permit2 typed data builder
+  paymaster.ts                        # paymasterAndData encoder/decoder
+  userOp.ts                           # UserOperation helper
+  index.ts
+```
+
+**Scope:**
+
+`types.ts`:
+```typescript
+export interface PaymasterData {
+  mode: 1 | 2;
+  validUntil: bigint;
+  signature: Hex;
+  // MODE_SPONSOR
+  campaignId?: Hex;
+  // MODE_TOKEN_PERMIT2
+  token?: Address;
+  maxTokenCharge?: bigint;
+  tokenPerNativeScaled?: bigint;
+  permit2Nonce?: bigint;
+  permit2Deadline?: bigint;
+  permit2Signature?: Hex;
+}
+
+export interface UserOp {
+  sender: Address;
+  nonce: bigint;
+  initCode: Hex;
+  callData: Hex;
+  callGasLimit: bigint;
+  verificationGasLimit: bigint;
+  preVerificationGas: bigint;
+  maxFeePerGas: bigint;
+  maxPriorityFeePerGas: bigint;
+  paymasterAndData: Hex;
+  signature: Hex;
+}
+```
+
+`permit2.ts`:
+- `buildPermit2TypedData(params: {...}): TypedData` — viem 형식 EIP-712 타입드 데이터 반환
+- `buildWitness(params: {...}): Hex` — witness hash 계산 (keccak256)
+- `encodePermit2Signature(sig: Hex): Hex`
+
+`paymaster.ts`:
+- `encodePaymasterAndData(paymasterAddress: Address, data: PaymasterData): Hex`
+- `decodePaymasterAndData(raw: Hex): { paymasterAddress: Address; data: PaymasterData }`
+
+**AC:**
+- [ ] `pnpm --filter @dotfuel/shared build` 에러 없음.
+- [ ] `buildPermit2TypedData` 반환값이 viem `signTypedData` 에 바로 넣을 수 있는 형태.
+- [ ] `encodePaymasterAndData` → `decodePaymasterAndData` 라운드트립이 동일값.
+- [ ] ABI 파일이 `contracts/out/` 에서 올바르게 추출된 것임.
+
+**Test command:**
+```bash
+pnpm --filter @dotfuel/shared build 2>&1 | tail -10
+```
+
+**Commit message:**
+```
+feat(shared): add ABI exports, TypeScript types, and Permit2 typed-data helpers
+```
+
+---
+
+
+---
+

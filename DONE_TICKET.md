@@ -1538,3 +1538,71 @@ feat(scripts): add compute-precompile-address CLI utility
 
 ---
 
+### T-024: demo-web 스캘폴드 (Next.js + viem + wagmi)
+
+**Milestone:** M4
+**Effort:** M
+**Depends on:** T-016
+
+**Goal:**
+demo-web Next.js 앱의 기본 구조를 설정한다. viem/wagmi 설정, Polkadot Hub TestNet 체인 정의, 지갑 연결 UI를 포함한다.
+
+**Files to create:**
+```
+apps/demo-web/package.json
+apps/demo-web/tsconfig.json
+apps/demo-web/next.config.js
+apps/demo-web/src/
+  app/
+    layout.tsx
+    page.tsx
+  lib/
+    chains.ts              # Polkadot Hub TestNet 체인 정의
+    wagmi.ts               # wagmi config
+    paymaster-client.ts    # paymaster API fetch helpers
+  components/
+    WalletConnect.tsx
+    CounterfactualAddress.tsx
+```
+
+**Scope:**
+`chains.ts`:
+```typescript
+export const polkadotHubTestnet = defineChain({
+  id: 420420417,
+  name: "Polkadot Hub TestNet",
+  nativeCurrency: { name: "PAS", symbol: "PAS", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://eth-rpc-testnet.polkadot.io/"] }
+  },
+  blockExplorers: {
+    default: { name: "Blockscout", url: "https://blockscout-testnet.polkadot.io/" }
+  },
+});
+```
+
+`wagmi.ts`: WalletConnect + MetaMask 커넥터 설정
+
+Landing page: "DotFuel — Pay gas with any token" + Connect Wallet 버튼
+
+**AC:**
+- [ ] `pnpm --filter demo-web dev` 실행 → localhost:3000 접근 가능.
+- [ ] MetaMask 연결 → EOA 주소 표시.
+- [ ] 연결된 주소 기반으로 counterfactual smart account 주소 표시 (`GasStationFactory.getAddress`).
+- [ ] 체인 ID가 420420417로 표시된다.
+
+**Test command:**
+```bash
+pnpm --filter demo-web build 2>&1 | tail -10
+```
+
+**Commit message:**
+```
+feat(web): scaffold demo-web with Next.js, viem, wagmi, and Polkadot Hub chain config
+```
+
+---
+
+
+---
+

@@ -27,53 +27,6 @@
 
 ## M0 — 레포 스캘폴드
 
-### T-006: GasStationFactory.sol 구현
-
-**Milestone:** M1
-**Effort:** S
-**Depends on:** T-005
-
-**Goal:**
-CREATE2 기반 카운터팩추얼 스마트 계정 배포 팩토리를 구현한다. 같은 (owner, salt) 쌍에 대해 항상 동일한 주소를 반환하고, 이미 배포된 경우 기존 계정을 반환한다.
-
-**Files to create:**
-```
-contracts/src/GasStationFactory.sol
-```
-
-**Scope:**
-```solidity
-contract GasStationFactory {
-    IEntryPoint public immutable entryPoint;
-
-    // salt = keccak256(abi.encode(owner, userSalt))
-    function getAddress(address owner, uint256 userSalt) public view returns (address);
-    function createAccount(address owner, uint256 userSalt) public returns (GasStationAccount);
-}
-```
-
-구현 상세:
-- `getAddress`: `Create2.computeAddress(salt, keccak256(type(GasStationAccount).creationCode ++ abi.encode(args)))`
-- `createAccount`: 이미 계정이 배포된 경우 기존 주소 반환 (idempotent); `code.length > 0` 체크
-- OpenZeppelin `Create2` 라이브러리 사용 또는 인라인 assembly (단순한 경우)
-
-**AC:**
-- [ ] `getAddress(owner, salt)` 와 실제 `createAccount` 배포 주소가 동일.
-- [ ] 동일 (owner, salt)로 두 번 `createAccount` 호출해도 같은 주소 반환, revert 없음.
-- [ ] 반환된 계정의 `owner` 가 올바른 EOA 주소.
-
-**Test command:**
-```bash
-cd contracts && forge build 2>&1 | grep -E "^error"
-```
-
-**Commit message:**
-```
-feat(contracts): implement GasStationFactory with CREATE2 counterfactual deployment
-```
-
----
-
 ### T-007: GasStationAccount + Factory 유닛 테스트
 
 **Milestone:** M1

@@ -1493,3 +1493,48 @@ feat(scripts): add bootstrap-assets.ts for Assets pallet token creation and Toke
 
 ---
 
+### T-023: scripts/compute-precompile-address.ts
+
+**Milestone:** M3.5
+**Effort:** S
+**Depends on:** T-022
+
+**Goal:**
+assetId를 입력받아 ERC20 precompile 주소를 출력하는 CLI 유틸리티를 추가한다.
+
+**Files to create:**
+```
+scripts/compute-precompile-address.ts
+```
+
+**Scope:**
+```bash
+pnpm --filter scripts compute-precompile-address 1984
+# Output:
+# Asset ID:          1984 (0x7C0)
+# Precompile address: 0x000007C000000000000000000000000001200000
+```
+
+`lib/precompile.ts` 의 `assetIdToPrecompileAddress` 재사용.
+
+**AC:**
+- [ ] `pnpm compute-precompile-address 1984` → 정확한 주소 출력.
+- [ ] 잘못된 입력(음수, 비정수) → 에러 메시지 + exit code 1.
+
+**Test command:**
+```bash
+cd scripts && npx ts-node compute-precompile-address.ts 1984 2>&1
+```
+
+**Commit message:**
+```
+feat(scripts): add compute-precompile-address CLI utility
+```
+
+---
+
+## M4 — demo-web
+
+
+---
+

@@ -636,3 +636,122 @@ feat(contracts): implement DemoDapp as safe allowlisted demo target
 
 ---
 
+### T-011: GasStationPaymaster — 구조체 + EIP-712 도메인 + 상수
+
+**Milestone:** M2
+**Effort:** M
+**Depends on:** T-003, T-004, T-008, T-009
+
+**Goal:**
+GasStationPaymaster의 골격을 작성한다. immutable 변수, `PaymasterData` 구조체, EIP-712 도메인 및 type hash 상수, Permit2 witness 관련 상수를 정의한다. 이 티켓에서는 `validatePaymasterUserOp`/`postOp` 로직은 작성하지 않는다.
+
+**Files to create:**
+```
+contracts/src/GasStationPaymaster.sol
+```
+
+**Scope:**
+```solidity
+contract GasStationPaymaster is IPaymaster {
+    // ── 모드 상수 ──────────────────────────────────────────────────────
+    uint8 constant MODE_SPONSOR       = 1;
+    uint8 constant MODE_TOKEN_PERMIT2 = 2;
+
+    // ── Immutables ─────────────────────────────────────────────────────
+    IEntryPoint      public immutable entryPoint;
+    address          public immutable treasury;
+    address          public immutable quoteSigner;
+    address          public immutable permit2;
+    TokenRegistry    public immutable tokenRegistry;
+    CampaignRegistry public immutable campaignRegistry;
+
+    // ── PaymasterData (paymasterAndData[20:] decode 대상) ──────────────
+    struct PaymasterData {
+        uint8   mode;
+        uint48  validUntil;
+        bytes   signature;        // quoteSigner ECDSA
+
+        // MODE_SPONSOR
+        bytes32 campaignId;
+
+        // MODE_TOKEN_PERMIT2
+        address token;
+        uint256 maxTokenCharge;
+        uint256 tokenPerNativeScaled; // token-smallest per native-smallest × 1e18
+        uint256 permit2Nonce;
+        uint256 permit2Deadline;
+        bytes   permit2Signature;
+    }
+
+    // ── EIP-712 도메인 ─────────────────────────────────────────────────
+    bytes32 private immutable _DOMAIN_SEPARATOR;
+
+    bytes32 constant TOKEN_QUOTE_TYPEHASH = keccak256(
+        "TokenQuote(address sender,bytes32 callDataHash,address token,"
+        "uint48 validUntil,uint256 maxTokenCharge,uint256 tokenPerNativeScaled,"
+        "uint256 permit2Nonce,uint256 permit2Deadline)"
+    );
+
+    bytes32 constant SPONSOR_QUOTE_TYPEHASH = keccak256(
+        "SponsorQuote(address sender,bytes32 callDataHash,bytes32 campaignId,uint48 validUntil)"
+    );
+
+    // ── Permit2 witness 상수 ───────────────────────────────────────────
+    bytes32 constant GAS_STATION_WITNESS_TYPEHASH = keccak256(
+        "GasStationWitness(address sender,bytes32 callDataHash,"
+        "address token,uint256 maxTokenCharge,uint48 validUntil,address treasury)"
+    );
+
+    string constant WITNESS_TYPESTRING =
+        "GasStationWitness witness)"
+        "GasStationWitness(address sender,bytes32 callDataHash,"
+        "address token,uint256 maxTokenCharge,uint48 validUntil,address treasury)"
+        "TokenPermissions(address token,uint256 amount)";
+
+    // ── 안전 상수 ─────────────────────────────────────────────────────
+    uint256 constant MAX_CALLDATA_BYTES = 8192;
+
+    // ── 이벤트 ────────────────────────────────────────────────────────
+    event TokenGasPaid(address indexed sender, address indexed token, uint256 charge, uint256 gasCost);
+    event Sponsored(address indexed sender, bytes32 indexed campaignId, uint256 gasCost);
+
+    constructor(...) { ... }
+
+    // ── 도메인 separator ──────────────────────────────────────────────
+    function _buildDomainSeparator() private view returns (bytes32) { ... }
+    function domainSeparator() external view returns (bytes32) { ... }
+
+    // ── 헬퍼: quote sig 검증 ──────────────────────────────────────────
+    function _verifyTokenQuote(...) internal view { ... }
+    function _verifySponsoorQuote(...) internal view { ... }
+
+    // ── 헬퍼: witness 계산 ────────────────────────────────────────────
+    function _computeWitness(...) internal view returns (bytes32) { ... }
+
+    // 스텁: 다음 티켓에서 구현
+    function validatePaymasterUserOp(...) external override returns (bytes memory, uint256) { revert("not implemented"); }
+    function postOp(...) external override { revert("not implemented"); }
+}
+```
+
+**AC:**
+- [ ] `forge build` 에러 없음.
+- [ ] `TOKEN_QUOTE_TYPEHASH` 값이 PROJECT.md 스펙과 일치 (테스트로 확인).
+- [ ] `GAS_STATION_WITNESS_TYPEHASH` 값이 PROJECT.md 스펙과 일치.
+- [ ] EIP-712 도메인의 `name="GasStationPaymaster"`, `version="1"`, `chainId=block.chainid`, `verifyingContract=address(this)`.
+
+**Test command:**
+```bash
+cd contracts && forge build 2>&1 | grep -E "^error"
+```
+
+**Commit message:**
+```
+feat(contracts): add GasStationPaymaster skeleton with EIP-712 domain and type hashes
+```
+
+---
+
+
+---
+

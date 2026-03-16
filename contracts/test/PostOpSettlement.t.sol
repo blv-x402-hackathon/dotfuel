@@ -104,7 +104,7 @@ contract PostOpSettlementTest is Test {
             callDataHash: callDataHash,
             validUntil: validUntil
         });
-        bytes memory context = abi.encode(ctx);
+        bytes memory context = abi.encodePacked(bytes1(uint8(2)), abi.encode(ctx));
 
         entryPoint.callPostOp(paymaster, context, 100);
 
@@ -150,6 +150,6 @@ contract PostOpSettlementTest is Test {
             callDataHash: callDataHash,
             validUntil: validUntil
         });
-        return abi.encode(ctx);
+        return abi.encodePacked(bytes1(uint8(2)), abi.encode(ctx));
     }
 }

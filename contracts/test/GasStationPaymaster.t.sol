@@ -171,7 +171,8 @@ contract GasStationPaymasterTest is Test {
 
         (bytes memory context, uint256 validationData) = entryPoint.callValidate(paymaster, userOp, 1 ether);
 
-        (uint8 mode, bytes32 gotCampaignId, address sender) = abi.decode(context, (uint8, bytes32, address));
+        (uint8 mode, bytes32 gotCampaignId, address sender) =
+            abi.decode(_stripModePrefix(context), (uint8, bytes32, address));
         assertEq(mode, 1);
         assertEq(gotCampaignId, campaignId);
         assertEq(sender, address(senderAccount));
@@ -370,5 +371,12 @@ contract GasStationPaymasterTest is Test {
         bytes32 malleableS = bytes32(SECP256K1N - uint256(s));
         uint8 malleableV = v == 27 ? 28 : 27;
         return abi.encodePacked(r, malleableS, malleableV);
+    }
+
+    function _stripModePrefix(bytes memory value) internal pure returns (bytes memory stripped) {
+        stripped = new bytes(value.length - 1);
+        for (uint256 i = 1; i < value.length; i++) {
+            stripped[i - 1] = value[i];
+        }
     }
 }

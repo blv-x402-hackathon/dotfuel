@@ -217,19 +217,9 @@ contract GasStationPaymaster is IPaymaster {
     }
 
     function postOp(PostOpMode, bytes calldata context, uint256 actualGasCost) external override onlyEntryPoint {
-        uint256 head;
-        assembly {
-            head := calldataload(context.offset)
-        }
+        require(context.length >= 1, "invalid context");
 
-        uint8 mode;
-        if (head == 0x20 && context.length >= 64) {
-            assembly {
-                mode := calldataload(add(context.offset, 0x20))
-            }
-        } else {
-            mode = uint8(head);
-        }
+        uint8 mode = uint8(bytes1(context[0]));
         if (mode == MODE_TOKEN_PERMIT2) {
             _postOpTokenMode(context, actualGasCost);
             return;
@@ -282,7 +272,7 @@ contract GasStationPaymaster is IPaymaster {
             validUntil: data.validUntil
         });
 
-        context = abi.encode(ctx);
+        context = abi.encodePacked(bytes1(MODE_TOKEN_PERMIT2), abi.encode(ctx));
         validationData = _packValidationData(0, data.validUntil, 0);
     }
 
@@ -310,7 +300,7 @@ contract GasStationPaymaster is IPaymaster {
 
         SponsorPostOpContext memory ctx =
             SponsorPostOpContext({mode: MODE_SPONSOR, campaignId: data.campaignId, sender: userOp.sender});
-        context = abi.encode(ctx);
+        context = abi.encodePacked(bytes1(MODE_SPONSOR), abi.encode(ctx));
         validationData = _packValidationData(0, data.validUntil, 0);
     }
 
@@ -324,7 +314,7 @@ contract GasStationPaymaster is IPaymaster {
     }
 
     function _postOpTokenMode(bytes calldata context, uint256 actualGasCost) internal {
-        TokenPostOpContext memory ctx = abi.decode(context, (TokenPostOpContext));
+        TokenPostOpContext memory ctx = abi.decode(context[1:], (TokenPostOpContext));
         (, , uint16 markupBps,,) = tokenRegistry.tokenConfig(ctx.token);
 
         uint256 raw = (actualGasCost * ctx.tokenPerNativeScaled + 1e18 - 1) / 1e18;
@@ -353,7 +343,7 @@ contract GasStationPaymaster is IPaymaster {
     }
 
     function _postOpSponsorMode(bytes calldata context, uint256 actualGasCost) internal {
-        SponsorPostOpContext memory ctx = abi.decode(context, (SponsorPostOpContext));
+        SponsorPostOpContext memory ctx = abi.decode(context[1:], (SponsorPostOpContext));
         campaignRegistry.recordUsage(ctx.campaignId, ctx.sender, actualGasCost);
         emit Sponsored(ctx.sender, ctx.campaignId, actualGasCost);
     }

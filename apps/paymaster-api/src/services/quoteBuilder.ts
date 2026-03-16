@@ -130,6 +130,7 @@ export async function buildTokenQuote(req: TokenQuoteRequest) {
   const permit2Deadline = validUntil;
 
   const callDataHash = keccak256(callData);
+  const validUntilValue = validUntil as unknown as number;
 
   const paymasterSignature = await quoteSignerClient.signTypedData({
     account: quoteSignerClient.account,
@@ -145,7 +146,7 @@ export async function buildTokenQuote(req: TokenQuoteRequest) {
       sender,
       callDataHash,
       token: tokenAddress,
-      validUntil: Number(validUntil),
+      validUntil: validUntilValue,
       maxTokenCharge,
       tokenPerNativeScaled,
       permit2Nonce,
@@ -175,7 +176,7 @@ export async function buildTokenQuote(req: TokenQuoteRequest) {
         callDataHash,
         token: tokenAddress,
         maxTokenCharge,
-        validUntil: Number(validUntil),
+        validUntil: validUntilValue,
         treasury: getAddress(config.TREASURY_ADDRESS)
       }
     }
@@ -235,7 +236,7 @@ function encodePaymasterAndData(paymasterAddress: Address, data: {
 }): Hex {
   const tuple = {
     mode: data.mode,
-    validUntil: Number(data.validUntil),
+    validUntil: data.validUntil as unknown as number,
     signature: data.signature,
     campaignId: data.campaignId ?? keccak256(toHex("campaign-default")),
     token: data.token ?? getAddress("0x0000000000000000000000000000000000000000"),

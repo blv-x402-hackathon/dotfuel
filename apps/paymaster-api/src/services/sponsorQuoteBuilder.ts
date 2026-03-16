@@ -71,6 +71,7 @@ export async function buildSponsorQuote(req: SponsorQuoteRequest) {
 
   const validUntil = minBigInt(now + BigInt(config.QUOTE_TTL_SECONDS), BigInt(end));
   const callDataHash = keccak256(callData);
+  const validUntilValue = validUntil as unknown as number;
 
   const paymasterSignature = await quoteSignerClient.signTypedData({
     account: quoteSignerClient.account,
@@ -86,7 +87,7 @@ export async function buildSponsorQuote(req: SponsorQuoteRequest) {
       sender,
       callDataHash,
       campaignId,
-      validUntil: Number(validUntil)
+      validUntil: validUntilValue
     }
   });
 
@@ -127,7 +128,7 @@ function encodePaymasterAndData(paymasterAddress: `0x${string}`, data: {
 }): Hex {
   const tuple = {
     mode: data.mode,
-    validUntil: Number(data.validUntil),
+    validUntil: data.validUntil as unknown as number,
     signature: data.signature,
     campaignId: data.campaignId ?? keccak256("0x00"),
     token: data.token ?? getAddress("0x0000000000000000000000000000000000000000"),

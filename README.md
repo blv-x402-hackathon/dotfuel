@@ -171,6 +171,68 @@ UI shows:
   Tx: [Blockscout link]
 ```
 
+## Sequence Diagrams
+
+### Flow A — Token Mode
+
+```mermaid
+sequenceDiagram
+    participant U as User EOA
+    participant W as demo-web
+    participant API as paymaster-api
+    participant B as Bundler
+    participant EP as EntryPoint
+    participant A as GasStationAccount
+    participant P as GasStationPaymaster
+    participant D as DemoDapp
+    participant PM as Permit2
+
+    U->>W: Click "Pay gas in tUSDT"
+    W->>API: POST /v1/quote/token
+    API-->>W: paymaster quote + Permit2 typed data
+    U->>W: Sign Permit2 witness + UserOp hash
+    W->>B: eth_sendUserOperation
+    B->>EP: handleOps(userOp)
+    EP->>P: validatePaymasterUserOp
+    P-->>EP: context + validationData
+    EP->>A: validateUserOp
+    EP->>A: executeBatch([approve, demo call])
+    A->>D: execute("Hello DotFuel!")
+    EP->>P: postOp(actualGasCost)
+    P->>PM: permitWitnessTransferFrom
+    PM-->>P: transfer tUSDT to treasury
+```
+
+### Flow B — Sponsor Mode
+
+```mermaid
+sequenceDiagram
+    participant U as User EOA
+    participant W as demo-web
+    participant API as paymaster-api
+    participant B as Bundler
+    participant EP as EntryPoint
+    participant A as GasStationAccount
+    participant P as GasStationPaymaster
+    participant C as CampaignRegistry
+    participant D as DemoDapp
+
+    U->>W: Click "Execute Sponsored"
+    W->>API: POST /v1/quote/sponsor
+    API-->>W: sponsor quote + paymasterAndData
+    U->>W: Sign UserOp hash
+    W->>B: eth_sendUserOperation
+    B->>EP: handleOps(userOp)
+    EP->>P: validatePaymasterUserOp
+    P->>C: read campaign budget + allowlist
+    P-->>EP: context + validationData
+    EP->>A: validateUserOp
+    EP->>A: executeBatch([demo call])
+    A->>D: execute("Hello DotFuel!")
+    EP->>P: postOp(actualGasCost)
+    P->>C: recordUsage(campaignId, sender, gasCost)
+```
+
 ---
 
 ## Quick Start

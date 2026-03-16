@@ -329,6 +329,14 @@ Polkadot Hub's ERC20 precompile for Assets pallet tokens doesn't expose `decimal
 
 ---
 
+## Known Limitations
+
+- **Centralized token pricing:** token-mode quotes are signed by the paymaster API instead of sourced from an on-chain oracle. That is a deliberate tradeoff to keep ERC-4337 validation deterministic and simulation-safe during the hackathon scope.
+- **Sponsor budget race window:** sponsor-mode validation can only read campaign budget during `validatePaymasterUserOp`; the final spend is recorded in `postOp`. Concurrent UserOps can therefore pass validation against the same remaining budget before settlement closes the gap.
+- **Single bundler path:** the reference deployment assumes one bundler and no explicit MEV protection or failover. That is acceptable for demo reliability, but production rollout would need redundancy and mempool hardening.
+
+---
+
 ## License
 
 MIT

@@ -44,8 +44,13 @@ export function CounterfactualAddress() {
   }, [address, publicClient]);
 
   return (
-    <div>
-      <strong>Counterfactual:</strong> {counterfactual}
-    </div>
+    <section className="card">
+      <h2 className="card-title">Smart Account</h2>
+      <p className="card-subtitle">Counterfactual address derived from the GasStationFactory on sender salt `0`.</p>
+      <div className="address-line" style={{ marginTop: 16 }}>
+        <span className="label">Counterfactual Address</span>
+        <span className={counterfactual.startsWith("0x") ? "value" : "value value--danger"}>{counterfactual}</span>
+      </div>
+    </section>
   );
 }

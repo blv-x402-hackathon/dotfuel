@@ -4,18 +4,37 @@ import { WalletConnect } from "@/components/WalletConnect";
 
 export default function HomePage() {
   return (
-    <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 16px", display: "grid", gap: 20 }}>
-      <h1 style={{ margin: 0 }}>DotFuel — Pay gas with any token</h1>
-      <p style={{ margin: 0, color: "#334155" }}>
-        Polkadot Hub TestNet (Chain ID: 420420417)
-      </p>
-      <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-        <WalletConnect />
+    <main className="page-shell">
+      <section className="hero">
+        <div className="hero-eyebrow">Polkadot Hub TestNet • Chain ID 420420417</div>
+        <h1 className="hero-title">DotFuel</h1>
+        <p className="hero-copy">
+          Show the exact hackathon moment that matters: a wallet holding zero native gas still lands a UserOperation,
+          settles in token mode, or rides a sponsor campaign without friction.
+        </p>
+        <div className="stat-grid">
+          <div className="stat">
+            <span className="stat-label">Primary Claim</span>
+            <span className="stat-value">0 PAS</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">Settlement</span>
+            <span className="stat-value">Permit2</span>
+          </div>
+          <div className="stat">
+            <span className="stat-label">Modes</span>
+            <span className="stat-value">Token + Sponsor</span>
+          </div>
+        </div>
       </section>
-      <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-        <CounterfactualAddress />
+
+      <section className="section-grid">
+        <div className="stack">
+          <WalletConnect />
+          <CounterfactualAddress />
+        </div>
+        <FlowTabs />
       </section>
-      <FlowTabs />
     </main>
   );
 }

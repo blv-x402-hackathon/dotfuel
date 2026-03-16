@@ -9,17 +9,18 @@ export interface TxHistoryItem {
 
 export function TxHistory({ items }: { items: TxHistoryItem[] }) {
   return (
-    <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-      <h3 style={{ marginTop: 0 }}>Recent Transactions</h3>
-      {items.length === 0 ? <p style={{ margin: 0 }}>No transactions yet.</p> : null}
-      <ul style={{ margin: 0, paddingLeft: 16, display: "grid", gap: 6 }}>
+    <section className="card">
+      <h3 className="card-title">Recent Transactions</h3>
+      <p className="card-subtitle">Keep the latest demo steps visible for judges during repeat runs.</p>
+      {items.length === 0 ? <p className="card-subtitle" style={{ marginTop: 16 }}>No transactions yet.</p> : null}
+      <ul className="history-list" style={{ marginTop: 16 }}>
         {items.map((item, idx) => (
-          <li key={`${item.createdAt}-${idx}`}>
+          <li className="history-item" key={`${item.createdAt}-${idx}`}>
             <strong>{item.mode === "token" ? "Token Mode" : "Sponsor Mode"}</strong>
             {item.explorerUrl ? (
               <>
                 {" "}
-                <a href={item.explorerUrl} target="_blank" rel="noreferrer">
+                <a className="inline-link" href={item.explorerUrl} target="_blank" rel="noreferrer">
                   {item.hash ?? "View Tx"}
                 </a>
               </>

@@ -14,20 +14,23 @@ export function SponsorModeFlow({ onTx }: { onTx: (result: FlowResult) => void }
   }, [result, onTx]);
 
   return (
-    <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-      <h2 style={{ marginTop: 0 }}>Flow B — Sponsor Mode</h2>
-      <button disabled={isLoading} onClick={executeSponsored}>
+    <section className="card">
+      <h2 className="card-title">Flow B — Sponsor Mode</h2>
+      <p className="card-subtitle">Use a live campaign budget to sponsor the same DemoDapp action without token spend.</p>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <button className="button" disabled={isLoading} onClick={executeSponsored}>
         {isLoading ? "Submitting..." : "Execute Sponsored"}
-      </button>
+        </button>
+      </div>
 
-      {error ? <p style={{ color: "#b91c1c" }}>{error}</p> : null}
+      {error ? <div className="feedback">{error}</div> : null}
 
       {result ? (
-        <div style={{ marginTop: 12, display: "grid", gap: 6 }}>
+        <div className="feedback feedback--success">
           <div>Gas: Sponsored by campaign</div>
           <div>UserOp: {result.userOpHash}</div>
           {result.explorerUrl ? (
-            <a href={result.explorerUrl} target="_blank" rel="noreferrer">
+            <a className="inline-link" href={result.explorerUrl} target="_blank" rel="noreferrer">
               Blockscout Tx
             </a>
           ) : (

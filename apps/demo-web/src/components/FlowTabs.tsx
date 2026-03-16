@@ -33,20 +33,17 @@ export function FlowTabs() {
   }, [tab]);
 
   return (
-    <div style={{ display: "grid", gap: 12 }}>
-      <div style={{ display: "flex", gap: 8 }}>
+    <div className="stack">
+      <div className="tab-bar">
         <button
+          className={`tab-button ${tab === "token" ? "tab-button--active" : ""}`}
           onClick={() => setTab("token")}
-          style={{ background: tab === "token" ? "#0f172a" : "#e2e8f0", color: tab === "token" ? "#fff" : "#111" }}
         >
           Token Mode
         </button>
         <button
+          className={`tab-button ${tab === "sponsor" ? "tab-button--active" : ""}`}
           onClick={() => setTab("sponsor")}
-          style={{
-            background: tab === "sponsor" ? "#0f172a" : "#e2e8f0",
-            color: tab === "sponsor" ? "#fff" : "#111"
-          }}
         >
           Sponsor Mode
         </button>

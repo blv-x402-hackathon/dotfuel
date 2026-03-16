@@ -19,21 +19,24 @@ export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) 
   }, [result, onTx]);
 
   return (
-    <section style={{ padding: 16, background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-      <h2 style={{ marginTop: 0 }}>Flow A — Token Mode (0 PAS)</h2>
-      <button disabled={isLoading} onClick={executeTokenMode}>
+    <section className="card">
+      <h2 className="card-title">Flow A — Token Mode</h2>
+      <p className="card-subtitle">Approve Permit2, call DemoDapp, and settle gas in tUSDT with zero PAS on hand.</p>
+      <div className="button-row" style={{ marginTop: 16 }}>
+        <button className="button button--accent" disabled={isLoading} onClick={executeTokenMode}>
         {isLoading ? "Submitting..." : "Pay gas in tUSDT"}
-      </button>
+        </button>
+      </div>
 
-      {error ? <p style={{ color: "#b91c1c" }}>{error}</p> : null}
+      {error ? <div className="feedback">{error}</div> : null}
 
       {result ? (
-        <div style={{ marginTop: 12, display: "grid", gap: 6 }}>
+        <div className="feedback feedback--success">
           <div>Gas cost: 0 PAS</div>
           <div>Paid: check TokenGasPaid event on explorer</div>
           <div>UserOp: {result.userOpHash}</div>
           {result.explorerUrl ? (
-            <a href={result.explorerUrl} target="_blank" rel="noreferrer">
+            <a className="inline-link" href={result.explorerUrl} target="_blank" rel="noreferrer">
               Blockscout Tx
             </a>
           ) : (

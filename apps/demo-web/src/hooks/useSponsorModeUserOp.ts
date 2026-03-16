@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { getAddress, hexToBigInt, keccak256, toBytes } from "viem";
-import { useAccount, useWalletClient } from "wagmi";
+import { getAddress, hexToBigInt } from "viem";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { fetchSponsorQuote } from "@/lib/paymaster-client";
 import {
@@ -10,6 +10,7 @@ import {
   sendUserOperation,
   waitForUserOperationReceipt
 } from "@/lib/bundlerClient";
+import { getUserOperationHash } from "@/lib/entryPointClient";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
 interface SponsorResult {
@@ -21,13 +22,14 @@ interface SponsorResult {
 export function useSponsorModeUserOp() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SponsorResult | null>(null);
 
   async function executeSponsored() {
-    if (!address || !walletClient) {
+    if (!address || !walletClient || !publicClient) {
       setError("Wallet not connected");
       return;
     }
@@ -80,30 +82,17 @@ export function useSponsorModeUserOp() {
         preVerificationGas: hexToBigInt(gasEstimate.preVerificationGas)
       };
 
-      const pseudoUserOpHash = keccak256(
-        toBytes(
-          JSON.stringify({
-            ...userOp,
-            nonce: userOp.nonce.toString(),
-            callGasLimit: userOp.callGasLimit.toString(),
-            verificationGasLimit: userOp.verificationGasLimit.toString(),
-            preVerificationGas: userOp.preVerificationGas.toString(),
-            maxFeePerGas: userOp.maxFeePerGas.toString(),
-            maxPriorityFeePerGas: userOp.maxPriorityFeePerGas.toString()
-          })
-        )
-      );
-
+      const userOpHash = await getUserOperationHash(publicClient, entryPoint, userOp);
       userOp.signature = await walletClient.signMessage({
-        message: { raw: pseudoUserOpHash }
+        message: { raw: userOpHash }
       });
 
-      const userOpHash = await sendUserOperation(userOp, entryPoint);
-      const receipt = await waitForUserOperationReceipt(userOpHash);
+      const submittedUserOpHash = await sendUserOperation(userOp, entryPoint);
+      const receipt = await waitForUserOperationReceipt(submittedUserOpHash);
       const txHash = receipt?.receipt?.transactionHash;
       const explorerUrl = txHash ? `https://blockscout-testnet.polkadot.io/tx/${txHash}` : undefined;
 
-      setResult({ userOpHash, txHash, explorerUrl });
+      setResult({ userOpHash: submittedUserOpHash, txHash, explorerUrl });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to execute sponsor mode flow");
     } finally {

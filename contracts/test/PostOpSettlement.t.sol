@@ -130,6 +130,26 @@ contract PostOpSettlementTest is Test {
         assertEq(permit2.lastWitness(), expectedWitness);
     }
 
+    function testFuzz_tokenChargeCeiling(uint256 actualGasCost, uint256 tokenPerNativeScaled, uint256 maxTokenCharge)
+        public
+    {
+        actualGasCost = bound(actualGasCost, 1, 1e24);
+        tokenPerNativeScaled = bound(tokenPerNativeScaled, 1, 1e24);
+        maxTokenCharge = bound(maxTokenCharge, 1, type(uint128).max);
+
+        bytes memory context = _tokenContext(
+            maxTokenCharge,
+            tokenPerNativeScaled,
+            999,
+            block.timestamp + 7200,
+            keccak256("fuzz"),
+            uint48(block.timestamp + 1000)
+        );
+
+        entryPoint.callPostOp(paymaster, context, actualGasCost);
+        assertLe(permit2.lastRequestedAmount(), maxTokenCharge);
+    }
+
     function _tokenContext(
         uint256 maxTokenCharge,
         uint256 tokenPerNativeScaled,

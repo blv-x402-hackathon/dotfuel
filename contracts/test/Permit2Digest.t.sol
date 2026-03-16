@@ -140,6 +140,36 @@ contract Permit2DigestTest is Test {
         assertTrue(d1 != d2);
     }
 
+    function testFuzz_permit2DigestDeterministic(
+        uint256 nonce,
+        uint256 deadline,
+        uint256 maxTokenCharge,
+        uint48 validUntil,
+        bytes32 callDataHash
+    ) public {
+        nonce = bound(nonce, 1, type(uint64).max);
+        deadline = bound(deadline, block.timestamp + 1, type(uint48).max);
+        maxTokenCharge = bound(maxTokenCharge, 1, type(uint128).max);
+        validUntil = uint48(bound(uint256(validUntil), block.timestamp + 1, type(uint48).max));
+
+        GasStationPaymaster.PaymasterData memory data;
+        data.mode = 2;
+        data.validUntil = validUntil;
+        data.token = address(token);
+        data.maxTokenCharge = maxTokenCharge;
+        data.tokenPerNativeScaled = 2e18;
+        data.permit2Nonce = nonce;
+        data.permit2Deadline = deadline;
+
+        bytes32 witness =
+            paymaster.exposedComputeWitness(sender, callDataHash, data.token, data.maxTokenCharge, data.validUntil);
+
+        bytes32 digest1 = paymaster.exposedComputePermit2Digest(data, witness);
+        bytes32 digest2 = paymaster.exposedComputePermit2Digest(data, witness);
+
+        assertEq(digest1, digest2);
+    }
+
     function _data(uint256 nonce) internal view returns (GasStationPaymaster.PaymasterData memory data) {
         data.mode = 2;
         data.validUntil = uint48(block.timestamp + 300);

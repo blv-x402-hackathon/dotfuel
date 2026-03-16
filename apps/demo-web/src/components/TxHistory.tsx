@@ -1,9 +1,13 @@
 "use client";
 
+import type { FlowResult } from "@/lib/flowResults";
+
 export interface TxHistoryItem {
   mode: "token" | "sponsor";
   hash?: string;
   explorerUrl?: string;
+  gasCostLabel: FlowResult["gasCostLabel"];
+  settlementLabel: FlowResult["settlementLabel"];
   createdAt: number;
 }
 
@@ -17,6 +21,8 @@ export function TxHistory({ items }: { items: TxHistoryItem[] }) {
         {items.map((item, idx) => (
           <li className="history-item" key={`${item.createdAt}-${idx}`}>
             <strong>{item.mode === "token" ? "Token Mode" : "Sponsor Mode"}</strong>
+            <span>{item.gasCostLabel}</span>
+            <span>{item.settlementLabel}</span>
             {item.explorerUrl ? (
               <>
                 {" "}

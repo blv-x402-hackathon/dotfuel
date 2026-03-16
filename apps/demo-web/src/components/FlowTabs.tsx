@@ -5,8 +5,9 @@ import { useMemo, useState } from "react";
 import { BalancePanel } from "@/components/BalancePanel";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { SponsorModeFlow } from "@/components/SponsorModeFlow";
-import { type FlowResult, TokenModeFlow } from "@/components/TokenModeFlow";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
+import { TokenModeFlow } from "@/components/TokenModeFlow";
+import { type FlowResult } from "@/lib/flowResults";
 
 export function FlowTabs() {
   const [tab, setTab] = useState<"token" | "sponsor">("token");
@@ -22,6 +23,8 @@ export function FlowTabs() {
         mode: result.mode,
         hash: result.hash,
         explorerUrl: result.explorerUrl,
+        gasCostLabel: result.gasCostLabel,
+        settlementLabel: result.settlementLabel,
         createdAt: Date.now()
       },
       ...prev

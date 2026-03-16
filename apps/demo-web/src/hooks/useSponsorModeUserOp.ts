@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { getAddress, hexToBigInt } from "viem";
+import { GasStationPaymasterAbi } from "@dotfuel/shared";
+import { decodeEventLog, getAddress, hexToBigInt } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { fetchSponsorQuote } from "@/lib/paymaster-client";
@@ -11,14 +12,9 @@ import {
   waitForUserOperationReceipt
 } from "@/lib/bundlerClient";
 import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
+import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
-
-interface SponsorResult {
-  userOpHash: string;
-  txHash?: string;
-  explorerUrl?: string;
-}
 
 export function useSponsorModeUserOp() {
   const { address } = useAccount();
@@ -27,7 +23,7 @@ export function useSponsorModeUserOp() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<SponsorResult | null>(null);
+  const [result, setResult] = useState<FlowResult | null>(null);
 
   async function executeSponsored() {
     if (!address || !walletClient || !publicClient) {
@@ -46,6 +42,8 @@ export function useSponsorModeUserOp() {
 
       const sender = getAddress((process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}`) || address);
       const initCode = (process.env.NEXT_PUBLIC_ACCOUNT_INIT_CODE as `0x${string}` | undefined) ?? "0x";
+      const senderCode = await publicClient.getCode({ address: sender });
+      const requiresDeployment = !senderCode || senderCode === "0x";
 
       const callData = encodeExecuteBatch([
         {
@@ -99,8 +97,62 @@ export function useSponsorModeUserOp() {
       const receipt = await waitForUserOperationReceipt(submittedUserOpHash);
       const txHash = receipt?.receipt?.transactionHash;
       const explorerUrl = txHash ? `https://blockscout-testnet.polkadot.io/tx/${txHash}` : undefined;
+      let gasCost = (
+        userOp.callGasLimit + userOp.verificationGasLimit + userOp.preVerificationGas
+      ) * userOp.maxFeePerGas;
 
-      setResult({ userOpHash: submittedUserOpHash, txHash, explorerUrl });
+      if (txHash) {
+        const txReceipt = await publicClient.getTransactionReceipt({ hash: txHash });
+
+        for (const log of txReceipt.logs) {
+          try {
+            const decoded = decodeEventLog({
+              abi: GasStationPaymasterAbi,
+              data: log.data,
+              topics: log.topics
+            });
+            const args = decoded.args as { gasCost: bigint } | undefined;
+
+            if (decoded.eventName === "Sponsored" && args) {
+              gasCost = args.gasCost;
+              break;
+            }
+          } catch {}
+        }
+      }
+
+      const gasCostLabel = `${formatAmount(gasCost, 18, 6)} PAS`;
+      setResult({
+        mode: "sponsor",
+        hash: txHash ?? submittedUserOpHash,
+        userOpHash: submittedUserOpHash,
+        txHash,
+        explorerUrl,
+        gasCostLabel,
+        settlementLabel: txHash ? `Campaign ${campaignId.slice(0, 10)}... paid the gas` : "Waiting for sponsor settlement",
+        timeline: [
+          {
+            title: requiresDeployment ? "Account deployed" : "Account already live",
+            detail: sender,
+            status: "done"
+          },
+          {
+            title: "Sponsor quote attached",
+            detail: `Campaign ${campaignId.slice(0, 10)}... signed by the paymaster API.`,
+            status: "done"
+          },
+          {
+            title: "DemoDapp called",
+            detail: "The same smart account action executed without token spend.",
+            status: "done"
+          },
+          {
+            title: "Campaign settled gas",
+            detail: txHash ? `${gasCostLabel} charged against the campaign budget.` : "Bundler receipt still pending.",
+            status: txHash ? "done" : "pending"
+          }
+        ]
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to execute sponsor mode flow");
     } finally {

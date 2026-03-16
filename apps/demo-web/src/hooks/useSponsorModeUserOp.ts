@@ -10,7 +10,7 @@ import {
   sendUserOperation,
   waitForUserOperationReceipt
 } from "@/lib/bundlerClient";
-import { getUserOperationHash } from "@/lib/entryPointClient";
+import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
@@ -55,9 +55,11 @@ export function useSponsorModeUserOp() {
         }
       ]);
       const gasFees = await getUserOpGasFees(publicClient);
+      const nonce = await getAccountNonce(publicClient, entryPoint, sender);
 
       let userOp = buildTokenModeUserOp({
         sender,
+        nonce,
         initCode,
         callData,
         paymasterAndData: "0x"

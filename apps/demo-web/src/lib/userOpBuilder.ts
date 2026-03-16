@@ -55,13 +55,14 @@ export function encodeExecuteBatch(calls: BatchCall[]): Hex {
 
 export function buildTokenModeUserOp(params: {
   sender: Address;
+  nonce?: bigint;
   initCode?: Hex;
   callData: Hex;
   paymasterAndData: Hex;
 }): UserOp {
   return {
     sender: params.sender,
-    nonce: 0n,
+    nonce: params.nonce ?? 0n,
     initCode: params.initCode ?? "0x",
     callData: params.callData,
     callGasLimit: 0n,

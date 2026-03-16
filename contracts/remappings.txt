@@ -1,3 +1,4 @@
 @account-abstraction/=lib/account-abstraction/
 @permit2/=vendor/permit2/
-solmate/=lib/solmate/src/
+@openzeppelin/=lib/openzeppelin-contracts/
+solmate/=lib/solmate/

@@ -4,5 +4,14 @@
       "name": "v0.9.0",
       "rev": "b36a1ed52ae00da6f8a4c8d50181e2877e4fa410"
     }
+  },
+  "lib/openzeppelin-contracts": {
+    "tag": {
+      "name": "v4.9.6",
+      "rev": "dc44c9f1a4c3b10af99492eed84f83ed244203f6"
+    }
+  },
+  "lib/solmate": {
+    "rev": "89365b880c4f3c786bdd453d4b8e8fe410344a69"
   }
 }

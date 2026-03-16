@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import {EntryPoint} from "@account-abstraction/contracts/core/EntryPoint.sol";
 import {Script} from "forge-std/Script.sol";
 
 import {CampaignRegistry} from "../src/CampaignRegistry.sol";
 import {DemoDapp} from "../src/DemoDapp.sol";
-import {EntryPointMock} from "../src/EntryPointMock.sol";
 import {GasStationFactory} from "../src/GasStationFactory.sol";
 import {GasStationPaymaster} from "../src/GasStationPaymaster.sol";
-import {Permit2Mock} from "../src/Permit2Mock.sol";
+import {IEntryPoint} from "../src/interfaces/IEntryPoint.sol";
+import {Permit2} from "../src/Permit2.sol";
 import {TokenRegistry} from "../src/TokenRegistry.sol";
 
 contract DeployScript is Script {
@@ -28,17 +29,22 @@ contract DeployScript is Script {
         uint256 privateKey = vm.envUint("PRIVATE_KEY");
         address treasury = vm.envAddress("TREASURY_ADDRESS");
         address quoteSigner = vm.envAddress("QUOTE_SIGNER_ADDRESS");
+        address existingEntryPoint = vm.envOr("ENTRYPOINT_ADDRESS", address(0));
         address existingPermit2 = vm.envOr("PERMIT2_ADDRESS", address(0));
 
         vm.startBroadcast(privateKey);
 
-        EntryPointMock entryPoint = new EntryPointMock();
+        address entryPointAddress = existingEntryPoint;
+        if (entryPointAddress == address(0)) {
+            entryPointAddress = address(new EntryPoint());
+        }
 
         address permit2Address = existingPermit2;
         if (permit2Address == address(0)) {
-            permit2Address = address(new Permit2Mock());
+            permit2Address = address(new Permit2());
         }
 
+        IEntryPoint entryPoint = IEntryPoint(entryPointAddress);
         address deployer = vm.addr(privateKey);
         TokenRegistry tokenRegistry = new TokenRegistry(deployer);
         CampaignRegistry campaignRegistry = new CampaignRegistry(deployer);
@@ -62,7 +68,7 @@ contract DeployScript is Script {
 
         deployed = Deployment({
             chainId: block.chainid,
-            entryPoint: address(entryPoint),
+            entryPoint: entryPointAddress,
             permit2: permit2Address,
             tokenRegistry: address(tokenRegistry),
             campaignRegistry: address(campaignRegistry),

@@ -313,18 +313,31 @@ forge test -vvv
 
 ## Contract Addresses (Polkadot Hub TestNet)
 
-> Deployed during hackathon period. See `deployments/testnet.json` after running deploy script.
+> Status as of 2026-03-17: this workspace does **not** contain a committed Hub TestNet deployment artifact yet.
+> The current `deployments/testnet.json` in the repo is a local Anvil sample (`chainId: 31337`) and should not be
+> used as live judge evidence.
 
 | Contract | Address |
 |---|---|
-| EntryPoint | _TBD_ |
-| Permit2 | _TBD_ |
-| GasStationFactory | _TBD_ |
-| GasStationPaymaster | _TBD_ |
-| TokenRegistry | _TBD_ |
-| CampaignRegistry | _TBD_ |
-| DemoDapp | _TBD_ |
-| tUSDT (ERC20 precompile) | _TBD_ |
+| EntryPoint | Pending live Hub TestNet broadcast |
+| Permit2 | Pending live Hub TestNet broadcast |
+| GasStationFactory | Pending live Hub TestNet broadcast |
+| GasStationPaymaster | Pending live Hub TestNet broadcast |
+| TokenRegistry | Pending live Hub TestNet broadcast |
+| CampaignRegistry | Pending live Hub TestNet broadcast |
+| DemoDapp | Pending live Hub TestNet broadcast |
+| tUSDT (ERC20 precompile) | Pending live Hub TestNet broadcast |
+
+## Demo Transactions (Hub TestNet)
+
+| Flow | Run | Tx |
+|---|---|---|
+| Token Mode | 1 | Pending live broadcast |
+| Token Mode | 2 | Pending live broadcast |
+| Token Mode | 3 | Pending live broadcast |
+| Sponsor Mode | 1 | Pending live broadcast |
+| Sponsor Mode | 2 | Pending live broadcast |
+| Sponsor Mode | 3 | Pending live broadcast |
 
 ---
 

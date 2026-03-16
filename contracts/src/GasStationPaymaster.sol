@@ -298,6 +298,8 @@ contract GasStationPaymaster is IPaymaster {
             require(used < campaign.perUserMaxOps, "quota exceeded");
         }
 
+        // Known limitation: validation is view-only, so sponsor budget cannot be reserved here.
+        // Multiple UserOps can pass this check concurrently and the actual spend is finalized in postOp.
         require(campaign.budget >= campaign.spent + maxCost, "budget exceeded");
 
         SponsorPostOpContext memory ctx =

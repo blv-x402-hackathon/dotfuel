@@ -210,8 +210,10 @@ export async function buildTokenQuote(req: TokenQuoteRequest) {
     gasEstimate: {
       callGasLimit: toHex(gas.callGasLimit),
       verificationGasLimit: toHex(gas.verificationGasLimit),
-      preVerificationGas: toHex(gas.preVerificationGas)
-    }
+      preVerificationGas: toHex(gas.preVerificationGas),
+      usedFallback: gas.usedFallback
+    },
+    warnings: gas.usedFallback ? [`Gas estimation fallback used: ${gas.estimationError ?? "unknown error"}`] : []
   };
 }
 

@@ -6,6 +6,8 @@ export interface UserOpGasEstimate {
   callGasLimit: bigint;
   verificationGasLimit: bigint;
   preVerificationGas: bigint;
+  usedFallback: boolean;
+  estimationError?: string;
 }
 
 interface EstimateInput {
@@ -46,13 +48,18 @@ export async function estimateUserOperationGas(input: EstimateInput): Promise<Us
     return {
       callGasLimit: BigInt(result.callGasLimit),
       verificationGasLimit: BigInt(result.verificationGasLimit),
-      preVerificationGas: BigInt(result.preVerificationGas)
+      preVerificationGas: BigInt(result.preVerificationGas),
+      usedFallback: false
     };
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.warn(`[gasEstimator] eth_estimateUserOperationGas failed, using fallback: ${message}`);
     return {
       callGasLimit: 300_000n,
       verificationGasLimit: 300_000n,
-      preVerificationGas: 75_000n
+      preVerificationGas: 75_000n,
+      usedFallback: true,
+      estimationError: message
     };
   }
 }

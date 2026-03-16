@@ -15,6 +15,9 @@ import {MockEntryPointForPaymaster, MockPermit2, MockERC20Approve, MockTarget, T
 contract GasStationPaymasterTest is Test {
     uint256 internal constant SECP256K1N =
         0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
+    uint256 internal constant MAX_CALLDATA_BYTES = 8192;
+    uint256 internal constant MAX_VALID_EXECUTE_BATCH_CALLDATA_BYTES = 8164;
+    uint256 internal constant MAX_VALID_EXECUTE_BATCH_PAYLOAD_BYTES = 7649;
 
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
@@ -107,6 +110,14 @@ contract GasStationPaymasterTest is Test {
         assertEq(uint48(validationData >> 160), data.validUntil);
     }
 
+    function test_tokenMode_validUntilBoundaryNow() public {
+        bytes memory callData = _buildExecuteBatch(true, address(target));
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp));
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        entryPoint.callValidate(paymaster, userOp, 100);
+    }
+
     function test_tokenMode_expiredValidUntil() public {
         bytes memory callData = _buildExecuteBatch(true, address(target));
         GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp - 1));
@@ -171,6 +182,72 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("target not allowed"));
+        entryPoint.callValidate(paymaster, userOp, 100);
+    }
+
+    function test_tokenMode_approveOtherSpenderRejected() public {
+        bytes memory callData = _buildExecuteBatchWithApproveSpender(address(otherTarget));
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        vm.expectRevert(bytes("target not allowed"));
+        entryPoint.callValidate(paymaster, userOp, 100);
+    }
+
+    function test_tokenMode_maxTokenChargeAtMinBoundary() public {
+        tokenRegistry.setToken(
+            address(token),
+            TokenRegistry.TokenConfig({
+                enabled: true,
+                decimals: 6,
+                markupBps: 300,
+                minMaxCharge: 200,
+                maxMaxCharge: type(uint256).max
+            })
+        );
+
+        bytes memory callData = _buildExecuteBatch(true, address(target));
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
+        data.maxTokenCharge = 200;
+        data.tokenPerNativeScaled = 1e18;
+        _resignTokenData(data, callData);
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        entryPoint.callValidate(paymaster, userOp, 100);
+    }
+
+    function test_tokenMode_maxTokenChargeAtMaxBoundary() public {
+        tokenRegistry.setToken(
+            address(token),
+            TokenRegistry.TokenConfig({
+                enabled: true,
+                decimals: 6,
+                markupBps: 300,
+                minMaxCharge: 1,
+                maxMaxCharge: 200
+            })
+        );
+
+        bytes memory callData = _buildExecuteBatch(true, address(target));
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
+        data.maxTokenCharge = 200;
+        data.tokenPerNativeScaled = 1e18;
+        _resignTokenData(data, callData);
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        entryPoint.callValidate(paymaster, userOp, 100);
+    }
+
+    function test_tokenMode_maxCalldataBoundary() public {
+        // executeBatch callData lengths are 4 mod 32 because of the selector, so 8164 is the nearest valid
+        // ABI-encoded payload that still exercises the <= 8192 boundary.
+        bytes memory callData = _buildBoundarySizedExecuteBatch();
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
+        data.tokenPerNativeScaled = 1e18;
+        _resignTokenData(data, callData);
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        assertEq(callData.length, MAX_VALID_EXECUTE_BATCH_CALLDATA_BYTES);
         entryPoint.callValidate(paymaster, userOp, 100);
     }
 
@@ -308,6 +385,34 @@ contract GasStationPaymasterTest is Test {
         TestCall[] memory onlyCall = new TestCall[](1);
         onlyCall[0] = TestCall({to: callTarget, value: 0, data: abi.encodeWithSelector(MockTarget.ping.selector)});
         return abi.encodeWithSelector(EXECUTE_BATCH_SELECTOR, onlyCall);
+    }
+
+    function _buildExecuteBatchWithApproveSpender(address spender) internal view returns (bytes memory) {
+        TestCall[] memory calls = new TestCall[](2);
+        calls[0] = TestCall({
+            to: address(token),
+            value: 0,
+            data: abi.encodeWithSelector(MockERC20Approve.approve.selector, spender, type(uint256).max)
+        });
+        calls[1] = TestCall({to: address(target), value: 0, data: abi.encodeWithSelector(MockTarget.ping.selector)});
+        return abi.encodeWithSelector(EXECUTE_BATCH_SELECTOR, calls);
+    }
+
+    function _buildBoundarySizedExecuteBatch() internal view returns (bytes memory) {
+        TestCall[] memory calls = new TestCall[](2);
+        calls[0] = TestCall({
+            to: address(token),
+            value: 0,
+            data: abi.encodeWithSelector(MockERC20Approve.approve.selector, address(permit2), type(uint256).max)
+        });
+        calls[1] = TestCall({to: address(target), value: 0, data: new bytes(MAX_VALID_EXECUTE_BATCH_PAYLOAD_BYTES)});
+        return abi.encodeWithSelector(EXECUTE_BATCH_SELECTOR, calls);
+    }
+
+    function _resignTokenData(GasStationPaymaster.PaymasterData memory data, bytes memory callData) internal view {
+        bytes32 callDataHash = keccak256(callData);
+        data.signature = _sign(quoteSignerPk, _tokenQuoteDigest(callDataHash, data));
+        data.permit2Signature = _sign(ownerPk, _permit2Digest(callDataHash, data));
     }
 
     function _tokenQuoteDigest(bytes32 callDataHash, GasStationPaymaster.PaymasterData memory data)

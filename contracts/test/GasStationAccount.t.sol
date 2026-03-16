@@ -137,6 +137,11 @@ contract GasStationAccountTest is Test {
         assertEq(target.total(), 0);
     }
 
+    function test_executeBatch_emptyCalls() public {
+        Call[] memory calls = new Call[](0);
+        entryPoint.callExecuteBatch(account, calls);
+    }
+
     function test_isValidSignature_owner() public {
         bytes32 hash = keccak256("sig-owner");
         bytes memory sig = _sign(ownerPk, hash);

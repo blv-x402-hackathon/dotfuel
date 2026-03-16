@@ -101,7 +101,7 @@ contract GasStationPaymasterTest is Test {
         GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
         UserOperation memory userOp = _buildUserOp(callData, data);
 
-        (bytes memory context, uint256 validationData) = entryPoint.callValidate(paymaster, userOp, 1 ether);
+        (bytes memory context, uint256 validationData) = entryPoint.callValidate(paymaster, userOp, 100);
 
         assertTrue(context.length > 0);
         assertEq(uint48(validationData >> 160), data.validUntil);
@@ -113,7 +113,7 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("expired"));
-        entryPoint.callValidate(paymaster, userOp, 1 ether);
+        entryPoint.callValidate(paymaster, userOp, 100);
     }
 
     function test_tokenMode_disabledToken() public {
@@ -124,7 +124,7 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("token disabled"));
-        entryPoint.callValidate(paymaster, userOp, 1 ether);
+        entryPoint.callValidate(paymaster, userOp, 100);
     }
 
     function test_tokenMode_invalidQuoteSig() public {
@@ -133,7 +133,7 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("invalid token quote sig"));
-        entryPoint.callValidate(paymaster, userOp, 1 ether);
+        entryPoint.callValidate(paymaster, userOp, 100);
     }
 
     function test_tokenMode_rejectsMalleableQuoteSig() public {
@@ -143,7 +143,7 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("invalid token quote sig"));
-        entryPoint.callValidate(paymaster, userOp, 1 ether);
+        entryPoint.callValidate(paymaster, userOp, 100);
     }
 
     function test_tokenMode_invalidPermit2Sig() public {
@@ -152,7 +152,17 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("invalid permit2 sig"));
-        entryPoint.callValidate(paymaster, userOp, 1 ether);
+        entryPoint.callValidate(paymaster, userOp, 100);
+    }
+
+    function test_tokenMode_maxTokenChargeInsufficientForMaxCost() public {
+        bytes memory callData = _buildExecuteBatch(true, address(target));
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
+        data.maxTokenCharge = 10;
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        vm.expectRevert(bytes("maxTokenCharge insufficient"));
+        entryPoint.callValidate(paymaster, userOp, 6);
     }
 
     function test_tokenMode_nonAllowlistedTarget() public {
@@ -161,7 +171,7 @@ contract GasStationPaymasterTest is Test {
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("target not allowed"));
-        entryPoint.callValidate(paymaster, userOp, 1 ether);
+        entryPoint.callValidate(paymaster, userOp, 100);
     }
 
     function test_sponsorMode_validateOk() public {

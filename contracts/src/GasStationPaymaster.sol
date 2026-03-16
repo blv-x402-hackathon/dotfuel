@@ -207,7 +207,7 @@ contract GasStationPaymaster is IPaymaster {
         PaymasterData memory data = _decodePaymasterData(userOp.paymasterAndData);
 
         if (data.mode == MODE_TOKEN_PERMIT2) {
-            return _validateTokenMode(userOp, data);
+            return _validateTokenMode(userOp, data, maxCost);
         }
         if (data.mode == MODE_SPONSOR) {
             return _validateSponsorMode(userOp, data, maxCost);
@@ -236,7 +236,7 @@ contract GasStationPaymaster is IPaymaster {
         data = abi.decode(paymasterAndData[20:], (PaymasterData));
     }
 
-    function _validateTokenMode(UserOperation calldata userOp, PaymasterData memory data)
+    function _validateTokenMode(UserOperation calldata userOp, PaymasterData memory data, uint256 maxCost)
         internal
         view
         returns (bytes memory context, uint256 validationData)
@@ -248,6 +248,8 @@ contract GasStationPaymaster is IPaymaster {
         require(markupBps <= 10_000, "invalid markup");
         require(data.maxTokenCharge >= minMaxCharge, "maxTokenCharge too low");
         require(data.maxTokenCharge <= maxMaxCharge, "maxTokenCharge too high");
+        uint256 minTokenNeeded = (maxCost * data.tokenPerNativeScaled + 1e18 - 1) / 1e18;
+        require(data.maxTokenCharge >= minTokenNeeded, "maxTokenCharge insufficient");
         require(userOp.callData.length <= MAX_CALLDATA_BYTES, "calldata too large");
 
         bytes32 callDataHash = keccak256(userOp.callData);

@@ -42,6 +42,9 @@ contract CallTarget {
 }
 
 contract GasStationAccountTest is Test {
+    uint256 internal constant SECP256K1N =
+        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
+
     MockEntryPoint internal entryPoint;
     GasStationAccount internal account;
     GasStationFactory internal factory;
@@ -78,6 +81,16 @@ contract GasStationAccountTest is Test {
     function test_validateUserOp_invalidSig() public {
         bytes32 userOpHash = keccak256("invalid-user-op");
         bytes memory sig = _sign(otherPk, userOpHash);
+
+        UserOperation memory op = _makeUserOp(sig);
+        uint256 validationData = entryPoint.callValidate(account, op, userOpHash, 0);
+
+        assertEq(validationData, 1);
+    }
+
+    function test_validateUserOp_rejectsHighSSignature() public {
+        bytes32 userOpHash = keccak256("high-s-user-op");
+        bytes memory sig = _malleate(_sign(ownerPk, userOpHash));
 
         UserOperation memory op = _makeUserOp(sig);
         uint256 validationData = entryPoint.callValidate(account, op, userOpHash, 0);
@@ -182,5 +195,20 @@ contract GasStationAccountTest is Test {
     function _sign(uint256 privateKey, bytes32 digest) internal pure returns (bytes memory) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
         return abi.encodePacked(r, s, v);
+    }
+
+    function _malleate(bytes memory signature) internal pure returns (bytes memory) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+
+        bytes32 malleableS = bytes32(SECP256K1N - uint256(s));
+        uint8 malleableV = v == 27 ? 28 : 27;
+        return abi.encodePacked(r, malleableS, malleableV);
     }
 }

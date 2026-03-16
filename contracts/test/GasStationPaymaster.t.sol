@@ -13,6 +13,9 @@ import {TokenRegistry} from "../src/TokenRegistry.sol";
 import {MockEntryPointForPaymaster, MockPermit2, MockERC20Approve, MockTarget, TestCall} from "./mocks/PaymasterMocks.sol";
 
 contract GasStationPaymasterTest is Test {
+    uint256 internal constant SECP256K1N =
+        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
+
     bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
     bytes32 internal constant TOKEN_QUOTE_TYPEHASH = keccak256(
@@ -127,6 +130,16 @@ contract GasStationPaymasterTest is Test {
     function test_tokenMode_invalidQuoteSig() public {
         bytes memory callData = _buildExecuteBatch(true, address(target));
         GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, false, true, uint48(block.timestamp + 300));
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        vm.expectRevert(bytes("invalid token quote sig"));
+        entryPoint.callValidate(paymaster, userOp, 1 ether);
+    }
+
+    function test_tokenMode_rejectsMalleableQuoteSig() public {
+        bytes memory callData = _buildExecuteBatch(true, address(target));
+        GasStationPaymaster.PaymasterData memory data = _buildTokenData(callData, true, true, uint48(block.timestamp + 300));
+        data.signature = _malleate(data.signature);
         UserOperation memory userOp = _buildUserOp(callData, data);
 
         vm.expectRevert(bytes("invalid token quote sig"));
@@ -342,5 +355,20 @@ contract GasStationPaymasterTest is Test {
     function _sign(uint256 privateKey, bytes32 digest) internal pure returns (bytes memory) {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
         return abi.encodePacked(r, s, v);
+    }
+
+    function _malleate(bytes memory signature) internal pure returns (bytes memory) {
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+        }
+
+        bytes32 malleableS = bytes32(SECP256K1N - uint256(s));
+        uint8 malleableV = v == 27 ? 28 : 27;
+        return abi.encodePacked(r, malleableS, malleableV);
     }
 }

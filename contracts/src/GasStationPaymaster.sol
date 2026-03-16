@@ -37,6 +37,8 @@ contract GasStationPaymaster is IPaymaster {
     );
 
     bytes32 internal constant TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
+    uint256 internal constant SECP256K1N_HALF =
+        0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0;
 
     string internal constant PERMIT_WITNESS_TRANSFER_FROM_TYPEHASH_STUB =
         "PermitWitnessTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline,";
@@ -451,6 +453,9 @@ contract GasStationPaymaster is IPaymaster {
             v += 27;
         }
         if (v != 27 && v != 28) {
+            return address(0);
+        }
+        if (uint256(s) > SECP256K1N_HALF) {
             return address(0);
         }
 

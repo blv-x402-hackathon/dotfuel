@@ -13,6 +13,8 @@ struct Call {
 
 contract GasStationAccount is IAccount {
     bytes4 internal constant EIP1271_SUCCESS = 0x1626ba7e;
+    uint256 internal constant SECP256K1N_HALF =
+        0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0;
 
     address public owner;
     IEntryPoint public immutable entryPoint;
@@ -90,6 +92,9 @@ contract GasStationAccount is IAccount {
             v += 27;
         }
         if (v != 27 && v != 28) {
+            return address(0);
+        }
+        if (uint256(s) > SECP256K1N_HALF) {
             return address(0);
         }
 

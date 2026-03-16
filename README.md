@@ -217,6 +217,10 @@ cp .env.example .env    # fill in PRIVATE_KEY, RPC_URL_TESTNET
 forge script script/Deploy.s.sol --rpc-url $RPC_URL_TESTNET --broadcast
 ```
 
+`Deploy.s.sol` treats `ENTRYPOINT_ADDRESS` as an override for a pre-existing ERC-4337 EntryPoint v0.6 deployment.
+If the variable is blank, the script deploys a fresh EntryPoint itself and writes the resolved address to
+`deployments/testnet.json`.
+
 ### 3. Start bundler + paymaster API
 
 ```bash

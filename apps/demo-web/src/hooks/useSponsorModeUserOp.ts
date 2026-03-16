@@ -16,7 +16,7 @@ import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
-export function useSponsorModeUserOp() {
+export function useSponsorModeUserOp(campaignId: `0x${string}`) {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
@@ -38,8 +38,6 @@ export function useSponsorModeUserOp() {
     try {
       const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
       const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
-      const campaignId = process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}`;
-
       const sender = getAddress((process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}`) || address);
       const initCode = (process.env.NEXT_PUBLIC_ACCOUNT_INIT_CODE as `0x${string}` | undefined) ?? "0x";
       const senderCode = await publicClient.getCode({ address: sender });

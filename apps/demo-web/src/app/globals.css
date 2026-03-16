@@ -453,6 +453,47 @@ textarea {
   margin-top: 14px;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(78, 54, 32, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+}
+
+.input--textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.status-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(78, 54, 32, 0.08);
+}
+
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -478,6 +519,8 @@ textarea {
   .section-grid,
   .stat-grid,
   .balance-grid,
+  .form-grid,
+  .status-grid,
   .result-grid {
     grid-template-columns: 1fr;
   }

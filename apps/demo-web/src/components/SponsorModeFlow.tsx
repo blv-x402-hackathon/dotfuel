@@ -5,18 +5,22 @@ import { useEffect } from "react";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
 import type { FlowResult } from "@/lib/flowResults";
 
-export function SponsorModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) {
-  const { executeSponsored, isLoading, error, result } = useSponsorModeUserOp();
+export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}`; onTx: (result: FlowResult) => void }) {
+  const { executeSponsored, isLoading, error, result } = useSponsorModeUserOp(campaignId);
 
   useEffect(() => {
     if (!result) return;
     onTx(result);
-  }, [result, onTx]);
+  }, [onTx, result]);
 
   return (
     <section className="card">
       <h2 className="card-title">Flow B — Sponsor Mode</h2>
-      <p className="card-subtitle">Use a live campaign budget to sponsor the same DemoDapp action without token spend.</p>
+      <p className="card-subtitle">
+        Use the active campaign budget to sponsor the same DemoDapp action without token spend. Active ID:
+        {" "}
+        {campaignId.slice(0, 12)}...
+      </p>
       <div className="button-row" style={{ marginTop: 16 }}>
         <button className="button" disabled={isLoading} onClick={executeSponsored}>
         {isLoading ? "Submitting..." : "Execute Sponsored"}

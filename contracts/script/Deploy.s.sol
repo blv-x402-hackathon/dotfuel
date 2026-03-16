@@ -31,6 +31,7 @@ contract DeployScript is Script {
         address quoteSigner = vm.envAddress("QUOTE_SIGNER_ADDRESS");
         address existingEntryPoint = vm.envOr("ENTRYPOINT_ADDRESS", address(0));
         address existingPermit2 = vm.envOr("PERMIT2_ADDRESS", address(0));
+        uint256 paymasterDeposit = vm.envOr("PAYMASTER_DEPOSIT_WEI", uint256(1 ether));
 
         vm.startBroadcast(privateKey);
 
@@ -61,6 +62,7 @@ contract DeployScript is Script {
         );
 
         campaignRegistry.setPaymaster(address(paymaster));
+        entryPoint.depositTo{value: paymasterDeposit}(address(paymaster));
 
         DemoDapp demoDapp = new DemoDapp();
 

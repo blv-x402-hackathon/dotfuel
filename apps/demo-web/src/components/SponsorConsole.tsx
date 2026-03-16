@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { getAddress, hexToBigInt, isAddress, keccak256, parseEther, stringToHex } from "viem";
 import { useAccount } from "wagmi";
 
+import { ErrorNotice } from "@/components/ErrorNotice";
 import { createCampaign, fetchCampaignStatus, type CampaignStatus } from "@/lib/campaign-client";
 import { formatAmount } from "@/lib/flowResults";
+import { toUiError, type UiError } from "@/lib/uiError";
 
 export function SponsorConsole(props: {
   campaignId: `0x${string}`;
@@ -23,7 +25,7 @@ export function SponsorConsole(props: {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UiError | null>(null);
 
   useEffect(() => {
     setCampaignIdInput(props.campaignId);
@@ -39,6 +41,7 @@ export function SponsorConsole(props: {
       }
 
       setIsRefreshing(true);
+      setError(null);
 
       try {
         const nextStatus = await fetchCampaignStatus(props.campaignId, address);
@@ -47,7 +50,7 @@ export function SponsorConsole(props: {
         }
       } catch (nextError) {
         if (!cancelled) {
-          setError(nextError instanceof Error ? nextError.message : "Failed to refresh campaign");
+          setError(toUiError(nextError, "campaign"));
         }
       } finally {
         if (!cancelled) {
@@ -116,7 +119,7 @@ export function SponsorConsole(props: {
       setCampaignIdInput(campaignId);
       setFeedback(`Campaign ready: ${campaignId.slice(0, 12)}... (${result.txHash.slice(0, 12)}...)`);
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : "Failed to create campaign");
+      setError(toUiError(nextError, "campaign"));
     } finally {
       setIsSubmitting(false);
     }
@@ -125,7 +128,7 @@ export function SponsorConsole(props: {
   function handleLoad() {
     setError(null);
     if (!/^0x[a-fA-F0-9]{64}$/.test(campaignIdInput)) {
-      setError("Campaign ID must be a 32-byte hex value");
+      setError(toUiError("Campaign ID must be a 32-byte hex value", "campaign"));
       return;
     }
 
@@ -182,7 +185,7 @@ export function SponsorConsole(props: {
       </div>
 
       {feedback ? <div className="feedback feedback--success">{feedback}</div> : null}
-      {error ? <div className="feedback">{error}</div> : null}
+      {error ? <ErrorNotice error={error} /> : null}
 
       <div className="status-grid">
         <article className="status-card">

@@ -14,6 +14,7 @@ import {
 import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
 import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
+import { toUiError, type UiError } from "@/lib/uiError";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
 export function useSponsorModeUserOp(campaignId: `0x${string}`) {
@@ -22,12 +23,12 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
   const publicClient = usePublicClient();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UiError | null>(null);
   const [result, setResult] = useState<FlowResult | null>(null);
 
   async function executeSponsored() {
     if (!address || !walletClient || !publicClient) {
-      setError("Wallet not connected");
+      setError(toUiError("Wallet not connected", "sponsor"));
       return;
     }
 
@@ -152,7 +153,7 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
         ]
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to execute sponsor mode flow");
+      setError(toUiError(err, "sponsor"));
     } finally {
       setIsLoading(false);
     }

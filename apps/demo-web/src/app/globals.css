@@ -386,6 +386,25 @@ textarea {
   font-size: 14px;
 }
 
+.debug-details {
+  margin-top: 12px;
+}
+
+.debug-details summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.debug-details pre {
+  margin: 10px 0 0;
+  padding: 12px;
+  border-radius: 14px;
+  overflow: auto;
+  background: rgba(36, 24, 14, 0.08);
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
 .balance-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

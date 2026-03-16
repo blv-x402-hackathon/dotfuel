@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { ErrorNotice } from "@/components/ErrorNotice";
 import { type FlowResult } from "@/lib/flowResults";
 import { useTokenModeUserOp } from "@/hooks/useTokenModeUserOp";
 
@@ -23,7 +24,7 @@ export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) 
         </button>
       </div>
 
-      {error ? <div className="feedback">{error}</div> : null}
+      {error ? <ErrorNotice error={error} /> : null}
 
       {result ? (
         <div className="result-panel result-panel--success">

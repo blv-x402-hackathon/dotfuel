@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { ErrorNotice } from "@/components/ErrorNotice";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
 import type { FlowResult } from "@/lib/flowResults";
 
@@ -27,7 +28,7 @@ export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}
         </button>
       </div>
 
-      {error ? <div className="feedback">{error}</div> : null}
+      {error ? <ErrorNotice error={error} /> : null}
 
       {result ? (
         <div className="result-panel result-panel--success">

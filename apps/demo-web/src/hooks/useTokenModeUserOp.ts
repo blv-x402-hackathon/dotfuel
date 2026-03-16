@@ -15,6 +15,7 @@ import {
 import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
 import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
+import { toUiError, type UiError } from "@/lib/uiError";
 import {
   buildTokenModeBatchCalls,
   buildTokenModeUserOp,
@@ -32,12 +33,12 @@ export function useTokenModeUserOp() {
   const publicClient = usePublicClient();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UiError | null>(null);
   const [result, setResult] = useState<FlowResult | null>(null);
 
   async function executeTokenMode() {
     if (!address || !walletClient || !publicClient) {
-      setError("Wallet not connected");
+      setError(toUiError("Wallet not connected", "token"));
       return;
     }
 
@@ -195,7 +196,7 @@ export function useTokenModeUserOp() {
         ]
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to execute token mode flow");
+      setError(toUiError(err, "token"));
     } finally {
       setIsLoading(false);
     }

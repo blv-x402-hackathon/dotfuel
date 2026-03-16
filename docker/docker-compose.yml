@@ -8,6 +8,16 @@ services:
       ERC4337_BUNDLER_ENTRY_POINTS: ${ENTRYPOINT_ADDRESS}
     ports:
       - "4337:4337"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O- --header='Content-Type: application/json' --post-data='{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_chainId\",\"params\":[]}' http://127.0.0.1:4337 >/dev/null"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   paymaster-api:
     build:
@@ -17,5 +27,18 @@ services:
       - .env
     ports:
       - "3001:3001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/healthz').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     depends_on:
-      - bundler
+      bundler:
+        condition: service_healthy

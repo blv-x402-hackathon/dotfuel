@@ -19,6 +19,8 @@ contract GasStationPaymaster is IPaymaster {
     uint8 internal constant MODE_TOKEN_PERMIT2 = 2;
 
     bytes4 internal constant EIP1271_SUCCESS = 0x1626ba7e;
+    // isValidSignature(bytes32,bytes) shares the same selector as the EIP-1271 magic value.
+    bytes4 internal constant IS_VALID_SIGNATURE_SELECTOR = 0x1626ba7e;
     bytes4 internal constant EXECUTE_BATCH_SELECTOR = bytes4(keccak256("executeBatch((address,uint256,bytes)[])"));
     bytes4 internal constant ERC20_APPROVE_SELECTOR = 0x095ea7b3;
 
@@ -412,7 +414,7 @@ contract GasStationPaymaster is IPaymaster {
     function _isValidSignatureNow(address signer, bytes32 digest, bytes memory signature) internal view returns (bool) {
         if (signer.code.length > 0) {
             (bool ok, bytes memory ret) = signer.staticcall(
-                abi.encodeWithSelector(EIP1271_SUCCESS, digest, signature)
+                abi.encodeWithSelector(IS_VALID_SIGNATURE_SELECTOR, digest, signature)
             );
             if (!ok || ret.length < 32) {
                 return false;

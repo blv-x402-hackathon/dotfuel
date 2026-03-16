@@ -1,2 +1,3 @@
 @account-abstraction/=lib/account-abstraction/
 @permit2/=vendor/permit2/
+solmate/=lib/solmate/src/

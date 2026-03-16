@@ -18,7 +18,6 @@ contract GasStationAccount is IAccount {
 
     address public owner;
     IEntryPoint public immutable entryPoint;
-    uint256 private _nonce;
 
     modifier onlyEntryPoint() {
         require(msg.sender == address(entryPoint), "not entrypoint");

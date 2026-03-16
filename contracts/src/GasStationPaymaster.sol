@@ -171,14 +171,16 @@ contract GasStationPaymaster is IPaymaster {
         );
 
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", _DOMAIN_SEPARATOR, structHash));
-        require(_recover(digest, data.signature) == quoteSigner, "invalid token quote sig");
+        address recovered = _recover(digest, data.signature);
+        require(recovered != address(0) && recovered == quoteSigner, "invalid token quote sig");
     }
 
     function _verifySponsorQuote(address sender, bytes32 callDataHash, PaymasterData memory data) internal view {
         bytes32 structHash =
             keccak256(abi.encode(SPONSOR_QUOTE_TYPEHASH, sender, callDataHash, data.campaignId, data.validUntil));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", _DOMAIN_SEPARATOR, structHash));
-        require(_recover(digest, data.signature) == quoteSigner, "invalid sponsor quote sig");
+        address recovered = _recover(digest, data.signature);
+        require(recovered != address(0) && recovered == quoteSigner, "invalid sponsor quote sig");
     }
 
     function _computeWitness(

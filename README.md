@@ -190,6 +190,16 @@ As of **2026-03-17**, the public Hub TestNet RPC at `https://eth-rpc-testnet.pol
 If Hub RPC behavior regresses before demo day, switch the bundler image to a traced-call-compatible alternative
 such as Alto or Skandha instead of discovering the incompatibility during the live run.
 
+### Environment Matrix
+
+| File | Used By | Required Variables |
+|---|---|---|
+| `.env.example` | `scripts/bootstrap-assets.ts` | `RPC_URL_TESTNET`, `CHAIN_ID`, `ASSET_HUB_WSS`, `ASSET_HUB_SURI`, `ASSET_ID_HINT`, `ASSET_ADMIN_ADDRESS`, `ASSET_DEPLOYER_ADDRESS`, `COUNTERFACTUAL_ADDRESS`, `DEMO_USER_ADDRESS`, `ASSET_NAME`, `ASSET_SYMBOL`, `ASSET_DECIMALS`, `ASSET_MINT_AMOUNT`, `DRY_RUN`, optional `PRIVATE_KEY`, `TOKEN_REGISTRY_ADDRESS` |
+| `contracts/.env.example` | `forge script script/Deploy.s.sol` | `PRIVATE_KEY`, `DEPLOYER_ADDRESS`, `TREASURY_ADDRESS`, `QUOTE_SIGNER_ADDRESS`, optional `ENTRYPOINT_ADDRESS`, `PERMIT2_ADDRESS`, `PAYMASTER_DEPOSIT_WEI`, `RPC_URL_TESTNET`, `CHAIN_ID`, `ETHERSCAN_API_KEY` |
+| `docker/.env.example` | `docker compose -f docker/docker-compose.yml up` | `RPC_URL_TESTNET`, `BUNDLER_PRIVATE_KEY`, `ENTRYPOINT_ADDRESS`, `CHAIN_ID`, `PAYMASTER_ADDRESS`, `PERMIT2_ADDRESS`, `QUOTE_SIGNER_PRIVATE_KEY`, `ADMIN_PRIVATE_KEY`, `TOKEN_REGISTRY_ADDRESS`, `CAMPAIGN_REGISTRY_ADDRESS`, `TREASURY_ADDRESS`, `PORT`, `QUOTE_TTL_SECONDS` |
+| `apps/paymaster-api/.env.example` | local `pnpm --filter paymaster-api dev` | `RPC_URL_TESTNET`, `CHAIN_ID`, `PAYMASTER_ADDRESS`, `PERMIT2_ADDRESS`, `QUOTE_SIGNER_PRIVATE_KEY`, `ADMIN_PRIVATE_KEY`, `TOKEN_REGISTRY_ADDRESS`, `CAMPAIGN_REGISTRY_ADDRESS`, `ENTRYPOINT_ADDRESS`, `TREASURY_ADDRESS`, `PORT`, `QUOTE_TTL_SECONDS` |
+| `apps/demo-web/.env.local.example` | `pnpm --filter demo-web dev` | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`, `NEXT_PUBLIC_BUNDLER_RPC_URL`, `NEXT_PUBLIC_PAYMASTER_API_URL`, `NEXT_PUBLIC_ENTRYPOINT_ADDRESS`, `NEXT_PUBLIC_PERMIT2_ADDRESS`, `NEXT_PUBLIC_FACTORY_ADDRESS`, optional `NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS`, optional `NEXT_PUBLIC_ACCOUNT_INIT_CODE`, `NEXT_PUBLIC_TOKEN_ADDRESS`, `NEXT_PUBLIC_DEMO_DAPP_ADDRESS`, `NEXT_PUBLIC_CAMPAIGN_ID` |
+
 ### 1. Bootstrap a test token on Hub TestNet
 
 ```bash

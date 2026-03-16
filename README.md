@@ -221,6 +221,10 @@ forge script script/Deploy.s.sol --rpc-url $RPC_URL_TESTNET --broadcast
 If the variable is blank, the script deploys a fresh EntryPoint itself and writes the resolved address to
 `deployments/testnet.json`.
 
+The same rule applies to `PERMIT2_ADDRESS`. If you already deployed a live Permit2 instance on Hub TestNet, pass
+that address in the environment; otherwise the script deploys DotFuel's `Permit2.sol` wrapper over Uniswap
+SignatureTransfer and records the resulting address in `deployments/testnet.json`.
+
 ### 3. Start bundler + paymaster API
 
 ```bash

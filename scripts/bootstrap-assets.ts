@@ -15,11 +15,23 @@ async function main() {
   const dryRun = process.env.DRY_RUN !== "false";
   const wssUrl = process.env.ASSET_HUB_WSS ?? "wss://asset-hub-paseo-rpc.n.dwellir.com";
   const assetIdHint = Number(process.env.ASSET_ID_HINT ?? "1984");
+  const counterfactualRecipient =
+    process.env.COUNTERFACTUAL_ADDRESS ?? process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS;
+  const userRecipient = process.env.TEST_USER_ADDRESS ?? process.env.DEMO_USER_ADDRESS;
 
   const bootstrap = await bootstrapViaAssetsPallet({
     wssUrl,
     dryRun,
-    assetIdHint
+    assetIdHint,
+    assetHubSuri: process.env.ASSET_HUB_SURI,
+    assetAdminAddress: process.env.ASSET_ADMIN_ADDRESS,
+    deployerRecipient: process.env.ASSET_DEPLOYER_ADDRESS,
+    counterfactualRecipient,
+    userRecipient,
+    assetName: process.env.ASSET_NAME,
+    assetSymbol: process.env.ASSET_SYMBOL,
+    assetDecimals: process.env.ASSET_DECIMALS ? Number(process.env.ASSET_DECIMALS) : undefined,
+    mintAmount: process.env.ASSET_MINT_AMOUNT ? BigInt(process.env.ASSET_MINT_AMOUNT) : undefined
   });
 
   const precompileAddress = assetIdToPrecompileAddress(bootstrap.assetId);
@@ -28,7 +40,8 @@ async function main() {
     mode: dryRun ? "dry-run" : "live",
     assetId: bootstrap.assetId,
     precompileAddress,
-    txHashes: bootstrap.txHashes
+    txHashes: bootstrap.txHashes,
+    registryTxHash: null as string | null
   };
 
   console.log("DotFuel Assets Bootstrap Result");
@@ -47,9 +60,9 @@ async function main() {
   const rpcUrl = process.env.RPC_URL_TESTNET as string;
 
   const publicClient = createPublicClient({ transport: http(rpcUrl) });
-  const walletClient = createWalletClient({ account, transport: http(rpcUrl) });
+  const walletClient = createWalletClient({ account, chain: undefined, transport: http(rpcUrl) });
 
-  const txHash = await walletClient.writeContract({
+  const txHash = await (walletClient as any).writeContract({
     address: getAddress(process.env.TOKEN_REGISTRY_ADDRESS as `0x${string}`),
     abi: tokenRegistryAbi,
     functionName: "setToken",
@@ -66,6 +79,7 @@ async function main() {
   });
 
   await publicClient.waitForTransactionReceipt({ hash: txHash });
+  output.registryTxHash = txHash;
   console.log(`TokenRegistry setToken tx: ${txHash}`);
 }
 

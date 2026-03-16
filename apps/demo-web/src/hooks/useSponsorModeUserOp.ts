@@ -11,6 +11,7 @@ import {
   waitForUserOperationReceipt
 } from "@/lib/bundlerClient";
 import { getUserOperationHash } from "@/lib/entryPointClient";
+import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
 interface SponsorResult {
@@ -53,6 +54,7 @@ export function useSponsorModeUserOp() {
           data: "0x5c36b1860000000000000000000000000000000000000000000000000000000000000020"
         }
       ]);
+      const gasFees = await getUserOpGasFees(publicClient);
 
       let userOp = buildTokenModeUserOp({
         sender,
@@ -60,6 +62,10 @@ export function useSponsorModeUserOp() {
         callData,
         paymasterAndData: "0x"
       });
+      userOp = {
+        ...userOp,
+        ...gasFees
+      };
 
       const quote = await fetchSponsorQuote({
         chainId: walletClient.chain?.id ?? 420420417,

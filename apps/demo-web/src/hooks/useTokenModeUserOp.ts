@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { decodePaymasterAndData, encodePaymasterAndData } from "@dotfuel/shared";
-import { getAddress, hexToBigInt } from "viem";
+import { getAddress, hexToBigInt, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import { fetchTokenQuote } from "@/lib/paymaster-client";
@@ -12,6 +12,7 @@ import {
   waitForUserOperationReceipt
 } from "@/lib/bundlerClient";
 import { getUserOperationHash } from "@/lib/entryPointClient";
+import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import {
   buildTokenModeBatchCalls,
   buildTokenModeUserOp,
@@ -60,6 +61,7 @@ export function useTokenModeUserOp() {
         message: "Hello DotFuel!"
       });
       const callData = encodeExecuteBatch(calls);
+      const gasFees = await getUserOpGasFees(publicClient);
 
       let userOp = buildTokenModeUserOp({
         sender,
@@ -67,6 +69,10 @@ export function useTokenModeUserOp() {
         callData,
         paymasterAndData: "0x"
       });
+      userOp = {
+        ...userOp,
+        ...gasFees
+      };
 
       const quote = await fetchTokenQuote({
         chainId: walletClient.chain?.id ?? 420420417,
@@ -74,8 +80,8 @@ export function useTokenModeUserOp() {
         callData,
         initCode,
         token,
-        maxFeePerGas: "0x1",
-        maxPriorityFeePerGas: "0x1"
+        maxFeePerGas: toHex(gasFees.maxFeePerGas),
+        maxPriorityFeePerGas: toHex(gasFees.maxPriorityFeePerGas)
       });
 
       const permit2Signature = await walletClient.signTypedData(quote.permit2TypedData as any);

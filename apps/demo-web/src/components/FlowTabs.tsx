@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { BalancePanel } from "@/components/BalancePanel";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { SponsorModeFlow } from "@/components/SponsorModeFlow";
 import { type FlowResult, TokenModeFlow } from "@/components/TokenModeFlow";
@@ -11,9 +12,11 @@ export function FlowTabs() {
   const [tab, setTab] = useState<"token" | "sponsor">("token");
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
 
   const onTx = (result: FlowResult) => {
     setLoading(false);
+    setBalanceRefreshKey((current) => current + 1);
     setHistory((prev) => [
       {
         mode: result.mode,
@@ -34,6 +37,7 @@ export function FlowTabs() {
 
   return (
     <div className="stack">
+      <BalancePanel refreshKey={balanceRefreshKey} />
       <div className="tab-bar">
         <button
           className={`tab-button ${tab === "token" ? "tab-button--active" : ""}`}

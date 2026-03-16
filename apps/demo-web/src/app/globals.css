@@ -137,6 +137,12 @@ textarea {
   letter-spacing: -0.04em;
 }
 
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .card-subtitle {
   margin: 0;
   color: var(--muted);
@@ -314,6 +320,73 @@ textarea {
   color: var(--success);
 }
 
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.balance-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(78, 54, 32, 0.08);
+}
+
+.balance-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.balance-card__value {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.balance-card__meta {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge--danger {
+  background: rgba(181, 67, 48, 0.12);
+  color: var(--danger);
+}
+
+.badge--success {
+  background: rgba(12, 122, 92, 0.12);
+  color: var(--success);
+}
+
+.badge--neutral {
+  background: rgba(36, 24, 14, 0.08);
+  color: var(--muted);
+}
+
+.balance-footer {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+}
+
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -337,11 +410,16 @@ textarea {
 @media (max-width: 900px) {
   .hero-grid--two,
   .section-grid,
-  .stat-grid {
+  .stat-grid,
+  .balance-grid {
     grid-template-columns: 1fr;
   }
 
   .hero-title {
     max-width: none;
+  }
+
+  .card-header {
+    flex-direction: column;
   }
 }

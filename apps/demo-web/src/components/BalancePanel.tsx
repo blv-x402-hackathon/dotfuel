@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatEther, formatUnits, getAddress, parseAbi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 
 const erc20Abi = parseAbi([
@@ -207,7 +208,22 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       {smartAccountStatus === "error" ? <div className="feedback">{smartAccountError}</div> : null}
       {error ? <div className="feedback">{error}</div> : null}
 
-      <div className="balance-grid">
+      {!snapshot && isRefreshing ? (
+        <div className="balance-grid">
+          <article className="balance-card">
+            <Skeleton height={14} width={100} />
+            <Skeleton height={32} width="70%" variant="rect" />
+            <Skeleton height={12} width={140} />
+          </article>
+          <article className="balance-card">
+            <Skeleton height={14} width={120} />
+            <Skeleton height={32} width="60%" variant="rect" />
+            <Skeleton height={12} width={160} />
+          </article>
+        </div>
+      ) : null}
+
+      {(snapshot || !isRefreshing) ? <div className="balance-grid">
         <article className="balance-card">
           <div className="balance-card__head">
             <span className="label">Native Balance</span>
@@ -243,7 +259,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             )}
           </div>
         </article>
-      </div>
+      </div> : null}
 
       <div className="balance-footer">
         <span className="label">Last Refreshed</span>

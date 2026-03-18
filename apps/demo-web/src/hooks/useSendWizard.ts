@@ -32,6 +32,8 @@ export interface QuoteContext {
   tokenDecimals: number;
   tokenSymbol: string;
   maxTokenCharge: bigint;
+  /** token-smallest per native-smallest × 1e18 — used for PAS equivalent display */
+  tokenPerNativeScaled: bigint;
   permit2TypedData: unknown;
   paymasterAndDataNoPermitSig: string;
   requiresDeployment: boolean;
@@ -100,6 +102,7 @@ export function useSendWizard() {
         token, sender, initCode, callData, nonce, gasFees,
         tokenDecimals, tokenSymbol,
         maxTokenCharge: hexToBigInt(quote.maxTokenCharge as `0x${string}`),
+        tokenPerNativeScaled: hexToBigInt(quote.tokenPerNativeScaled as `0x${string}`),
         permit2TypedData: quote.permit2TypedData,
         paymasterAndDataNoPermitSig: quote.paymasterAndDataNoPermitSig,
         requiresDeployment

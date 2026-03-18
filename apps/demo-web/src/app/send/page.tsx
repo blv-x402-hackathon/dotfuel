@@ -13,8 +13,47 @@ import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
-import { useSendWizard, type SendStep } from "@/hooks/useSendWizard";
+import { useSendWizard, type SendStep, type QuoteContext } from "@/hooks/useSendWizard";
 import { formatAmount } from "@/lib/flowResults";
+
+// ── Gas Comparison Banner ─────────────────────────────────────────────────────
+
+function GasComparisonBanner({ quoteCtx }: { quoteCtx: QuoteContext }) {
+  // Estimate equivalent native PAS cost: maxTokenCharge / tokenPerNativeScaled × 1e18
+  // tokenPerNativeScaled = token-smallest per native-smallest × 1e18
+  // → native-smallest = maxTokenCharge × 1e18 / tokenPerNativeScaled
+  const nativeEquiv =
+    quoteCtx.tokenPerNativeScaled > 0n
+      ? (quoteCtx.maxTokenCharge * 10n ** 18n) / quoteCtx.tokenPerNativeScaled
+      : 0n;
+
+  const tokenLabel = `≤ ${formatAmount(quoteCtx.maxTokenCharge, quoteCtx.tokenDecimals, 4)} ${quoteCtx.tokenSymbol}`;
+  const nativeLabel = nativeEquiv > 0n ? `~${formatAmount(nativeEquiv, 18, 5)} PAS` : "~? PAS";
+
+  return (
+    <div className="gas-comparison">
+      <div className="gas-comparison__banner">
+        <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden className="flex-none">
+          <path d="M8 1.5L10 6h4.5l-3.7 2.7 1.4 4.3L8 10.3l-4.2 2.7 1.4-4.3L1.5 6H6z" fill="var(--success)" />
+        </svg>
+        <span>You save <strong>100%</strong> on native gas with DotFuel</span>
+      </div>
+      <div className="gas-comparison__row">
+        <div className="gas-comparison__col gas-comparison__col--without">
+          <span className="gas-comparison__col-label">Without DotFuel</span>
+          <span className="gas-comparison__cost gas-comparison__cost--strike">{nativeLabel}</span>
+          <span className="gas-comparison__note">native PAS required</span>
+        </div>
+        <div className="gas-comparison__divider" aria-hidden>vs</div>
+        <div className="gas-comparison__col gas-comparison__col--with">
+          <span className="gas-comparison__col-label">With DotFuel</span>
+          <span className="gas-comparison__cost gas-comparison__cost--accent">{tokenLabel}</span>
+          <span className="gas-comparison__note gas-comparison__note--success">0 PAS ✓</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const SUPPORTED_TOKENS: TokenOption[] = [
   {
@@ -176,14 +215,10 @@ export default function SendPage() {
                 {quoteCtx.tokenSymbol} after your transaction confirms.
               </p>
 
-              <div className="review-grid">
-                <div className="review-item">
-                  <span className="label">Estimated Cost</span>
-                  <strong className="review-item__value--accent">
-                    ≤ {formatAmount(quoteCtx.maxTokenCharge, quoteCtx.tokenDecimals, 4)}{" "}
-                    {quoteCtx.tokenSymbol}
-                  </strong>
-                </div>
+              {/* Gas comparison */}
+              <GasComparisonBanner quoteCtx={quoteCtx} />
+
+              <div className="review-grid mt-4">
                 <div className="review-item">
                   <span className="label">Payment Method</span>
                   <strong>{quoteCtx.tokenSymbol} via Permit2</strong>
@@ -191,10 +226,6 @@ export default function SendPage() {
                 <div className="review-item">
                   <span className="label">Account Setup</span>
                   <strong>{quoteCtx.requiresDeployment ? "Deploy + Execute" : "Execute only"}</strong>
-                </div>
-                <div className="review-item">
-                  <span className="label">Native Gas (PAS)</span>
-                  <strong className="review-item__value--success">0 PAS required</strong>
                 </div>
               </div>
 
@@ -227,14 +258,9 @@ export default function SendPage() {
                 Review the final details before submitting your UserOperation to the bundler.
               </p>
 
-              <div className="review-grid">
-                <div className="review-item">
-                  <span className="label">Max Gas Cost</span>
-                  <strong className="review-item__value--accent">
-                    ≤ {formatAmount(quoteCtx.maxTokenCharge, quoteCtx.tokenDecimals, 4)}{" "}
-                    {quoteCtx.tokenSymbol}
-                  </strong>
-                </div>
+              <GasComparisonBanner quoteCtx={quoteCtx} />
+
+              <div className="review-grid mt-4">
                 <div className="review-item">
                   <span className="label">Payment Method</span>
                   <strong>{quoteCtx.tokenSymbol} via Permit2</strong>
@@ -242,10 +268,6 @@ export default function SendPage() {
                 <div className="review-item">
                   <span className="label">Account Setup</span>
                   <strong>{quoteCtx.requiresDeployment ? "Deploy + Execute" : "Execute only"}</strong>
-                </div>
-                <div className="review-item">
-                  <span className="label">Native Gas (PAS)</span>
-                  <strong className="review-item__value--success">0 PAS required</strong>
                 </div>
               </div>
 

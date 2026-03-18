@@ -1947,6 +1947,96 @@ html[data-theme="dark"] .copyable-hex__button { border-color: rgba(240, 230, 216
   line-height: 1.45;
 }
 
+/* ── Gas Comparison Banner ─────────────────────────────────────────────────── */
+
+.gas-comparison {
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--success-border);
+  overflow: hidden;
+}
+
+.gas-comparison__banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-bottom: 1px solid var(--success-border);
+}
+
+.gas-comparison__row {
+  display: flex;
+  align-items: stretch;
+}
+
+.gas-comparison__col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+}
+
+.gas-comparison__col--without {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.gas-comparison__col--with {
+  background: rgba(12, 122, 92, 0.04);
+}
+
+.gas-comparison__col-label {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.gas-comparison__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--muted);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.gas-comparison__cost {
+  font-size: var(--text-base);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.gas-comparison__cost--strike {
+  text-decoration: line-through;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.gas-comparison__cost--accent {
+  color: var(--accent);
+}
+
+.gas-comparison__note {
+  font-size: var(--text-2xs);
+  color: var(--muted);
+}
+
+.gas-comparison__note--success {
+  color: var(--success);
+  font-weight: 600;
+}
+
 /* ─── Empty state ─────────────────────────────────── */
 
 .empty-state {

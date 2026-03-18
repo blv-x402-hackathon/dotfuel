@@ -286,6 +286,18 @@ textarea {
   transform: scale(1.04);
 }
 
+.stat-value--text {
+  font-size: 22px;
+}
+
+.stat-sublabel {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
 .section-grid {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);

@@ -17,30 +17,11 @@ export default function HomePage() {
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
   const [preferredTab, setPreferredTab] = useState<"token" | "sponsor">("token");
   const [eoaBalance, setEoaBalance] = useState<bigint | null>(null);
-  const [modeCount, setModeCount] = useState(0);
-  const [stepCount, setStepCount] = useState(0);
   const [claimLive, setClaimLive] = useState(false);
 
   useEffect(() => {
-    let animationFrame = 0;
-    const startedAt = performance.now();
-    const run = (now: number) => {
-      const progress = Math.min(1, (now - startedAt) / 1100);
-      setModeCount(Math.round(progress * 2));
-      setStepCount(Math.round(progress * 4));
-
-      if (progress < 1) {
-        animationFrame = window.requestAnimationFrame(run);
-      }
-    };
-
-    animationFrame = window.requestAnimationFrame(run);
     const claimTimer = window.setTimeout(() => setClaimLive(true), 420);
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(claimTimer);
-    };
+    return () => window.clearTimeout(claimTimer);
   }, []);
 
   useEffect(() => {
@@ -145,16 +126,17 @@ export default function HomePage() {
         <p className="hero-copy">Pay blockchain gas with any token. Zero native balance required.</p>
         <div className="stat-grid">
           <div className="stat">
-            <span className="stat-label">Primary Claim</span>
+            <span className="stat-label">Gas Required</span>
             <span className={`stat-value ${claimLive ? "stat-value--live" : ""}`}>0 PAS</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Guided Steps</span>
-            <span className="stat-value">{stepCount}</span>
+            <span className="stat-label">Payment Modes</span>
+            <span className="stat-value">2</span>
+            <span className="stat-sublabel">Token + Sponsor</span>
           </div>
           <div className="stat">
-            <span className="stat-label">Modes</span>
-            <span className="stat-value">{modeCount}</span>
+            <span className="stat-label">Settlement</span>
+            <span className="stat-value stat-value--text">Permit2</span>
           </div>
         </div>
         {!isConnected ? (

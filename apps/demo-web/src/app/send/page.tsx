@@ -134,7 +134,7 @@ export default function SendPage() {
                 <div className="wizard-field">
                   <span className="label">Target Contract</span>
                   <div className="wizard-action-row">
-                    <span className="wizard-action__name">DemoDapp</span>
+                    <span className="wizard-action__name">Demo Contract</span>
                     <span className="wizard-action__detail">execute("Hello DotFuel!")</span>
                   </div>
                 </div>
@@ -143,7 +143,7 @@ export default function SendPage() {
                   <span className="label">What happens</span>
                   <ol className="wizard-step-list">
                     <li>Your smart account approves Permit2 to spend tUSDT</li>
-                    <li>DemoDapp is called with your message</li>
+                    <li>The demo contract is called with your message</li>
                     <li>Gas is settled in tUSDT — 0 native token required</li>
                   </ol>
                 </div>

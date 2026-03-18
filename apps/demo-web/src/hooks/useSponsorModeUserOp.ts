@@ -149,7 +149,7 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
             status: "done"
           },
           {
-            title: "DemoDapp called",
+            title: "Contract executed",
             detail: "The same smart account action executed without token spend.",
             status: "done"
           },

@@ -224,7 +224,7 @@ export function useSendWizard() {
             status: "done"
           },
           {
-            title: "DemoDapp called",
+            title: "Contract executed",
             detail: "executeBatch forwarded the Hello DotFuel action.",
             status: "done"
           },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export interface ToastMessage {
   id: number;
@@ -9,18 +9,29 @@ export interface ToastMessage {
   description: string;
 }
 
+const AUTO_DISMISS_MS: Record<"success" | "error", number> = {
+  success: 3000,
+  error: 8000
+};
+
 export function Toast(props: {
   toast: ToastMessage | null;
   onDismiss: () => void;
   onOpen: () => void;
 }) {
   const { toast, onDismiss, onOpen } = props;
+  const [hovered, setHovered] = useState(false);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!toast || toast.kind !== "success") return;
-    const timeout = window.setTimeout(onDismiss, 3000);
-    return () => window.clearTimeout(timeout);
-  }, [onDismiss, toast]);
+    if (!toast) return;
+    if (hovered) return;
+
+    timerRef.current = window.setTimeout(onDismiss, AUTO_DISMISS_MS[toast.kind]);
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, [hovered, onDismiss, toast]);
 
   if (!toast) return null;
 
@@ -28,6 +39,8 @@ export function Toast(props: {
     <aside
       className={`toast toast--${toast.kind}`}
       onClick={onOpen}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       role="status"
       aria-live="polite"
     >

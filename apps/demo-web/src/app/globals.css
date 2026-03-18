@@ -1418,6 +1418,10 @@ textarea {
     position: static;
   }
 
+  .page-shell {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
   /* compact sidebar on mobile — hide verbose content, keep essentials */
   .sidebar-stack .card-title {
     font-size: 16px;

@@ -1,13 +1,24 @@
+"use client";
+
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { FlowTabs } from "@/components/FlowTabs";
+import { LogoMark } from "@/components/LogoMark";
 import { WalletConnect } from "@/components/WalletConnect";
+import { useAccount } from "wagmi";
 
 export default function HomePage() {
+  const { isConnected } = useAccount();
+
   return (
     <main className="page-shell">
       <section className="hero">
-        <div className="hero-eyebrow">Polkadot Hub TestNet • Chain ID 420420417</div>
-        <h1 className="hero-title">DotFuel</h1>
+        <div className="hero-brand">
+          <LogoMark className="hero-logo" />
+          <div className="hero-brand-copy">
+            <div className="hero-eyebrow">Polkadot Hub TestNet • Chain ID 420420417</div>
+            <h1 className="hero-title">DotFuel</h1>
+          </div>
+        </div>
         <p className="hero-copy">
           Show the exact hackathon moment that matters: a wallet holding zero native gas still lands a UserOperation,
           settles in token mode, or rides a sponsor campaign without friction.
@@ -28,9 +39,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {!isConnected ? <WalletConnect variant="hero" /> : null}
+
       <section className="section-grid">
         <div className="stack">
-          <WalletConnect />
+          {isConnected ? <WalletConnect variant="sidebar" /> : null}
           <CounterfactualAddress />
         </div>
         <FlowTabs />

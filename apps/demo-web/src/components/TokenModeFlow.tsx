@@ -8,7 +8,13 @@ import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { type FlowResult } from "@/lib/flowResults";
 import { useTokenModeUserOp } from "@/hooks/useTokenModeUserOp";
 
-export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) {
+export function TokenModeFlow({
+  onTx,
+  walletRequired = false
+}: {
+  onTx: (result: FlowResult) => void;
+  walletRequired?: boolean;
+}) {
   const { executeTokenMode, isLoading, error, result, progressStage, progressStartedAt } = useTokenModeUserOp();
 
   useEffect(() => {
@@ -21,10 +27,16 @@ export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) 
       <h2 className="card-title">Flow A — Token Mode</h2>
       <p className="card-subtitle">Approve Permit2, call DemoDapp, and settle gas in tUSDT with zero PAS on hand.</p>
       <div className="button-row" style={{ marginTop: 16 }}>
-        <button className="button button--accent" disabled={isLoading} onClick={executeTokenMode}>
+        <button
+          className="button button--accent"
+          disabled={isLoading || walletRequired}
+          onClick={executeTokenMode}
+          title={walletRequired ? "Wallet required" : undefined}
+        >
         {isLoading ? "Submitting..." : "Pay gas in tUSDT"}
         </button>
       </div>
+      {walletRequired ? <p className="card-subtitle" style={{ marginTop: 10 }}>Connect wallet first.</p> : null}
       <InlineProgressStepper stage={progressStage} startedAt={progressStartedAt} />
 
       {error ? <ErrorNotice error={error} /> : null}

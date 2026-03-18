@@ -146,12 +146,7 @@ export default function HomePage() {
           {isConnected ? <WalletConnect variant="sidebar" /> : null}
           <CounterfactualAddress />
         </div>
-        <div
-          aria-disabled={!isConnected}
-          style={isConnected ? undefined : { opacity: 0.48, filter: "saturate(0.7)", pointerEvents: "none" }}
-        >
-          <FlowTabs preferredTab={preferredTab} onHistoryChange={setHistory} />
-        </div>
+        <FlowTabs preferredTab={preferredTab} onHistoryChange={setHistory} />
       </section>
     </main>
   );

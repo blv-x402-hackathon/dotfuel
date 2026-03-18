@@ -8,7 +8,15 @@ import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
 import type { FlowResult } from "@/lib/flowResults";
 
-export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}`; onTx: (result: FlowResult) => void }) {
+export function SponsorModeFlow({
+  campaignId,
+  onTx,
+  walletRequired = false
+}: {
+  campaignId: `0x${string}`;
+  onTx: (result: FlowResult) => void;
+  walletRequired?: boolean;
+}) {
   const { executeSponsored, isLoading, error, result, progressStage, progressStartedAt } = useSponsorModeUserOp(campaignId);
 
   useEffect(() => {
@@ -25,10 +33,16 @@ export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}
         <CopyableHex value={campaignId} />
       </p>
       <div className="button-row" style={{ marginTop: 16 }}>
-        <button className="button" disabled={isLoading} onClick={executeSponsored}>
+        <button
+          className="button"
+          disabled={isLoading || walletRequired}
+          onClick={executeSponsored}
+          title={walletRequired ? "Wallet required" : undefined}
+        >
         {isLoading ? "Submitting..." : "Execute Sponsored"}
         </button>
       </div>
+      {walletRequired ? <p className="card-subtitle" style={{ marginTop: 10 }}>Connect wallet first.</p> : null}
       <InlineProgressStepper stage={progressStage} startedAt={progressStartedAt} />
 
       {error ? <ErrorNotice error={error} /> : null}

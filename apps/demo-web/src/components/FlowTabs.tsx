@@ -8,6 +8,7 @@ import { SponsorModeFlow } from "@/components/SponsorModeFlow";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
 import { TokenModeFlow } from "@/components/TokenModeFlow";
 import { type FlowResult } from "@/lib/flowResults";
+import { useAccount } from "wagmi";
 
 const EMPTY_CAMPAIGN_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -16,6 +17,7 @@ export function FlowTabs(props: {
   onHistoryChange?: (items: TxHistoryItem[]) => void;
 }) {
   const { preferredTab, onHistoryChange } = props;
+  const { isConnected } = useAccount();
   const [tab, setTab] = useState<"token" | "sponsor">("token");
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
@@ -52,28 +54,33 @@ export function FlowTabs(props: {
   };
 
   return (
-    <div className="stack" id="flow-tabs">
+    <div className={`stack flow-tabs-shell ${isConnected ? "" : "flow-tabs-shell--locked"}`} id="flow-tabs">
+      {!isConnected ? <div className="flow-tabs-shell__overlay">Connect wallet first to unlock execution flows.</div> : null}
       <BalancePanel refreshKey={balanceRefreshKey} />
       <div className="tab-bar">
         <button
           className={`tab-button ${tab === "token" ? "tab-button--active" : ""}`}
+          disabled={!isConnected}
           onClick={() => setTab("token")}
+          title={!isConnected ? "Wallet required" : undefined}
         >
           Token Mode
         </button>
         <button
           className={`tab-button ${tab === "sponsor" ? "tab-button--active" : ""}`}
+          disabled={!isConnected}
           onClick={() => setTab("sponsor")}
+          title={!isConnected ? "Wallet required" : undefined}
         >
           Sponsor Mode
         </button>
       </div>
 
-      {tab === "token" ? <TokenModeFlow onTx={onTx} /> : null}
+      {tab === "token" ? <TokenModeFlow onTx={onTx} walletRequired={!isConnected} /> : null}
       {tab === "sponsor" ? (
         <>
           <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
-          <SponsorModeFlow campaignId={campaignId} onTx={onTx} />
+          <SponsorModeFlow campaignId={campaignId} onTx={onTx} walletRequired={!isConnected} />
         </>
       ) : null}
       <TxHistory items={history} />

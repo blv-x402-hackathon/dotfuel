@@ -70,14 +70,12 @@ export default function SendPage() {
   useEffect(() => {
     const prev = prevStepRef.current;
     prevStepRef.current = step;
-    if (step === "execute") {
-      executeUserOp();
-    } else if (step === "success" && prev === "execute" && result) {
+    if (step === "success" && prev !== "success" && result) {
       toast("success", "Transaction confirmed", `Gas: ${result.gasCostLabel} → ${result.settlementLabel}`);
-    } else if (step === "failed" && prev === "execute" && error) {
+    } else if (step === "failed" && prev !== "failed" && error) {
       toast("error", "Transaction failed", error.message);
     }
-  }, [step, executeUserOp, result, error, toast]);
+  }, [step, result, error, toast]);
 
   if (!isConnected) {
     return (
@@ -211,8 +209,59 @@ export default function SendPage() {
             </div>
           ) : null}
 
-          {/* Step 3: Execute / Success / Failed */}
-          {(step === "execute" || step === "success" || step === "failed") ? (
+          {/* Step 3: Confirm & Execute */}
+          {step === "execute" && !progressStage && quoteCtx ? (
+            <div className="card card--primary">
+              <h2 className="card-title">Confirm & Submit</h2>
+              <p className="card-subtitle">
+                Review the final details before submitting your UserOperation to the bundler.
+              </p>
+
+              <div className="review-grid">
+                <div className="review-item">
+                  <span className="label">Max Gas Cost</span>
+                  <strong className="review-item__value--accent">
+                    ≤ {formatAmount(quoteCtx.maxTokenCharge, quoteCtx.tokenDecimals, 4)}{" "}
+                    {quoteCtx.tokenSymbol}
+                  </strong>
+                </div>
+                <div className="review-item">
+                  <span className="label">Payment Method</span>
+                  <strong>{quoteCtx.tokenSymbol} via Permit2</strong>
+                </div>
+                <div className="review-item">
+                  <span className="label">Account Setup</span>
+                  <strong>{quoteCtx.requiresDeployment ? "Deploy + Execute" : "Execute only"}</strong>
+                </div>
+                <div className="review-item">
+                  <span className="label">Native Gas (PAS)</span>
+                  <strong className="review-item__value--success">0 PAS required</strong>
+                </div>
+              </div>
+
+              <div className="review-notice">
+                <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden className="flex-none">
+                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2" />
+                  <path d="M8 5.5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+                <span>
+                  Permit2 signature is ready. Submit to complete the gasless transaction.
+                </span>
+              </div>
+
+              {error ? <ErrorNotice error={error} /> : null}
+
+              <div className="button-row mt-5">
+                <Button variant="ghost" onClick={reset}>Cancel</Button>
+                <Button variant="accent" onClick={executeUserOp}>
+                  Confirm & Submit →
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Step 3: Executing / Success / Failed */}
+          {(step === "execute" && progressStage) || step === "success" || step === "failed" ? (
             <div className="card card--primary">
               <h2 className="card-title">
                 {step === "success"

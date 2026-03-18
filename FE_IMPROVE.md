@@ -1,764 +1,439 @@
-# FE_IMPROVE.md — DotFuel Frontend Improvement Tickets
+# FE_IMPROVE.md — UI/UX Improvement Tickets
 
-> **Product Design Review by Senior Product Designer**
-> 현재 DotFuel 프론트엔드는 해커톤 데모 수준의 단일 페이지 앱이다.
-> 상용 프로덕트로 전환하기 위해 아래 티켓들을 우선순위별로 정리한다.
-> 각 티켓은 독립적으로 실행 가능하되, 의존성이 있는 경우 명시한다.
-
----
-
-## 현재 상태 진단 요약
-
-### 구조적 문제
-- **GNB 없음**: 로고가 히어로 섹션에만 존재. 스크롤 시 브랜딩/네비게이션 사라짐
-- **지갑 연결이 로컬**: `WalletConnect` 컴포넌트가 hero/sidebar 두 군데 독립 렌더링. 글로벌 상태 없음
-- **단일 페이지**: 모든 기능(Balance, Token Flow, Sponsor Console, History)이 하나의 스크롤에 적재
-- **SectionNav**: scroll-spy 기반 인라인 네비게이션 → 상용 GNB와 역할 충돌
-
-### 시각 디자인 문제
-- 히어로 섹션이 과도하게 크고 데모 전용 언어("Guided Demo Flow", "Quick Demo", "for judges")로 가득함
-- 카드가 모두 비슷한 형태 → 정보 위계가 불명확
-- 교육용 텍스트가 UI에 직접 노출 ("This is the magic: no native gas needed")
-- `StepIndicator`가 데모 가이드 역할인데, 실 사용자에게는 무의미
-
-### UX 문제
-- 토큰 선택 UI 없음 (tUSDT 하드코딩)
-- 트랜잭션 히스토리에 필터/검색 없음
-- 스폰서 콘솔이 메인 플로우에 인라인으로 삽입 → 복잡도 증가
-- 모바일에서 사이드바가 스택으로 collapse되면서 핵심 정보(지갑, 스마트 계정) 접근성 떨어짐
-- 로딩 스켈레톤 없이 "Pending" 텍스트만 표시
-- 에러 바운더리 / 폴백 페이지 없음
+> Senior Product Designer review.
+> 평가 기준: 상용 프로덕트 수준의 미적 완성도 + 유저 편의성.
+> 불필요한 정보를 만들어 넣지 않되, 실제 사용 시 불편한 점과 시각적 결함을 모두 다룬다.
 
 ---
 
-## P0 — Architecture & Navigation (핵심 구조 변경)
+## P0 — Critical (Production Blockers)
 
-### FE-001: Global Navigation Bar (GNB) 도입
+### FE-I-001: Send 플로우의 자동 실행 제거 — 유저 컨트롤 확보
 
-**Goal**: 모든 페이지에서 일관된 브랜딩, 네비게이션, 지갑 상태를 제공하는 GNB 구현
+**현재 문제**
+`send/page.tsx`에서 Permit2 서명 완료 후 `step`이 `execute`로 전환되면 `useEffect`가 즉시 `executeUserOp()`를 호출한다. 유저는 Permit2 서명과 UserOp 서명 사이에 아무런 제어권이 없다. 서명 후 "잠깐, 취소하고 싶다"는 순간이 존재하지 않는다.
 
-**현재 문제**:
-- 로고는 히어로 섹션(`page.tsx:132-141`)에만 존재
-- 네트워크 상태 dot은 히어로 eyebrow(`page.tsx:136-137`)에만 표시
-- `SectionNav`(`SectionNav.tsx`)는 scroll-spy 인라인 바 → GNB가 아님
-- 스크롤하면 브랜드 아이덴티티와 현재 위치 정보가 사라짐
+**개선안**
+- `execute` 단계에 "Confirm & Submit" 버튼을 노출하여, 유저가 명시적으로 실행을 트리거하도록 변경.
+- 자동 실행 useEffect 제거.
+- Review 카드에 최종 gas estimate와 token charge를 다시 한번 요약 표시.
 
-**Scope**:
-- `<GNB />` 컴포넌트 신규 생성
-- 좌측: LogoMark + "DotFuel" 텍스트 (홈 링크)
-- 중앙: 페이지 네비게이션 링크 (Dashboard, Send, Sponsor, History)
-- 우측: 네트워크 상태 indicator + WalletButton (FE-002에서 구현)
-- `position: sticky; top: 0; z-index: 40;` + backdrop-filter blur
-- 모바일: 로고 + 햄버거 메뉴 또는 bottom nav (FE-010)
-- 기존 `SectionNav.tsx` 제거 또는 서브 내비게이션으로 전환
-- `StepIndicator.tsx` 제거 (데모 전용 컴포넌트)
-
-**AC**:
-- [ ] GNB가 모든 페이지 상단에 고정 표시
-- [ ] 현재 페이지가 active 상태로 하이라이트
-- [ ] 스크롤 시에도 로고, 네비게이션, 지갑 상태 항상 접근 가능
-- [ ] 1400px+ / 900px / 600px / 420px 반응형 대응
-- [ ] 다크모드 대응
-
-**Depends on**: FE-002
-**Removes**: `SectionNav.tsx`, `StepIndicator.tsx`
+**영향 범위**: `send/page.tsx`, `useSendWizard.ts`
 
 ---
 
-### FE-002: Global Wallet State & Wallet Button
+### FE-I-002: Modal 포커스 트랩(Focus Trap) 구현
 
-**Goal**: 지갑 연결 상태를 글로벌하게 관리하고, GNB에 통합된 WalletButton으로 통일
+**현재 문제**
+`WalletModal`, `NotificationCenter` 패널이 열렸을 때 Tab 키로 뒷 배경 요소에 포커스가 이동할 수 있다. 스크린 리더 사용자와 키보드 유저에게 접근성 문제.
 
-**현재 문제**:
-- `WalletConnect.tsx`가 `variant="hero"` / `variant="sidebar"` 두 벌로 렌더링
-- 지갑 상태가 wagmi hooks 직접 호출로 각 컴포넌트에 분산
-- Disconnect 버튼이 사이드바 카드 안에 매몰
-- 연결 시 EOA 주소와 Chain ID만 표시 — avatar, ENS, balance 등 없음
-- 여러 커넥터가 버튼 리스트로 나열 → 사용자 혼란
+**개선안**
+- WalletModal 오픈 시 focus trap 적용 (첫 번째 ↔ 마지막 포커스 가능 요소 간 순환).
+- ESC 키 → 모달 닫기 (이미 구현됨, 유지).
+- 모달 닫힐 때 트리거 요소로 포커스 복원.
+- `aria-modal="true"` + `role="dialog"` (WalletModal에 이미 있음, NotificationCenter에도 적용).
+- body scroll lock 추가 (모바일에서 배경 스크롤 방지).
 
-**Scope**:
-- `WalletProvider` context 또는 Zustand store 생성
-  - 상태: `address`, `chainId`, `isConnected`, `connector`, `eoaBalance`
-  - 액션: `connect()`, `disconnect()`, `switchChain()`
-- `<WalletButton />` 컴포넌트 (GNB 우측에 배치)
-  - 미연결: "Connect Wallet" pill 버튼 → 클릭 시 `WalletModal` 오픈
-  - 연결: avatar (jazzicon/blockie) + 축약 주소 + 네이티브 잔액 → 클릭 시 dropdown
-- `<WalletModal />` 컴포넌트
-  - 커넥터 목록 (MetaMask, WalletConnect, Injected) 아이콘 포함
-  - 연결 진행 상태 (connecting... / error / retry)
-  - 네트워크 불일치 시 자동 switchChain 유도
-- `<WalletDropdown />` 컴포넌트
-  - EOA 주소 (full + copy)
-  - 네트워크 이름 + Chain ID
-  - 네이티브 잔액 (PAS)
-  - Smart Account 주소 (counterfactual)
-  - Explorer 링크
-  - Disconnect 버튼
-- 기존 `WalletConnect.tsx` 제거
-- 히어로 섹션의 지갑 연결 CTA를 WalletButton으로 대체
-- 사이드바의 Wallet Session 카드 제거
-
-**AC**:
-- [ ] 지갑 연결/해제가 어디서든 한 곳(GNB)에서 가능
-- [ ] 모달에 커넥터별 아이콘 + 이름 표시
-- [ ] 연결 후 GNB에 avatar + 축약 주소 + 잔액 항상 표시
-- [ ] 드롭다운에서 EOA, Smart Account, 네트워크 정보 확인 가능
-- [ ] ESC 키, 바깥 클릭으로 모달/드롭다운 닫힘
-- [ ] 모바일에서 full-screen 모달로 전환
-
-**Removes**: `WalletConnect.tsx`
-**Modifies**: `page.tsx`, `FlowTabs.tsx`, `CounterfactualAddress.tsx`
+**영향 범위**: `WalletModal.tsx`, `NotificationCenter.tsx`, 공통 유틸 `useFocusTrap` 훅 추가
 
 ---
 
-### FE-003: Multi-Page Routing 도입
+### FE-I-003: 다크 모드 수동 전환 토글 추가
 
-**Goal**: 단일 페이지 스크롤 구조를 멀티 페이지로 분리하여 각 기능의 깊이를 확보
+**현재 문제**
+다크 모드가 `prefers-color-scheme: dark`에만 의존한다. OS 설정과 다르게 앱에서만 다크 모드를 쓰고 싶은 유저를 지원하지 못한다. 상용 앱에서 필수적인 기능.
 
-**현재 문제**:
-- `page.tsx` 하나에 Hero + StepIndicator + SectionNav + Balance + Flows + Sponsor Console + History 전부 적재
-- 스폰서 콘솔이 token/sponsor 탭 안에 인라인 → 인지 부하 과다
-- 히스토리가 FlowTabs 하단에 붙어있어 접근성 낮음
-- URL로 특정 기능에 deep link 불가 (id anchor만 존재)
+**개선안**
+- 테마 상태를 `system | light | dark`로 관리하는 `ThemeProvider` 추가.
+- `<html>` 태그에 `data-theme="light|dark"` 속성 토글.
+- CSS를 `@media (prefers-color-scheme: dark)` → `[data-theme="dark"]` 선택자로 전환하되, `system` 일 때는 미디어 쿼리 사용.
+- 토글 UI: GNB 우측에 sun/moon 아이콘 버튼 또는 WalletDropdown 내에 배치.
+- 선택값을 `localStorage`에 persist.
 
-**Scope**:
-- Next.js App Router 페이지 분리:
-  - `/` — 랜딩/대시보드 (잔액 요약 + 최근 tx + CTA)
-  - `/send` — 토큰 모드 실행 (Flow A)
-  - `/sponsor` — 스폰서 모드 실행 (Flow B) + 캠페인 관리
-  - `/history` — 트랜잭션 전체 히스토리 (필터, 검색, 페이지네이션)
-  - `/settings` — 네트워크, 토큰 설정 (향후)
-- 공통 레이아웃: `app/layout.tsx`에 GNB + `<main>` + Footer
-- 페이지 간 공유 상태: WalletProvider(FE-002), React Query cache
-- `output: 'export'` 유지 (정적 빌드)
-
-**AC**:
-- [ ] 각 페이지가 독립 URL로 접근 가능
-- [ ] GNB에서 페이지 전환 시 active 상태 반영
-- [ ] 브라우저 뒤로가기/앞으로가기 정상 동작
-- [ ] 지갑 상태가 페이지 전환 시 유지
-- [ ] 각 페이지에 적절한 `<title>` + meta 태그
-
-**Depends on**: FE-001, FE-002
+**영향 범위**: `globals.css`, `layout.tsx`, `GNB.tsx` 또는 `WalletDropdown.tsx`, 신규 `ThemeProvider.tsx`
 
 ---
 
-## P1 — Design System & Component Library
+## P1 — High Priority (Production Quality)
 
-### FE-004: Design Token 체계화 및 Spacing System
+### FE-I-004: 인라인 SVG 아이콘 → 통합 아이콘 시스템
 
-**Goal**: CSS 변수를 체계적 design token으로 재정의하고, 일관된 spacing scale 도입
+**현재 문제**
+모든 컴포넌트에 인라인 `<svg>` 가 산재해 있다. 같은 아이콘(chevron, external-link, close, copy, bell 등)이 미세하게 다른 strokeWidth/size로 반복 정의되어 시각적 일관성이 떨어지고, 유지보수가 어렵다.
 
-**현재 문제**:
-- `globals.css`에 컬러 토큰은 있으나 spacing/radius 토큰 없음
-- `padding: 28px`, `gap: 18px`, `margin-top: 16px` 등 매직넘버 산재
-- 컴포넌트마다 인라인 `style={{ marginTop: 16 }}` 반복 (최소 8곳)
-- border-radius가 16px, 18px, 20px, 22px, 24px, 28px, 999px으로 불규칙
+**개선안**
+- `src/components/ui/Icon.tsx`에 통합 아이콘 컴포넌트 생성.
+- 자주 쓰는 아이콘 목록: `chevron-down`, `external-link`, `close`, `copy`, `check`, `bell`, `home`, `send`, `shield`, `clock`, `plus`, `wallet`, `search`, `warning`, `info`.
+- 사이즈 prop (`sm: 14px`, `md: 18px`, `lg: 24px`) + `className` 전달.
+- 기존 인라인 SVG를 `<Icon name="..." />` 으로 교체.
 
-**Scope**:
-- Spacing scale: `--space-1: 4px` ~ `--space-12: 48px` (4px grid 기반)
-- Radius scale: `--radius-sm: 8px`, `--radius-md: 16px`, `--radius-lg: 24px`, `--radius-full: 999px`
-- Typography scale 정리: `--text-xs` ~ `--text-3xl` + line-height/weight pairing
-- Color token 확장: surface/on-surface 패턴, interactive/hover/pressed 상태
-- Shadow scale: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
-- 모든 인라인 style을 CSS class로 전환
-- Tailwind CSS 도입 검토 (optional — 현재 커스텀 CSS 규모가 크므로)
-
-**AC**:
-- [ ] 모든 spacing이 `--space-*` 변수 사용
-- [ ] 모든 radius가 `--radius-*` 변수 사용
-- [ ] 인라인 `style={}` 0개 (data-driven 동적 스타일 제외)
-- [ ] 다크모드 토큰이 semantic name으로 자동 전환
+**영향 범위**: 전체 컴포넌트 (BottomNav, GNB, WalletButton, CopyableHex, FlowResultPanel, Toast, NotificationCenter, HistoryPage 등)
 
 ---
 
-### FE-005: 공통 UI 컴포넌트 추출 및 표준화
+### FE-I-005: 스켈레톤 로딩 일관성 확보
 
-**Goal**: 반복되는 UI 패턴을 재사용 가능한 컴포넌트로 추출
+**현재 문제**
+- `BalancePanel`에만 `Skeleton` 컴포넌트가 적용되어 있다.
+- `history/page.tsx`는 빈 배열에서 데이터 로드 시 즉시 리스트가 나타난다 (flash).
+- `sponsor/page.tsx`의 campaign status 로딩 시 스켈레톤이 없다.
+- `CounterfactualAddress`의 "Deriving..." 텍스트는 skeleton이 더 자연스러움.
 
-**현재 문제**:
-- `TokenModeFlow.tsx`와 `SponsorModeFlow.tsx`가 거의 동일한 코드 구조 (result panel, timeline, explorer link)
-- 버튼 스타일이 className 문자열 조합으로 관리 (`button button--accent`, `button button--ghost`)
-- Badge도 동일한 패턴 (`badge badge--success`, `badge--neutral` 등)
-- Card 변형이 `card--primary`, `card--info`, `card--data`, `card--log`으로 className 조합
-- 폼 필드가 label + input + hint 패턴을 매번 수동 조합
+**개선안**
+- History 페이지: 초기 로드 시 3~4개의 skeleton 아이템 표시.
+- Sponsor 페이지: campaign status card에 skeleton 적용.
+- CounterfactualAddress: 주소 영역에 skeleton 적용.
+- 모든 데이터 패칭 영역에 일관된 skeleton 패턴 적용.
 
-**Scope**:
-- `components/ui/` 디렉토리 신규 생성:
-  - `Button.tsx` — variant (primary/secondary/ghost/danger), size (sm/md/lg), loading state, icon slot
-  - `Card.tsx` — variant (default/primary/info/data), title, subtitle, action slot
-  - `Badge.tsx` — variant (success/danger/neutral/accent/polkadot), size
-  - `Input.tsx` — label, hint, error, validation state, prefix/suffix
-  - `Modal.tsx` — overlay, close handler, size, animation
-  - `Dropdown.tsx` — trigger, items, positioning, keyboard nav
-  - `Skeleton.tsx` — width, height, variant (text/circle/rect)
-  - `Tooltip.tsx` — content, position, delay
-- `FlowResultPanel.tsx` 추출 — TokenModeFlow/SponsorModeFlow 공통 결과 패널
-- Prop-driven 스타일링으로 className 문자열 조합 제거
-
-**AC**:
-- [ ] 모든 버튼이 `<Button>` 컴포넌트 사용
-- [ ] 모든 카드가 `<Card>` 컴포넌트 사용
-- [ ] TokenModeFlow와 SponsorModeFlow의 result panel 코드 중복 0
-- [ ] Storybook 또는 별도 페이지에서 컴포넌트 카탈로그 확인 가능 (optional)
+**영향 범위**: `history/page.tsx`, `sponsor/page.tsx`, `CounterfactualAddress.tsx`, `Skeleton.tsx` (확장 필요 시)
 
 ---
 
-### FE-006: Skeleton Loading States
+### FE-I-006: Campaign ID 입력 UX 개선 — 인간이 읽을 수 있는 형태
 
-**Goal**: 데이터 로딩 중 skeleton placeholder를 표시하여 perceived performance 향상
+**현재 문제**
+Sponsor 페이지에서 Campaign ID를 `0x` + 64자리 hex로 직접 입력해야 한다. 이것은 개발자용 인터페이스이지 유저용이 아니다. 상용 제품에서는 이런 raw hex를 유저에게 노출하면 안 된다.
 
-**현재 문제**:
-- BalancePanel: 연결 전 "Connect wallet" 텍스트, 로딩 중 아무 피드백 없음
-- CounterfactualAddress: "Deriving..." 텍스트만 표시
-- SponsorConsole status cards: "Pending" / "Unknown" 텍스트
-- TxHistory: 데이터 없을 때 일러스트 + 텍스트만 표시
-- 전반적으로 layout shift 발생 가능
+**개선안**
+- "최근 생성한 캠페인" 드롭다운을 추가. localStorage에 `{id, name, createdAt}[]`로 최근 캠페인 목록을 유지.
+- Campaign 생성 성공 시 자동으로 해당 캠페인 선택.
+- Campaign ID를 보여줄 때 캠페인 이름 + 말줄임된 ID로 표시 (예: "DotFuel Launch Day (0x3a1f...c42b)").
+- 고급 사용자용 "Enter ID manually" 토글은 유지하되 기본 UI가 아니라 collapsible.
 
-**Scope**:
-- `<Skeleton />` 컴포넌트 (FE-005에서 생성)를 활용
-- BalancePanel: 잔액 카드 2개가 skeleton 애니메이션으로 표시
-- CounterfactualAddress: 주소 영역 skeleton
-- SponsorConsole: status-grid 4칸 skeleton
-- TxHistory: history-item 3개 skeleton
-- GNB WalletButton: 연결 중 skeleton pill
-
-**AC**:
-- [ ] 모든 데이터 의존 영역에 로딩 시 skeleton 표시
-- [ ] skeleton → 실제 데이터 전환 시 layout shift 0
-- [ ] skeleton 애니메이션이 일관된 pulse 패턴
+**영향 범위**: `sponsor/page.tsx`, `lib/campaign-client.ts` (로컬 캠페인 목록 관리), 신규 `CampaignSelector` 컴포넌트
 
 ---
 
-### FE-007: Responsive Design 재설계
+### FE-I-007: Error Recovery UX 강화
 
-**Goal**: 모바일 퍼스트 반응형 레이아웃으로 전면 재설계
+**현재 문제**
+에러 발생 시 `<ErrorNotice>` 가 빨간 배경에 메시지를 표시하지만, 유저가 "다음에 무엇을 해야 하는지"에 대한 안내가 없다. 또한 네트워크 에러 시 재시도 버튼이 없다.
 
-**현재 문제**:
-- 현재 breakpoint: 420px, 600px, 900px, 1400px — 기준 불명확
-- 모바일에서 sidebar가 main content 위에 스택 → 핵심 flow가 아래로 밀림
-- `SectionNav`가 모바일에서 의미 없는 위치에 떠다님
-- `status-grid` 4칸이 900px 이하에서 2칸으로만 축소
-- `hero-title`의 `max-width: 9ch`가 모바일에서 불필요한 줄바꿈 유발
+**개선안**
+- 각 에러 유형별 CTA 버튼 추가:
+  - 네트워크 에러: "Retry" 버튼
+  - 지갑 미연결: "Connect Wallet" 버튼
+  - 잔고 부족: 관련 안내 + 잔고 패널로 스크롤
+  - 캠페인 비활성: "Create New Campaign" 링크
+- `ErrorNotice` 에 optional `action` prop (`{ label: string; onClick: () => void }`) 추가.
+- Debug details 섹션은 유지하되, 기본적으로 닫힌 상태로 (이미 `<details>` 사용 중, 유지).
 
-**Scope**:
-- Breakpoint 표준화: `sm: 640px`, `md: 768px`, `lg: 1024px`, `xl: 1280px`
-- 모바일 (< md):
-  - GNB: compact (logo + wallet button만)
-  - Bottom navigation bar 도입 (FE-010)
-  - 카드 패딩/마진 축소
-  - 히어로 섹션 compact 버전
-  - stat-grid 1칸, status-grid 1칸
-  - balance-grid 스택 (1칸)
-- 태블릿 (md ~ lg):
-  - 2컬럼 레이아웃 (sidebar + main)
-  - stat-grid 2칸
-- 데스크톱 (lg+):
-  - 현재와 유사하되 max-width 조정
-- 모든 터치 타겟 최소 44x44px 보장 (이미 일부 적용)
-
-**AC**:
-- [ ] 모바일에서 핵심 액션(Send, Sponsor)까지 2탭 이내 접근
-- [ ] 모든 터치 타겟 44x44px 이상
-- [ ] 가로 스크롤 발생 0
-- [ ] 420px ~ 1400px 전 구간에서 레이아웃 깨짐 없음
+**영향 범위**: `ErrorNotice.tsx`, `uiError.ts` (에러별 action hint 추가), `send/page.tsx`, `sponsor/page.tsx`
 
 ---
 
-## P2 — User Flows 개선
+### FE-I-008: History 페이지 페이지네이션 및 가상 스크롤
 
-### FE-008: Token Payment Flow 재설계
+**현재 문제**
+localStorage에서 최대 100개 트랜잭션을 한 번에 렌더링한다. 실사용 시 100개의 DOM 노드 + 펼치기/접기 상호작용이 성능에 영향을 줄 수 있다. 또한 "더 보기" 없이 100개 제한이 유저에게 알려지지 않는다.
 
-**Goal**: 토큰 모드 플로우를 직관적 step-by-step 위저드로 재설계
+**개선안**
+- 초기 로드 시 20개만 표시, 하단에 "Load More" 버튼.
+- 혹은 Intersection Observer 기반 무한 스크롤.
+- 전체 건수를 필터 영역에 표시 (예: "Token (42)", "Sponsor (12)").
+- 100건 제한 도달 시 안내 메시지 ("Oldest transactions are automatically removed").
 
-**현재 문제**:
-- `TokenModeFlow.tsx`: 버튼 하나("Pay gas in tUSDT") → 전체 flow가 블랙박스
-- 사용자가 무엇이 일어나는지 사전 이해 불가 (approve → call → settle)
-- 토큰 선택 불가 (tUSDT 하드코딩)
-- 가스비 예상(quote) 미리보기 없음 → 버튼 누른 후에야 확인
-- 결과 패널이 플로우 카드 아래에 append — 스크롤 필요
-
-**Scope**:
-- `/send` 페이지에 3-step 위저드 UI:
-  1. **Configure**: 대상 토큰 선택 + 실행할 액션 확인 + 예상 가스비(quote preview)
-  2. **Review & Sign**: Permit2 서명 내용 요약 + 서명 요청
-  3. **Execute & Confirm**: UserOp 제출 + 진행 상태 + 결과
-- Quote preview: `/v1/quote/token` 프리페치 → 예상 tUSDT 비용 표시
-- 토큰 선택 dropdown (향후 다중 토큰 지원 대비, 현재는 tUSDT만 활성)
-- 결과 화면에 "Send Another" + "View in History" CTA
-- 진행 중 다른 영역 비활성화 (overlay 또는 dedicated page)
-
-**AC**:
-- [ ] 사용자가 서명 전 예상 비용 확인 가능
-- [ ] 각 단계의 진행 상태가 시각적으로 명확
-- [ ] 결과에서 다음 액션으로 자연스럽게 이어짐
-- [ ] 실패 시 어떤 단계에서 실패했는지 명확
+**영향 범위**: `history/page.tsx`, `txHistory.ts`
 
 ---
 
-### FE-009: Sponsor Console을 독립 페이지로 분리
+### FE-I-009: Balance Delta 값의 가독성 개선
 
-**Goal**: 스폰서 콘솔을 `/sponsor` 전용 페이지로 분리하고 대시보드 경험 제공
+**현재 문제**
+`BalancePanel`에서 `formatEther(snapshot.eoaPas - previousSnapshot.eoaPas)` 값이 그대로 표시된다. Wei 단위의 미세한 차이가 `0.000000000000001234`처럼 매우 긴 소수점으로 나올 수 있다.
 
-**현재 문제**:
-- `SponsorConsole.tsx` (330줄)가 FlowTabs의 Sponsor 탭 안에 인라인
-- Campaign 생성 폼 + 상태 모니터링 + 실행 플로우가 한 탭에 혼재
-- "Advanced Campaign Settings"가 `<details>` 토글 — 중요 설정이 숨겨짐
-- status-grid 4칸이 모바일에서 접근 어려움
-- 여러 캠페인 관리 불가 (하나만 활성)
+**개선안**
+- Delta 값도 `formatAmount` 함수 사용하여 유효 자릿수 제한 (예: 최대 6자리).
+- 양수일 때 `+` 접두사 표시.
+- 0 변화 시 "No change" 대신 delta 행 자체를 시각적으로 dim 처리.
 
-**Scope**:
-- `/sponsor` 페이지 구성:
-  - **Campaign List**: 생성한 캠페인 목록 (카드 그리드)
-  - **Campaign Detail**: 선택 캠페인의 상세 대시보드
-    - 예산 진행률 (budget bar, 현재 것 개선)
-    - 사용자별 사용량 차트
-    - 허용 타겟 목록 관리
-    - 활성/비활성 토글
-  - **Create Campaign**: 모달 또는 별도 섹션
-    - 모든 필드를 기본 노출 (더 이상 `<details>` 숨김 아님)
-    - 생성 후 즉시 detail로 이동
-  - **Sponsor Execute**: 선택된 캠페인으로 UserOp 실행
-- Campaign ID를 URL param으로 관리 (`/sponsor?id=0x...`)
-
-**AC**:
-- [ ] 캠페인 생성/조회/실행이 직관적 flow로 연결
-- [ ] 여러 캠페인 전환 가능
-- [ ] 대시보드에서 실시간 예산 소진 확인
-- [ ] 폼 필드가 모두 기본 노출 (숨김 없음)
+**영향 범위**: `BalancePanel.tsx`
 
 ---
 
-### FE-010: Mobile Bottom Navigation
+### FE-I-010: 공통 페이지 전환 애니메이션
 
-**Goal**: 모바일에서 핵심 네비게이션을 하단 탭바로 제공
+**현재 문제**
+Next.js 페이지 간 전환 시 아무런 전환 효과가 없어 화면이 딱딱하게 바뀐다. `cardEnter` 애니메이션은 있지만 페이지 레벨은 아니다.
 
-**현재 문제**:
-- 모바일에서 GNB만으로는 주요 기능 접근이 불편
-- 스크롤 기반 네비게이션은 모바일에서 직관적이지 않음
-- iOS/Android 네이티브 앱 사용자의 mental model과 불일치
+**개선안**
+- `page-shell` 진입 시 subtle fade-in + translateY 애니메이션 적용 (CSS only).
+- 현재 `cardEnter`와 톤을 맞추되 더 가볍게 (`opacity 0→1`, `translateY(8px)→0`, `180ms ease`).
+- `prefers-reduced-motion` 존중 (이미 글로벌 규칙 있음).
 
-**Scope**:
-- `<BottomNav />` 컴포넌트 (md 이하에서만 표시)
-- 탭 아이콘 + 라벨: Home, Send, Sponsor, History
-- 현재 페이지 active 표시
-- safe area 대응 (iOS notch/home indicator)
-- 스크롤 시 auto-hide (optional)
-- GNB의 중앙 네비 링크는 md 이상에서만 표시
-
-**AC**:
-- [ ] 768px 이하에서 하단 고정 네비게이션 표시
-- [ ] 탭 전환이 1-tap으로 가능
-- [ ] safe area inset 대응 (iPhone)
-- [ ] 키보드 열릴 때 하단 탭바 숨김
-
-**Depends on**: FE-003
+**영향 범위**: `globals.css` (`.page-shell` 에 진입 애니메이션 추가)
 
 ---
 
-### FE-011: Transaction History 풀 페이지 개선
+### FE-I-011: GNB 스크롤 시 시각적 피드백 강화
 
-**Goal**: 트랜잭션 히스토리를 전용 페이지로 분리하고 필터/검색/페이지네이션 추가
+**현재 문제**
+GNB는 `position: sticky`이고 `backdrop-filter: blur(12px)` + 반투명 배경이 있지만, 스크롤 유무에 따른 시각적 구분이 약하다. 유저가 페이지 최상단에 있는지 스크롤한 상태인지 구분하기 어렵다.
 
-**현재 문제**:
-- `TxHistory.tsx`: 최근 10개만 표시, 세션 휘발성 (새로고침 시 소실)
-- 필터 없음 (Token/Sponsor 구분 불가)
-- 검색 없음 (tx hash로 찾기 불가)
-- "Keep the latest demo steps visible for judges" — 데모용 언어
-- 데이터가 React state에만 존재 → persistent storage 없음
+**개선안**
+- 스크롤 시 GNB에 `box-shadow`를 추가하여 "떠 있는" 느낌 강화.
+- 간단한 `useEffect` + `scroll` 이벤트로 `data-scrolled` 속성 토글.
+- CSS: `[data-scrolled] .gnb { box-shadow: var(--shadow-sm); }`.
 
-**Scope**:
-- `/history` 페이지:
-  - 필터: All / Token Mode / Sponsor Mode
-  - 검색: tx hash, userOp hash
-  - 정렬: 최신순 / 오래된순
-  - 페이지네이션 또는 무한 스크롤
-- localStorage 또는 IndexedDB로 히스토리 persist
-- 각 트랜잭션 상세 expand:
-  - Gas cost breakdown
-  - Settlement details
-  - Timeline (현재 TokenModeFlow의 timeline)
-  - Full tx hash + explorer link
-- CSV export (optional)
-- Empty state 개선: 첫 트랜잭션 유도 CTA
-
-**AC**:
-- [ ] 세션 간 히스토리 유지
-- [ ] Mode 필터 동작
-- [ ] Hash 검색 동작
-- [ ] 100+ 트랜잭션에서도 성능 저하 없음
+**영향 범위**: `GNB.tsx`
 
 ---
 
-### FE-012: Wallet Connection Modal 개선
+## P2 — Medium Priority (Polish)
 
-**Goal**: 프로덕션 수준의 지갑 연결 모달 UX 구현
+### FE-I-012: 토큰 아이콘/로고 시스템
 
-**현재 문제**:
-- `WalletConnect.tsx`: 커넥터가 버튼 리스트로 나열 — 아이콘 없음
-- 연결 진행 상태 피드백 없음
-- 네트워크 불일치 처리 없음
-- WalletConnect QR 코드 표시 없음
-- 모바일 deep link (MetaMask Mobile 등) 미지원
+**현재 문제**
+`TokenSelector`와 `token-chip`에서 토큰을 심볼의 첫 글자 1자(배경색 원)로 표현한다. 이는 다수 토큰이 추가될 때 구분이 어렵고, 시각적 신뢰감이 떨어진다.
 
-**Scope**:
-- `<WalletModal />` 구현 (FE-002의 일부):
-  - 커넥터별 브랜드 아이콘 (MetaMask fox, WalletConnect logo 등)
-  - "Recent" 커넥터 하이라이트 (localStorage에 마지막 사용 커넥터 저장)
-  - 연결 진행 중: spinner + "Connecting to MetaMask..." + Cancel
-  - 연결 실패: 에러 메시지 + Retry
-  - 네트워크 자동 감지 → Polkadot Hub가 아니면 switchChain 프롬프트
-  - WalletConnect: QR 코드 직접 표시 (모바일 카메라 스캔)
-  - 모바일: 지갑 앱 deep link 지원
-- 연결 성공 시 모달 자동 닫힘 + Toast 알림
+**개선안**
+- `TokenOption`에 optional `iconUrl` 필드 추가.
+- 아이콘이 있으면 `<img>` 렌더, 없으면 현재의 첫 글자 fallback 유지.
+- 잘 알려진 토큰(USDT, USDC, DOT 등)에 대해 내장 아이콘 매핑 제공.
+- `next/image`가 static export와 호환되지 않으므로 일반 `<img>` + width/height 지정.
 
-**AC**:
-- [ ] 커넥터별 아이콘 + 이름 표시
-- [ ] 연결 진행/실패/성공 상태가 모달 내에서 피드백
-- [ ] 잘못된 네트워크 시 체인 전환 유도
-- [ ] 모바일에서 지갑 앱으로 이동 가능
+**영향 범위**: `TokenSelector.tsx`, `TokenOption` 타입, `send/page.tsx`
 
 ---
 
-### FE-013: Token Selector UI
+### FE-I-013: 첫 방문 온보딩 경험
 
-**Goal**: 가스 결제에 사용할 토큰을 선택할 수 있는 UI 제공
+**현재 문제**
+비연결 상태의 홈페이지가 "DotFuel" 히어로 + stat grid + 2개의 모드 카드를 보여주지만, "이게 뭐고 왜 써야 하는지"에 대한 스토리텔링이 부족하다. 상용 앱이라면 유저가 3초 안에 가치를 이해해야 한다.
 
-**현재 문제**:
-- `NEXT_PUBLIC_TOKEN_ADDRESS` 환경변수로 tUSDT가 하드코딩
-- `BalancePanel.tsx:112`: `process.env.NEXT_PUBLIC_TOKEN_ADDRESS` 직접 참조
-- 향후 다중 토큰 지원 시 UI 변경 범위가 매우 큼
-- 사용자가 어떤 토큰으로 결제하는지 사전에 확인/선택 불가
+**개선안**
+- Hero 카피를 더 구체적으로: "Gas Required: 0 PAS" stat보다 "어떻게 가능한가"를 3단계로 설명.
+  - Step 1: Connect your wallet
+  - Step 2: Choose a payment token (e.g., tUSDT)
+  - Step 3: Send transactions — gas is settled in your token
+- 각 단계에 간결한 일러스트/아이콘.
+- "How it works" 섹션을 hero 아래에 추가 (Permit2 flow의 단순화된 다이어그램).
 
-**Scope**:
-- `<TokenSelector />` 컴포넌트:
-  - 드롭다운: 지원 토큰 목록 (아이콘 + 심볼 + 잔액)
-  - 선택된 토큰 하이라이트
-  - 잔액 부족 시 경고 표시
-  - 검색 기능 (토큰이 많아질 경우)
-- 지원 토큰 목록은 paymaster API에서 동적 fetch 또는 config
-- `/send` 페이지의 Configure step에 통합 (FE-008)
-- BalancePanel에서 선택된 토큰의 잔액 표시
-
-**AC**:
-- [ ] 지원 토큰 목록이 UI에서 확인 가능
-- [ ] 토큰 선택 시 quote가 자동 갱신
-- [ ] 잔액 부족 토큰은 비활성 또는 경고 표시
-- [ ] 현재는 tUSDT만 활성, 구조적으로 확장 가능
-
-**Depends on**: FE-008
+**영향 범위**: `page.tsx` (비연결 상태 UI)
 
 ---
 
-## P3 — Visual Polish & Production Quality
+### FE-I-014: 빈 상태(Empty State) 일러스트 통일
 
-### FE-014: 데모 전용 언어 및 UX 패턴 제거
+**현재 문제**
+빈 상태 아이콘이 각 페이지마다 다른 인라인 SVG로 구현되어 있다. 스타일이 미세하게 다르고, 일관된 브랜드 아이덴티티가 없다.
 
-**Goal**: 모든 데모/해커톤 전용 텍스트와 UI 패턴을 상용 수준으로 교체
+**개선안**
+- 통일된 빈 상태 일러스트 세트 제작 (최소 4종: empty-tx, empty-campaign, wallet-required, no-results).
+- SVG 파일로 `public/illustrations/`에 저장하거나 컴포넌트로 통합.
+- `EmptyState` 공통 컴포넌트에 `illustration` prop 추가.
 
-**현재 문제 (전체 목록)**:
-- `page.tsx:15-27`: `HEALTH_LABEL` — "Connecting..." 은 OK, 나머지도 검토
-- `page.tsx:81`: "Connect your EOA to start the demo."
-- `page.tsx:96`: "Run Flow A to submit a UserOperation."
-- `StepIndicator.tsx:15`: "Guided Demo Flow" 전체 섹션
-- `StepIndicator.tsx:16`: "Run the exact judge path: connect, validate, execute, and verify settlement."
-- `StepIndicator.tsx:18`: "Quick Demo" 버튼
-- `BalancePanel.tsx:198`: "Capture the before/after proof that the EOA stays at zero PAS"
-- `BalancePanel.tsx:219`: "This is the magic: no native gas needed."
-- `BalancePanel.tsx:225`: "Target state: keep native gas at zero."
-- `BalancePanel.tsx:244`: "Watch tUSDT move only on token mode."
-- `TokenModeFlow.tsx:41`: "Approve Permit2, call DemoDapp, and settle gas in tUSDT with zero PAS on hand."
-- `SponsorModeFlow.tsx:44`: "Use the active campaign budget to sponsor the same DemoDapp action without token spend."
-- `SponsorConsole.tsx:174`: "Create a campaign, switch the active sponsor budget, and keep the spend meter live while polling."
-- `TxHistory.tsx:24`: "Keep the latest demo steps visible for judges during repeat runs."
-- `CounterfactualAddress.tsx:38`: "Counterfactual address derived from the GasStationFactory on sender salt `0`."
-- `WalletConnect.tsx:43`: "Connect the EOA that will sign the paymaster quote and UserOperation."
-- `FlowTabs.tsx:74-75`: document.title에 이모지 사용 ("✅", "❌", "⏳")
-
-**Scope**:
-- 모든 subtitle/description을 사용자 관점 언어로 교체
-  - "EOA" → "Your wallet"
-  - "Counterfactual address" → "Smart account"
-  - "UserOperation" → "Transaction"
-  - "DemoDapp" → 실제 dApp 이름 또는 제네릭 표현
-  - "Flow A" / "Flow B" → "Pay with Token" / "Sponsored Transaction"
-- 기술적 설명은 tooltip 또는 "Learn more" 링크로 이동
-- document.title 이모지 제거, 일반 텍스트 사용
-- "for judges", "demo", "guided" 등의 표현 전면 제거
-
-**AC**:
-- [ ] UI에 "demo", "judge", "Flow A/B", "EOA" 텍스트 0개
-- [ ] 기술 용어가 tooltip 또는 help 링크 뒤로 이동
-- [ ] 비기술 사용자가 읽어도 이해 가능한 문구
+**영향 범위**: `history/page.tsx`, `send/page.tsx`, `sponsor/page.tsx`, 신규 `EmptyState` 공통 컴포넌트
 
 ---
 
-### FE-015: Hero Section 재설계 → Dashboard Landing
+### FE-I-015: Form 입력 필드 UX 개선
 
-**Goal**: 과도한 히어로 섹션을 실용적 대시보드 랜딩으로 교체
+**현재 문제**
+- Sponsor 페이지의 `Budget (PAS)` 입력이 `type="number"` 인데, 브라우저 기본 number stepper가 UX상 불필요하다.
+- Duration 필드가 분 단위인데, 유저는 "1시간 30분"을 90으로 계산해야 한다.
+- 필드 validation이 submit 시에만 일어나고, 실시간 피드백이 없다.
 
-**현재 문제**:
-- 히어로가 화면의 ~60%를 차지 — 핵심 기능까지 스크롤 필요
-- stat-grid ("Gas Required: 0 PAS", "Payment Modes: 2", "Settlement: Permit2")는 정적 마케팅 텍스트
-- `hero::before`, `hero::after` 장식 요소가 과도
-- 연결 전과 연결 후의 히어로 차이가 CTA 버튼 하나뿐
+**개선안**
+- Budget 필드: 입력 옆에 "PAS" suffix label 표시. `inputmode="decimal"` 사용.
+- Duration: 시간/분 드롭다운 또는 "1h 30m" 형식의 입력 지원. 아니면 프리셋 버튼 (30min, 1hr, 2hr, 24hr).
+- 실시간 validation: 값 변경 시 `input--valid` / `input--invalid` 클래스 토글 (Campaign ID 입력에는 이미 적용됨, 나머지 필드에도 확대).
 
-**Scope**:
-- `/` 페이지를 대시보드로 전환:
-  - **미연결 상태**: compact 히어로 (1줄 tagline + Connect CTA) + 제품 소개 카드 2~3개
-  - **연결 상태**: 대시보드 레이아웃
-    - 잔액 요약 카드 (EOA + Smart Account)
-    - 최근 트랜잭션 3건
-    - Quick Actions: "Pay with Token" / "Create Campaign"
-    - 네트워크 상태 카드
-- 히어로 장식 요소(pseudo-elements, gradient orbs) 축소
-- stat-grid 제거 또는 실시간 데이터로 대체
-
-**AC**:
-- [ ] 연결 후 핵심 정보가 스크롤 없이 바로 보임
-- [ ] 미연결 상태에서도 제품 가치가 전달됨
-- [ ] 대시보드에서 주요 액션까지 1-click 접근
+**영향 범위**: `sponsor/page.tsx`
 
 ---
 
-### FE-016: Animation & Microinteraction 정리
+### FE-I-016: Responsive 타이포그래피 미세 조정
 
-**Goal**: 과도한 애니메이션을 정리하고 의미있는 microinteraction만 남김
+**현재 문제**
+- `--text-hero`가 `clamp(48px, 10vw, 88px)`인데 모바일에서 640px 미만일 때 별도로 `clamp(38px, 15vw, 56px)`로 오버라이드된다. 이 이중 clamp가 예측하기 어렵다.
+- `balance-card__value`도 `clamp(24px, 4vw, 34px)` + 420px 미만에서 `clamp(20px, 8vw, 28px)` 이중 적용.
 
-**현재 문제**:
-- `heroShift`: 9초 무한 루프 — 의미 없는 장식 애니메이션
-- `walletPulse`: 지갑 버튼 계속 펄스 → 주의 분산
-- `livePulse`: 네트워크 dot 1.4초 펄스 — OK이나 크기 과도
-- `stepPulse`: StepIndicator 활성 항목 펄스 → 제거 대상 (StepIndicator 자체 제거)
-- `cardEnter`: 모든 카드에 적용 — 첫 로드 시 괜찮으나 페이지 전환마다 반복되면 과도
-- `timelinePulse`: timeline 활성 노드 펄스 → OK
-- `stat-value--live` transition: scale(1.04) — 미묘하지만 불필요할 수 있음
+**개선안**
+- 단일 clamp 함수로 정리: `clamp(min, preferred, max)` 한 번만 사용.
+- hero-title: `clamp(36px, 8vw, 80px)` 하나로 통합.
+- balance-card__value: `clamp(20px, 4vw, 34px)` 하나로 통합.
+- 미디어 쿼리 오버라이드 제거로 CSS 복잡도 감소.
 
-**Scope**:
-- `prefers-reduced-motion` 미디어 쿼리 전면 적용
-- 제거 대상: `heroShift`, `walletPulse`, `stepPulse`, `stat-value--live` scale
-- 유지 대상: `cardEnter` (첫 mount만), `timelineItemEnter`, `timelinePulse`, `buttonSpin`, `livePulse`
-- 개선 대상:
-  - 페이지 전환 transition (fade or slide)
-  - 버튼 hover/press feedback 정교화
-  - 토글/탭 전환 시 content transition
-  - 잔액 숫자 roll (현재 `useAnimatedNumber` — 유지하되 duration 조정)
-- 모든 `animation-duration`을 CSS 변수화
-
-**AC**:
-- [ ] `prefers-reduced-motion` 시 모든 non-essential 애니메이션 비활성
-- [ ] 의미 없는 장식 애니메이션 0개
-- [ ] 사용자 액션에 대한 피드백 애니메이션은 모두 유지
+**영향 범위**: `globals.css`
 
 ---
 
-### FE-017: Empty States 재설계
+### FE-I-017: Toast 중복 표시 방지
 
-**Goal**: 빈 상태(no data, not connected, error)를 각 맥락에 맞게 재설계
+**현재 문제**
+`ToastStack`이 queue에 있는 모든 toast를 동시에 렌더링한다. 빠르게 여러 작업을 수행하면 토스트가 쌓여서 화면을 가린다. 또한 같은 내용의 토스트가 중복 표시될 수 있다.
 
-**현재 문제**:
-- `TxHistory.tsx:26-31`: SVG 아이콘 + "No transactions yet" — 제네릭
-- `BalancePanel.tsx:224`: "Connect wallet" 텍스트만
-- `CounterfactualAddress.tsx:49`: "Connect wallet to derive" 텍스트
-- `SponsorConsole.tsx:165`: "No active campaign yet." 한 줄
-- 전반적으로 empty state가 단순 텍스트로만 처리되어 다음 액션 유도가 약함
+**개선안**
+- 최대 동시 표시 개수 제한 (3개).
+- 같은 title + kind 조합의 토스트가 queue에 이미 있으면 추가하지 않고 기존 것의 시간만 리셋.
+- 초과분은 queue에 대기하다가 앞의 것이 dismiss되면 순차 노출.
 
-**Scope**:
-- 각 empty state별 디자인:
-  - **미연결**: 일러스트 + "Connect your wallet to get started" + Connect CTA
-  - **히스토리 없음**: 일러스트 + "No transactions yet" + "Send your first gasless transaction" CTA
-  - **캠페인 없음**: 일러스트 + "No campaigns" + "Create your first campaign" CTA
-  - **잔액 로딩 실패**: retry 버튼 + 에러 설명
-  - **네트워크 오류**: 전용 에러 화면 + 재연결 유도
-- 일러스트는 DotFuel 브랜드 컬러 사용 (간단한 SVG)
-- 모든 empty state에 primary CTA 1개 포함
-
-**AC**:
-- [ ] 모든 empty state에 다음 액션 CTA 포함
-- [ ] 일러스트가 브랜드와 일관됨
-- [ ] 에러 상태와 빈 상태가 시각적으로 구분됨
+**영향 범위**: `ToastContext.tsx`, `ToastStack.tsx`
 
 ---
 
-### FE-018: Error Boundary & Fallback Pages
+### FE-I-018: 모바일 하단 네비게이션 활성 상태 시각 강화
 
-**Goal**: React Error Boundary와 HTTP 에러 페이지를 추가하여 크래시 복원력 확보
+**현재 문제**
+`BottomNav`의 활성 상태가 `color: var(--accent)` 하나뿐이다. 아이콘의 fill이 바뀌지 않고 stroke 색만 변경된다. 엄지로 빠르게 탭할 때 어떤 메뉴가 활성인지 한눈에 파악이 어렵다.
 
-**현재 문제**:
-- Error Boundary 없음 → 컴포넌트 에러 시 전체 앱 white screen
-- 404 페이지 없음 (멀티 페이지 전환 후 필요)
-- `ErrorNotice.tsx`는 비즈니스 에러만 처리 → uncaught exception 대응 불가
-- 네트워크 offline 상태 감지/UI 없음
+**개선안**
+- 활성 아이템에 배경 하이라이트 추가 (subtle pill shape, e.g., `background: rgba(199, 90, 46, 0.1); border-radius: 12px`).
+- 활성 아이콘의 fill을 채워서 시각적 무게감 차이.
+- 선택적: 활성 전환 시 미세한 scale 애니메이션 (`transform: scale(1.05)`).
 
-**Scope**:
-- `components/ErrorBoundary.tsx`:
-  - React Error Boundary wrapper
-  - Fallback UI: "Something went wrong" + Retry + Report 링크
-  - 에러 로깅 (console + optional Sentry)
-- `app/not-found.tsx`: 404 페이지
-- `app/error.tsx`: 런타임 에러 페이지
-- Offline detection: `navigator.onLine` + 배너 표시
-- 각 주요 섹션(BalancePanel, FlowTabs, SponsorConsole)에 개별 Error Boundary 적용
-
-**AC**:
-- [ ] 컴포넌트 에러 시 전체 앱 크래시 대신 해당 섹션만 fallback 표시
-- [ ] 404 페이지 존재
-- [ ] 오프라인 시 사용자에게 알림
-- [ ] Retry 버튼으로 에러 복구 가능
+**영향 범위**: `BottomNav.tsx`
 
 ---
 
-### FE-019: Footer 추가
+### FE-I-019: WalletDropdown 개선
 
-**Goal**: 상용 프로덕트에 필수적인 Footer 영역 추가
+**현재 문제**
+- "Disconnect" 버튼만 있고 "Switch Account" 옵션이 없다.
+- 연결된 지갑 유형(MetaMask, WalletConnect 등)을 보여주지 않는다.
+- 드롭다운이 닫힐 때 애니메이션 없이 즉시 사라진다.
 
-**현재 문제**:
-- Footer 없음 — 페이지가 그냥 끝남
-- 법적 고지, 지원 링크, 소셜 링크 등 배치할 곳 없음
-- 브랜드 일관성의 마지막 터치포인트 부재
+**개선안**
+- 드롭다운 상단에 연결된 커넥터 이름 + 아이콘 표시.
+- "Switch Wallet" 버튼 추가 → WalletModal 열기.
+- 닫힘 애니메이션 추가 (fade-out + translateY).
+- 네트워크 정보 영역에 체인 ID 옆 Blockscout 링크 추가.
 
-**Scope**:
-- `<Footer />` 컴포넌트:
-  - 좌측: DotFuel 로고 + 한 줄 설명
-  - 중앙: 링크 그룹 (Product, Resources, Legal)
-    - Product: Dashboard, Send, Sponsor
-    - Resources: Docs, GitHub, Block Explorer
-    - Legal: Terms of Service, Privacy Policy
-  - 우측: 소셜 아이콘 (Twitter/X, Discord, GitHub)
-  - 하단: Copyright + "Built on Polkadot"
-- 모바일: 스택 레이아웃으로 전환
-- 다크모드 대응
-
-**AC**:
-- [ ] 모든 페이지 하단에 Footer 표시
-- [ ] 링크가 정상 동작 (placeholder URL이라도)
-- [ ] 모바일에서 레이아웃 깨짐 없음
+**영향 범위**: `WalletDropdown.tsx`, `WalletContext.tsx`
 
 ---
 
-### FE-020: Dark Mode 정밀 QA 및 보완
+### FE-I-020: Send 페이지 — Review 단계의 가스 비교 시각화
 
-**Goal**: 다크모드 디자인 완성도를 라이트 모드 수준으로 끌어올림
+**현재 문제**
+Review 카드에 "Estimated Cost ≤ X tUSDT"과 "Native Gas: 0 PAS required"가 텍스트로만 나열된다. 유저가 "얼마나 절약하고 있는지"를 직관적으로 느끼기 어렵다.
 
-**현재 문제**:
-- `globals.css:1128-1256`: 다크모드 override 존재하나 불완전
-- `<style jsx>` 내 컴포넌트별 스타일에는 다크모드 override 없음:
-  - `SectionNav.tsx:74-76`: 배경색 하드코딩 (`rgba(255, 250, 242, 0.9)`)
-  - `InlineProgressStepper.tsx:100`: 배경색 하드코딩
-  - `Toast.tsx:79-88`: success/error 배경 하드코딩
-  - `CopyableHex.tsx:107`: 배경색 하드코딩
-- 일부 컴포넌트에서 color 변수 대신 직접 색상 사용
+**개선안**
+- "Without DotFuel: ~X PAS needed" vs "With DotFuel: Y tUSDT (0 PAS)" 비교 UI.
+- 간단한 가로 바 차트 또는 crossed-out native cost 표시.
+- "You save 100% on native gas" 같은 한 줄 요약.
 
-**Scope**:
-- 모든 `<style jsx>` 블록에 `@media (prefers-color-scheme: dark)` 추가
-- 또는 `<style jsx>` 제거 → globals.css로 통합 (FE-004와 연계)
-- 다크모드 전용 테스트 체크리스트:
-  - 모든 텍스트 contrast ratio WCAG AA 이상
-  - 배경-카드-오버레이 레이어 구분 명확
-  - 포커스 링 가시성
-  - 차트/진행률 바 가독성
-- (Optional) 수동 다크/라이트 토글 (system 외 user preference)
-
-**AC**:
-- [ ] 다크모드에서 모든 컴포넌트 정상 렌더링
-- [ ] 하드코딩 색상 0개 (모두 CSS 변수)
-- [ ] WCAG AA contrast 충족
+**영향 범위**: `send/page.tsx` (Review 단계)
 
 ---
 
-### FE-021: Notification Center (Toast Queue 개선)
+## P3 — Low Priority (Nice to Have)
 
-**Goal**: 단일 Toast를 notification center로 확장
+### FE-I-021: Keyboard Shortcuts
 
-**현재 문제**:
-- `Toast.tsx`: 한 번에 1개만 표시 → 연속 TX 시 이전 알림 유실
-- 닫힌 알림 다시 볼 수 없음
-- 성공/에러만 구분 — warning, info 타입 없음
-- `FlowTabs.tsx:66-71`: toast 상태가 FlowTabs 로컬 state로 관리
+**현재 문제**
+키보드 파워유저를 위한 단축키가 없다.
 
-**Scope**:
-- Toast queue: 최대 3개까지 스택 표시 (top-right)
-- 각 toast에 progress bar (auto-dismiss countdown 시각화)
-- Notification center dropdown (GNB에 bell 아이콘):
-  - 미읽은 알림 카운트 badge
-  - 최근 20개 알림 히스토리
-  - "Mark all as read" / "Clear all"
-- Toast 타입 확장: success, error, warning, info
-- Toast 상태를 글로벌 store로 이전
+**개선안**
+- `Cmd/Ctrl + K`: 글로벌 검색/명령 팔레트 (페이지 이동, 캠페인 검색 등).
+- `Cmd/Ctrl + Shift + C`: 현재 선택된 주소 복사.
+- GNB에 "?" 키로 단축키 도움말 표시.
 
-**AC**:
-- [ ] 동시 3개까지 toast 스택 표시
-- [ ] 닫힌 알림을 notification center에서 재확인 가능
-- [ ] 미읽은 알림 카운트가 GNB에 표시
-
-**Depends on**: FE-001
+**영향 범위**: 신규 `CommandPalette` 컴포넌트, `useHotkeys` 훅
 
 ---
 
-### FE-022: Accessibility (a11y) 전면 감사
+### FE-I-022: 트랜잭션 내역 CSV 내보내기
 
-**Goal**: WCAG 2.1 AA 기준 충족
+**현재 문제**
+History 데이터가 localStorage에만 있고, 외부로 내보낼 방법이 없다.
 
-**현재 문제**:
-- `role="status"`, `aria-live="polite"` 일부 적용 (Toast) — 다른 동적 영역에는 미적용
-- `aria-hidden` 사용은 있으나 체계적이지 않음
-- keyboard navigation: focus-visible 스타일 있으나 tab order 검증 필요
-- color contrast: `--muted: #6f6256` on `--bg: #f6efe3` — 검증 필요
-- `<button>` 내 아이콘만 있는 경우 `aria-label` 부재 (copy 버튼 등)
-- skip-to-content 링크 없음
+**개선안**
+- History 페이지 상단에 "Export CSV" 버튼 추가.
+- 필드: timestamp, mode, tx_hash, gas_cost, settlement, explorer_url.
+- `Blob` + `URL.createObjectURL` 로 클라이언트사이드 다운로드.
 
-**Scope**:
-- axe-core 또는 Lighthouse 접근성 감사 실행
-- skip-to-content 링크 추가
-- 모든 interactive 요소에 적절한 aria-label
-- 동적 컨텐츠에 aria-live 적용 (BalancePanel 숫자 변경, progress stepper)
-- tab order 검증 + tabindex 조정
-- color contrast 전면 검증 + 미달 시 토큰 조정
-- 스크린 리더 테스트 (VoiceOver on macOS)
-
-**AC**:
-- [ ] Lighthouse Accessibility 90+ 점수
-- [ ] 키보드만으로 전체 flow 완주 가능
-- [ ] 스크린 리더에서 주요 flow 이해 가능
-- [ ] color contrast WCAG AA 전면 충족
+**영향 범위**: `history/page.tsx`, 신규 `exportCsv` 유틸
 
 ---
 
-## 우선순위 요약
+### FE-I-023: 모바일 Pull-to-Refresh
 
-| Priority | Ticket | Title | Depends On |
-|----------|--------|-------|------------|
-| **P0** | FE-001 | Global Navigation Bar (GNB) | FE-002 |
-| **P0** | FE-002 | Global Wallet State & Wallet Button | - |
-| **P0** | FE-003 | Multi-Page Routing | FE-001, FE-002 |
-| **P1** | FE-004 | Design Token 체계화 | - |
-| **P1** | FE-005 | 공통 UI 컴포넌트 추출 | FE-004 |
-| **P1** | FE-006 | Skeleton Loading States | FE-005 |
-| **P1** | FE-007 | Responsive Design 재설계 | FE-001, FE-010 |
-| **P2** | FE-008 | Token Payment Flow 재설계 | FE-003 |
-| **P2** | FE-009 | Sponsor Console 독립 페이지 | FE-003 |
-| **P2** | FE-010 | Mobile Bottom Navigation | FE-003 |
-| **P2** | FE-011 | Transaction History 풀 페이지 | FE-003 |
-| **P2** | FE-012 | Wallet Connection Modal | FE-002 |
-| **P2** | FE-013 | Token Selector UI | FE-008 |
-| **P3** | FE-014 | 데모 전용 언어 제거 | - |
-| **P3** | FE-015 | Hero → Dashboard 재설계 | FE-003 |
-| **P3** | FE-016 | Animation 정리 | - |
-| **P3** | FE-017 | Empty States 재설계 | FE-005 |
-| **P3** | FE-018 | Error Boundary & Fallback | FE-003 |
-| **P3** | FE-019 | Footer 추가 | - |
-| **P3** | FE-020 | Dark Mode QA | FE-004 |
-| **P3** | FE-021 | Notification Center | FE-001 |
-| **P3** | FE-022 | Accessibility 감사 | FE-005 |
+**현재 문제**
+모바일에서 잔고나 캠페인 상태를 새로고침하려면 "Refresh" 버튼을 찾아서 탭해야 한다. 네이티브 앱 사용자에게 익숙한 pull-to-refresh 패턴이 없다.
+
+**개선안**
+- 대시보드와 Sponsor 페이지에 pull-to-refresh 제스처 구현.
+- 경량 구현: touchstart/touchmove/touchend 이벤트로 threshold 초과 시 refresh 콜백.
+- 당기는 중 시각적 피드백 (spinner 아이콘 + 진행률 표시).
+
+**영향 범위**: 신규 `usePullToRefresh` 훅, `page.tsx`, `sponsor/page.tsx`
 
 ---
 
-## 실행 순서 제안
+### FE-I-024: Styled-JSX → CSS Modules 마이그레이션
 
-```
-Phase 1 (Foundation):  FE-002 → FE-004 → FE-005 → FE-014
-Phase 2 (Navigation):  FE-001 → FE-003 → FE-010
-Phase 3 (Flows):       FE-008 → FE-009 → FE-011 → FE-012 → FE-013
-Phase 4 (Polish):      FE-006 → FE-007 → FE-015 → FE-016 → FE-017
-Phase 5 (Production):  FE-018 → FE-019 → FE-020 → FE-021 → FE-022
-```
+**현재 문제**
+컴포넌트 스타일이 `globals.css`(전역)와 `styled-jsx`(컴포넌트 로컬)로 이원화되어 있다. Styled-JSX는:
+- 런타임 CSS injection으로 약간의 성능 오버헤드.
+- `:global()` 사용이 빈번하여 캡슐화 의미가 퇴색.
+- Next.js 생태계에서 점차 비주류화.
+- IDE 자동완성과 린팅 지원이 CSS Modules 대비 약함.
+
+**개선안**
+- 점진적으로 `styled-jsx` → CSS Modules (`.module.css`) 로 전환.
+- `globals.css`의 디자인 토큰(CSS variables)은 유지.
+- 전환 우선순위: GNB → Footer → BottomNav → WalletButton → 나머지.
+
+**영향 범위**: 전체 컴포넌트 (대규모 리팩토링, 기능 변경 없음)
+
+---
+
+### FE-I-025: a11y 감사 — 색상 대비 및 ARIA 보완
+
+**현재 문제**
+- `--muted: #5e5347`이 `--bg: #f6efe3` 위에서 WCAG AA 4.5:1 대비를 만족하지만, `rgba()` 기반 배경 위에서는 미달할 수 있다.
+- 다크 모드의 `--muted: #c8baaa`가 `--bg: #1a1410` 위에서 대비 검증 필요.
+- 일부 상태 표시가 색상에만 의존 (예: 성공=초록, 실패=빨강 — 색각 이상 유저).
+
+**개선안**
+- 전체 색상 조합을 WCAG AA/AAA 기준으로 감사.
+- 대비 미달 시 색상 조정 또는 텍스트 굵기 보정.
+- 상태 표시에 색상 + 아이콘/텍스트 레이블 병행 (이미 대부분 적용됨, 누락 부분 보완).
+- Budget bar의 색상별 상태(초록/주황/빨강)에 레이블 추가.
+
+**영향 범위**: `globals.css`, `BalancePanel.tsx`, `sponsor/page.tsx`
+
+---
+
+### FE-I-026: 404 Not Found 페이지 개선
+
+**현재 문제**
+현재 `not-found.tsx`가 "404" + 설명 + 홈 링크만 있다. 상용 앱 수준에서는 빈약하다.
+
+**개선안**
+- 브랜드에 맞는 일러스트 또는 재미있는 카피 추가.
+- 인기 페이지 바로가기 링크 (Send, Sponsor, History).
+- 검색 바 또는 도움말 링크.
+
+**영향 범위**: `not-found.tsx`
+
+---
+
+### FE-I-027: 홈 Dashboard 레이아웃 — Quick Actions 카드 개선
+
+**현재 문제**
+로그인 후 대시보드의 "Quick Actions" 카드가 2개의 링크 버튼만 있다. 상용 앱이라면 유저의 현재 상태에 따른 맥락적 추천이 있어야 한다.
+
+**개선안**
+- 스마트 계정이 미배포 상태면: "Deploy your smart account" CTA 강조.
+- 토큰 잔고가 0이면: "Get tUSDT to start" 안내.
+- 최근 트랜잭션이 실패했으면: "Your last transaction failed — retry?" 표시.
+- 활성 캠페인이 있으면: 캠페인 상태 요약 배지.
+
+**영향 범위**: `page.tsx` (대시보드 뷰)
+
+---
+
+### FE-I-028: Sponsor 실행 결과 후 Balance 자동 새로고침 인디케이터
+
+**현재 문제**
+Sponsor 트랜잭션 완료 후 `setBalanceRefreshKey(k => k+1)`로 BalancePanel을 새로고침하지만, 유저에게 "잔고가 업데이트되었다"는 시각적 신호가 없다. 숫자만 조용히 바뀐다.
+
+**개선안**
+- 잔고 값 변경 시 잠깐 `highlight` 애니메이션 적용 (배경 flash 또는 텍스트 색상 펄스).
+- 이미 `useAnimatedNumber`로 숫자 트랜지션이 있으니, 거기에 추가로 카드 테두리 색상 flash를 2초간 적용.
+- "Updated just now" 레이블의 시간이 0s로 리셋되는 것이 유일한 신호인데, 이를 더 눈에 띄게.
+
+**영향 범위**: `BalancePanel.tsx`

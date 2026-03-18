@@ -1030,9 +1030,12 @@ textarea {
   .stat-grid,
   .balance-grid,
   .form-grid,
-  .status-grid,
   .result-grid {
     grid-template-columns: 1fr;
+  }
+
+  .status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hero-title {
@@ -1073,5 +1076,49 @@ textarea {
 
   .target-input-row {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-shell {
+    padding: 28px 14px 56px;
+  }
+
+  .hero {
+    padding: 22px;
+  }
+
+  .hero-title {
+    font-size: clamp(38px, 15vw, 56px);
+  }
+
+  .stat-grid,
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .balance-card {
+    padding: 12px;
+  }
+
+  .balance-card__value {
+    font-size: clamp(20px, 8vw, 28px);
+  }
+}
+
+@media (min-width: 1400px) {
+  .page-shell {
+    max-width: 1360px;
+  }
+
+  .section-grid {
+    grid-template-columns: 360px minmax(0, 1fr);
   }
 }

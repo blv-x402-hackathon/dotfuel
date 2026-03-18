@@ -110,6 +110,25 @@ export function Toast(props: {
           text-decoration: underline;
           min-height: 44px;
         }
+
+        @media (prefers-color-scheme: dark) {
+          .toast {
+            border-color: var(--line);
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+          }
+
+          .toast--success {
+            background: rgba(20, 48, 38, 0.95);
+            border-color: var(--success-border);
+            color: var(--success);
+          }
+
+          .toast--error {
+            background: rgba(48, 24, 20, 0.95);
+            border-color: var(--danger-border);
+            color: var(--danger);
+          }
+        }
       `}</style>
     </aside>
   );

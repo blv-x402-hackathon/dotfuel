@@ -195,6 +195,23 @@ export function InlineProgressStepper({ stage, startedAt }: { stage: InlineProgr
             transform: rotate(360deg);
           }
         }
+
+        @media (prefers-color-scheme: dark) {
+          .progress-stepper {
+            background: rgba(47, 36, 27, 0.8);
+            border-color: var(--line);
+          }
+
+          .progress-stepper--complete {
+            background: var(--success-bg);
+            border-color: var(--success-border);
+          }
+
+          .progress-step__dot {
+            background: rgba(32, 24, 18, 0.92);
+            border-color: var(--line);
+          }
+        }
       `}</style>
     </div>
   );

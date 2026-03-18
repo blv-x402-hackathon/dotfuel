@@ -173,20 +173,28 @@ export function SponsorConsole(props: {
           <h2 className="card-title">Sponsor Console</h2>
           <p className="card-subtitle">Create a campaign, switch the active sponsor budget, and keep the spend meter live while polling.</p>
         </div>
-        <button className="button button--ghost" disabled={isRefreshing} onClick={handleLoad}>
-          {isRefreshing ? <span className="button__spinner" aria-hidden /> : null}
-          {isRefreshing ? "Refreshing..." : "Load Campaign"}
-        </button>
       </div>
 
       <div className="field" style={{ marginTop: 18 }}>
         <span className="label">Active Campaign ID</span>
-        <input
-          className={`input ${campaignIdInput.length > 0 ? (isCampaignIdValid ? "input--valid" : "input--invalid") : ""}`}
-          placeholder="0x0000...0000 (32 bytes)"
-          value={campaignIdInput}
-          onChange={(event) => setCampaignIdInput(event.target.value)}
-        />
+        <div className="target-input-row">
+          <input
+            className={`input ${campaignIdInput.length > 0 ? (isCampaignIdValid ? "input--valid" : "input--invalid") : ""}`}
+            placeholder="0x0000...0000 (32 bytes)"
+            value={campaignIdInput}
+            onChange={(event) => setCampaignIdInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                handleLoad();
+              }
+            }}
+          />
+          <button className="button button--ghost" disabled={isRefreshing} onClick={handleLoad} type="button">
+            {isRefreshing ? <span className="button__spinner" aria-hidden /> : null}
+            {isRefreshing ? "Loading..." : "Load"}
+          </button>
+        </div>
         <span className="field-hint">Format: 0x0000...0000 (32-byte hex)</span>
       </div>
 

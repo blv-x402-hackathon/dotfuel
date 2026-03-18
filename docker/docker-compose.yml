@@ -1,6 +1,6 @@
 services:
   bundler:
-    image: stackup/stackup-bundler:latest
+    image: stackupwallet/stackup-bundler:latest
     environment:
       ERC4337_BUNDLER_ETH_CLIENT_URL: ${RPC_URL_TESTNET}
       ERC4337_BUNDLER_PRIVATE_KEY: ${BUNDLER_PRIVATE_KEY}

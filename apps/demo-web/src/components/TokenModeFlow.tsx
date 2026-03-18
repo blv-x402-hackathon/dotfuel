@@ -80,10 +80,11 @@ export function TokenModeFlow({
                 key={`${step.title}-${index}`}
                 style={{ animationDelay: `${index * 55}ms` }}
               >
-                <div className="timeline-item__title">
-                  {index + 1}. {step.title}
+                <span className="timeline-item__node" aria-hidden>{step.status === "done" ? "✓" : index + 1}</span>
+                <div className="timeline-item__body">
+                  <div className="timeline-item__title">{step.title}</div>
+                  <div className="timeline-item__detail">{step.detail}</div>
                 </div>
-                <div className="timeline-item__detail">{step.detail}</div>
               </li>
             ))}
           </ol>

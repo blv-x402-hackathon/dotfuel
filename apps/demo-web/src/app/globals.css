@@ -535,26 +535,78 @@ textarea {
 }
 
 .timeline-list {
+  position: relative;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.timeline-list::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(12, 122, 92, 0.35), rgba(199, 90, 46, 0.28));
+}
+
 .timeline-item {
   display: grid;
-  gap: 4px;
-  padding: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(78, 54, 32, 0.08);
-  background: rgba(255, 255, 255, 0.48);
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  gap: 10px;
   opacity: 0;
   transform: translateY(8px);
   animation: timelineItemEnter 320ms ease forwards;
 }
 
+.timeline-item__node {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 54, 32, 0.2);
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.timeline-item__body {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(78, 54, 32, 0.08);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.timeline-item--done .timeline-item__node {
+  border-color: rgba(12, 122, 92, 0.3);
+  background: rgba(12, 122, 92, 0.14);
+  color: var(--success);
+}
+
 .timeline-item--pending {
+  color: var(--accent-strong);
+}
+
+.timeline-item--pending .timeline-item__node {
+  border-color: rgba(199, 90, 46, 0.36);
+  background: rgba(199, 90, 46, 0.15);
+  color: var(--accent-strong);
+  animation: timelinePulse 1200ms ease-out infinite;
+}
+
+.timeline-item--pending .timeline-item__body {
   border-color: rgba(199, 90, 46, 0.2);
   background: rgba(199, 90, 46, 0.08);
 }
@@ -762,6 +814,20 @@ textarea {
   }
 }
 
+@keyframes timelinePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(199, 90, 46, 0.32);
+  }
+
+  75% {
+    box-shadow: 0 0 0 10px rgba(199, 90, 46, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(199, 90, 46, 0);
+  }
+}
+
 @keyframes buttonSpin {
   to {
     transform: rotate(360deg);
@@ -814,11 +880,17 @@ textarea {
   .stat,
   .history-item,
   .result-metric,
-  .timeline-item,
+  .timeline-item__body,
   .balance-card,
   .status-card {
     background: rgba(47, 36, 27, 0.84);
     border-color: rgba(240, 230, 216, 0.12);
+  }
+
+  .timeline-item__node {
+    border-color: rgba(240, 230, 216, 0.26);
+    background: rgba(32, 24, 18, 0.92);
+    color: var(--muted);
   }
 
   .card--primary {

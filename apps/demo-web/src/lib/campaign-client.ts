@@ -2,6 +2,39 @@ import { toHex } from "viem";
 
 const baseUrl = process.env.NEXT_PUBLIC_PAYMASTER_API_URL ?? "http://localhost:3001";
 
+// ── Recent campaigns (localStorage) ──────────────────────────────────────────
+
+export interface RecentCampaign {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
+const RECENT_KEY = "dotfuel:recentCampaigns";
+const MAX_RECENT = 10;
+
+export function getRecentCampaigns(): RecentCampaign[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as RecentCampaign[];
+  } catch {
+    return [];
+  }
+}
+
+export function addRecentCampaign(id: string, name: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = getRecentCampaigns().filter((c) => c.id !== id);
+    const updated = [{ id, name, createdAt: Date.now() }, ...existing].slice(0, MAX_RECENT);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+}
+
 interface CreateCampaignPayload {
   campaignId: `0x${string}`;
   start: number;

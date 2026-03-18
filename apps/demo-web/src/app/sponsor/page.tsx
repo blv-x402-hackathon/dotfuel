@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
-import { createCampaign, fetchCampaignStatus, type CampaignStatus } from "@/lib/campaign-client";
+import { createCampaign, fetchCampaignStatus, addRecentCampaign, type CampaignStatus } from "@/lib/campaign-client";
+import { CampaignSelector } from "@/components/CampaignSelector";
 import { formatAmount } from "@/lib/flowResults";
 import { appendTxHistory } from "@/lib/txHistory";
 import { toUiError, type UiError } from "@/lib/uiError";
@@ -27,7 +28,6 @@ export default function SponsorPage() {
   const [campaignId, setCampaignId] = useState<`0x${string}`>(
     (process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}` | undefined) ?? EMPTY_CAMPAIGN_ID
   );
-  const [campaignIdInput, setCampaignIdInput] = useState<string>(campaignId);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
   const hasActiveCampaign = campaignId !== EMPTY_CAMPAIGN_ID;
 
@@ -53,10 +53,6 @@ export default function SponsorPage() {
 
   // Sponsor execution
   const sponsor = useSponsorModeUserOp(campaignId);
-
-  useEffect(() => {
-    setCampaignIdInput(campaignId);
-  }, [campaignId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,6 +118,7 @@ export default function SponsorPage() {
         allowedTargets,
         perUserMaxOps: perUser
       });
+      addRecentCampaign(newId, trimmedName);
       setCampaignId(newId);
       setFeedback(`Campaign created: ${newId.slice(0, 12)}...`);
       toast("success", "Campaign created", `ID: ${newId.slice(0, 16)}...`);
@@ -130,15 +127,6 @@ export default function SponsorPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  function handleLoad() {
-    setFormError(null);
-    if (!/^0x[a-fA-F0-9]{64}$/.test(campaignIdInput)) {
-      setFormError(toUiError("Campaign ID must be a 32-byte hex value", "campaign"));
-      return;
-    }
-    setCampaignId(campaignIdInput as `0x${string}`);
   }
 
   function handleAddTarget() {
@@ -151,7 +139,6 @@ export default function SponsorPage() {
     setTargetDraft("");
   }
 
-  const isCampaignIdValid = /^0x[a-fA-F0-9]{64}$/.test(campaignIdInput);
   const spentBig = status ? hexToBigInt(status.spent) : 0n;
   const budgetBig = status ? hexToBigInt(status.budget) : 0n;
   const spentPct = budgetBig > 0n ? Math.min(100, Number((spentBig * 10000n) / budgetBig) / 100) : 0;
@@ -191,18 +178,12 @@ export default function SponsorPage() {
           {/* Campaign ID / Load */}
           <div className="card card--data">
             <h2 className="card-title">Active Campaign</h2>
-            <div className="field mt-3">
-              <span className="label">Campaign ID</span>
-              <div className="target-input-row">
-                <input
-                  className={`input ${campaignIdInput.length > 0 ? (isCampaignIdValid ? "input--valid" : "input--invalid") : ""}`}
-                  placeholder="0x0000...0000 (32 bytes)"
-                  value={campaignIdInput}
-                  onChange={(e) => setCampaignIdInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLoad(); } }}
-                />
-                <Button variant="ghost" loading={isRefreshing} onClick={handleLoad}>Load</Button>
-              </div>
+            <div className="mt-3">
+              <CampaignSelector
+                value={campaignId}
+                onChange={(id) => { setFormError(null); setCampaignId(id); }}
+                onError={(msg) => setFormError(toUiError(msg, "campaign"))}
+              />
             </div>
 
             {/* Status */}

@@ -859,6 +859,45 @@ textarea {
 
 /* ─── Sponsor empty state ─────────────────────────── */
 
+/* ── Campaign Selector ─────────────────────────────────────────────────────── */
+
+.campaign-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.campaign-selector__select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%235e5347' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.campaign-selector__manual-toggle {
+  display: flex;
+}
+
+.campaign-selector__toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 120ms;
+}
+
+.campaign-selector__toggle-btn:hover {
+  color: var(--accent-strong);
+}
+
 .sponsor-empty-state {
   display: flex;
   align-items: center;

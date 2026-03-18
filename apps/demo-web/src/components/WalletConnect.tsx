@@ -2,6 +2,8 @@
 
 import { useAccount, useChainId, useConnect, useDisconnect } from "wagmi";
 
+import { CopyableHex } from "@/components/CopyableHex";
+
 export function WalletConnect({ variant = "sidebar" }: { variant?: "sidebar" | "hero" }) {
   const { address, isConnected } = useAccount();
   const { connectors, connect } = useConnect();
@@ -16,7 +18,7 @@ export function WalletConnect({ variant = "sidebar" }: { variant?: "sidebar" | "
         <div className="stack" style={{ marginTop: 16 }}>
           <div className="wallet-line">
             <span className="label">EOA</span>
-            <span className="value">{address}</span>
+            <CopyableHex value={address} />
           </div>
           <div className="wallet-line">
             <span className="label">Chain ID</span>

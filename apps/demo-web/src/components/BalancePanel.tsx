@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatEther, formatUnits, getAddress, parseAbi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 
+import { CopyableHex } from "@/components/CopyableHex";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 
 const erc20Abi = parseAbi([
@@ -184,7 +185,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
 
       <div className="balance-footer">
         <span className="label">Smart Account</span>
-        <span className="value">{smartAccountAddress ?? "Not derived yet"}</span>
+        <CopyableHex value={smartAccountAddress} fallback="Not derived yet" />
       </div>
       <div className="balance-footer">
         <span className="label">Last Refreshed</span>

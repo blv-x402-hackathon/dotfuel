@@ -1,6 +1,7 @@
 "use client";
 
 import type { FlowResult } from "@/lib/flowResults";
+import { CopyableHex } from "@/components/CopyableHex";
 
 export interface TxHistoryItem {
   mode: "token" | "sponsor";
@@ -23,16 +24,7 @@ export function TxHistory({ items }: { items: TxHistoryItem[] }) {
             <strong>{item.mode === "token" ? "Token Mode" : "Sponsor Mode"}</strong>
             <span>{item.gasCostLabel}</span>
             <span>{item.settlementLabel}</span>
-            {item.explorerUrl ? (
-              <>
-                {" "}
-                <a className="inline-link" href={item.explorerUrl} target="_blank" rel="noreferrer">
-                  {item.hash ?? "View Tx"}
-                </a>
-              </>
-            ) : (
-              <> {item.hash ?? "Pending"}</>
-            )}
+            <CopyableHex value={item.hash ?? null} href={item.explorerUrl} fallback="Pending" />
           </li>
         ))}
       </ul>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { CopyableHex } from "@/components/CopyableHex";
 import { ErrorNotice } from "@/components/ErrorNotice";
 import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { type FlowResult } from "@/lib/flowResults";
@@ -41,8 +42,16 @@ export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) 
             </div>
           </div>
           <div className="result-meta">
-            <div>UserOp: {result.userOpHash}</div>
-            <div>Tx: {result.txHash ?? "Waiting for bundler receipt..."}</div>
+            <div className="result-meta__line">
+              <span>UserOp:</span>
+              <CopyableHex value={result.userOpHash} />
+            </div>
+            <div className="result-meta__line">
+              <span>Tx:</span>
+              {result.txHash
+                ? <CopyableHex value={result.txHash} href={result.explorerUrl} />
+                : "Waiting for bundler receipt..."}
+            </div>
           </div>
           <ol className="timeline-list">
             {result.timeline.map((step, index) => (

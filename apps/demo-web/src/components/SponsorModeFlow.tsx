@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { CopyableHex } from "@/components/CopyableHex";
 import { ErrorNotice } from "@/components/ErrorNotice";
 import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
@@ -21,7 +22,7 @@ export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}
       <p className="card-subtitle">
         Use the active campaign budget to sponsor the same DemoDapp action without token spend. Active ID:
         {" "}
-        {campaignId.slice(0, 12)}...
+        <CopyableHex value={campaignId} />
       </p>
       <div className="button-row" style={{ marginTop: 16 }}>
         <button className="button" disabled={isLoading} onClick={executeSponsored}>
@@ -45,8 +46,16 @@ export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}
             </div>
           </div>
           <div className="result-meta">
-            <div>UserOp: {result.userOpHash}</div>
-            <div>Tx: {result.txHash ?? "Waiting for bundler receipt..."}</div>
+            <div className="result-meta__line">
+              <span>UserOp:</span>
+              <CopyableHex value={result.userOpHash} />
+            </div>
+            <div className="result-meta__line">
+              <span>Tx:</span>
+              {result.txHash
+                ? <CopyableHex value={result.txHash} href={result.explorerUrl} />
+                : "Waiting for bundler receipt..."}
+            </div>
           </div>
           <ol className="timeline-list">
             {result.timeline.map((step, index) => (

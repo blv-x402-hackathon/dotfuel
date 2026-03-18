@@ -1273,6 +1273,28 @@ textarea {
     position: static;
   }
 
+  /* compact sidebar on mobile — hide verbose content, keep essentials */
+  .sidebar-stack .card-title {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-stack .card-subtitle {
+    display: none;
+  }
+
+  .sidebar-stack .card {
+    padding: 14px 16px;
+  }
+
+  .sidebar-stack .button--ghost {
+    display: none;
+  }
+
+  .sidebar-stack .stack {
+    gap: 10px;
+  }
+
   .card-header {
     flex-direction: column;
   }

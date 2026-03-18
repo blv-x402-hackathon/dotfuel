@@ -14,6 +14,14 @@
   --polkadot: #E6007A;
   --polkadot-muted: rgba(230, 0, 122, 0.12);
   --polkadot-strong: #b5005f;
+
+  /* Typography scale */
+  --text-hero: clamp(48px, 10vw, 88px);
+  --text-section: 32px;
+  --text-card: 24px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-label: 13px;
 }
 
 * {
@@ -178,7 +186,7 @@ textarea {
   max-width: 9ch;
   margin: 18px 0 10px;
   font-family: var(--font-serif), "Palatino Linotype", serif;
-  font-size: clamp(48px, 10vw, 88px);
+  font-size: var(--text-hero);
   line-height: 0.96;
   letter-spacing: -0.04em;
 }
@@ -261,7 +269,7 @@ textarea {
 .card-title {
   margin: 0 0 8px;
   font-family: var(--font-serif), "Palatino Linotype", serif;
-  font-size: 26px;
+  font-size: var(--text-card);
   letter-spacing: -0.04em;
 }
 

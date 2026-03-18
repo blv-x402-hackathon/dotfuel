@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env
+.env.local
 out/
 cache/
 broadcast/
@@ -9,3 +10,4 @@ deployments/testnet.json
 .idea/
 .next/
 .vercel
+*.tsbuildinfo

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -34,6 +35,15 @@ export function GNB() {
   const pathname = usePathname();
   const health = useHealthCheck();
   const { preference, setPreference } = useTheme();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      setScrolled(window.scrollY > 4);
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   function cycleTheme() {
     if (preference === "system") setPreference("light");
@@ -44,7 +54,7 @@ export function GNB() {
   const themeLabel = preference === "system" ? "System theme" : preference === "light" ? "Light mode" : "Dark mode";
 
   return (
-    <header className="gnb">
+    <header className={`gnb${scrolled ? " gnb--scrolled" : ""}`}>
       <div className="gnb__inner">
         <Link href="/" className="gnb__brand" aria-label="DotFuel Home">
           <LogoMark className="gnb__logo" />
@@ -106,6 +116,12 @@ export function GNB() {
           border-bottom: 1px solid var(--line);
           background: rgba(246, 239, 227, 0.88);
           backdrop-filter: blur(12px);
+          box-shadow: none;
+          transition: box-shadow 200ms ease;
+        }
+
+        .gnb--scrolled {
+          box-shadow: var(--shadow-sm);
         }
 
         .gnb__inner {

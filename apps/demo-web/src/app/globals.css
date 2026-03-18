@@ -595,6 +595,18 @@ textarea {
   font-size: 14px;
 }
 
+.balance-details {
+  display: grid;
+  gap: 6px;
+}
+
+.balance-details summary {
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;

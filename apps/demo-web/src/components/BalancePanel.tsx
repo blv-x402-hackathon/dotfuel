@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { formatEther, formatUnits, getAddress, parseAbi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 
-import { CopyableHex } from "@/components/CopyableHex";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 
 const erc20Abi = parseAbi([
@@ -92,7 +91,13 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [manualRefreshKey, setManualRefreshKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now());
   const snapshotRef = useRef<BalanceSnapshot | null>(null);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     async function run() {
@@ -178,6 +183,11 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const pasBadgeLabel = snapshot
     ? (isGasless ? "Gasless ✓" : `${formatAmount(snapshot.eoaPas, 18, 4)} PAS`)
     : "Pending";
+  const refreshedLabel = snapshot
+    ? `${Math.max(0, Math.floor((now - snapshot.refreshedAt) / 1000))}s ago`
+    : isRefreshing
+      ? "Refreshing..."
+      : "Pending";
 
   return (
     <section className="card card--data">
@@ -212,12 +222,16 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             </div>
           </div>
           <div className="balance-card__value">{animatedPasValue ? `${animatedPasValue} PAS` : "Connect wallet"}</div>
-          <div className="balance-card__meta">
-            {previousPasValue ? `Before: ${previousPasValue} PAS` : "Waiting for first refresh"}
-          </div>
-          <div className="balance-card__meta">
-            {pasDelta ? `Delta: ${pasDelta} PAS` : "Target state: keep native gas at zero"}
-          </div>
+          <div className="balance-card__meta">Target state: keep native gas at zero.</div>
+          <details className="balance-details">
+            <summary>View delta snapshot</summary>
+            <div className="balance-card__meta">
+              {previousPasValue ? `Before: ${previousPasValue} PAS` : "Waiting for first refresh"}
+            </div>
+            <div className="balance-card__meta">
+              {pasDelta ? `Delta: ${pasDelta} PAS` : "Delta will appear after a refresh cycle"}
+            </div>
+          </details>
         </article>
 
         <article className="balance-card">
@@ -226,24 +240,22 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             <span className="badge badge--success">{tokenSymbol}</span>
           </div>
           <div className="balance-card__value">{animatedTokenValue ? `${animatedTokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
-          <div className="balance-card__meta">
-            {previousTokenValue ? `Before: ${previousTokenValue} ${tokenSymbol}` : "Refresh after a UserOperation"}
-          </div>
-          <div className="balance-card__meta">
-            {tokenDelta ? `Delta: ${tokenDelta} ${tokenSymbol}` : "Watch tUSDT move only on token mode"}
-          </div>
+          <div className="balance-card__meta">Watch tUSDT move only on token mode.</div>
+          <details className="balance-details">
+            <summary>View delta snapshot</summary>
+            <div className="balance-card__meta">
+              {previousTokenValue ? `Before: ${previousTokenValue} ${tokenSymbol}` : "Refresh after a UserOperation"}
+            </div>
+            <div className="balance-card__meta">
+              {tokenDelta ? `Delta: ${tokenDelta} ${tokenSymbol}` : "Delta will appear after a refresh cycle"}
+            </div>
+          </details>
         </article>
       </div>
 
       <div className="balance-footer">
-        <span className="label">Smart Account</span>
-        <CopyableHex value={smartAccountAddress} fallback="Not derived yet" />
-      </div>
-      <div className="balance-footer">
         <span className="label">Last Refreshed</span>
-        <span className="value">
-          {snapshot ? new Date(snapshot.refreshedAt).toLocaleTimeString() : isRefreshing ? "Refreshing..." : "Pending"}
-        </span>
+        <span className="value">{refreshedLabel}</span>
       </div>
     </section>
   );

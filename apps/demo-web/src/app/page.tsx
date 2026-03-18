@@ -9,6 +9,7 @@ import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { Button } from "@/components/ui/Button";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
 import { useWalletModal } from "@/components/WalletContext";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { getRecentCampaigns } from "@/lib/campaign-client";
 import { loadTxHistory } from "@/lib/txHistory";
 
@@ -76,6 +77,10 @@ export default function HomePage() {
   const { isConnected } = useAccount();
   const { openModal } = useWalletModal();
   const hints = useSmartHints();
+  const [balanceKey, setBalanceKey] = useState(0);
+  const { progress: pullProgress, refreshing: pullRefreshing } = usePullToRefresh({
+    onRefresh: () => setBalanceKey((k) => k + 1)
+  });
   const [history] = useState<TxHistoryItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -177,6 +182,32 @@ export default function HomePage() {
 
   return (
     <main className="page-shell">
+      {/* Pull-to-refresh indicator */}
+      {(pullProgress > 0 || pullRefreshing) ? (
+        <div
+          className="pull-indicator"
+          aria-live="polite"
+          aria-label={pullRefreshing ? "Refreshing…" : "Pull to refresh"}
+          style={{ opacity: pullRefreshing ? 1 : pullProgress }}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            width="20"
+            height="20"
+            aria-hidden
+            style={{
+              animation: pullRefreshing ? "spinForever 700ms linear infinite" : "none",
+              transform: pullRefreshing ? undefined : `rotate(${pullProgress * 360}deg)`
+            }}
+          >
+            <path d="M12 4a8 8 0 1 0 8 8" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
+            <path d="M20 4v4h-4" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>{pullRefreshing ? "Refreshing…" : "Release to refresh"}</span>
+        </div>
+      ) : null}
+
       <section className="hero hero--compact">
         <h1 className="hero-title">Dashboard</h1>
         <p className="hero-copy">Welcome back. Here&apos;s your account overview.</p>
@@ -187,7 +218,7 @@ export default function HomePage() {
           <CounterfactualAddress />
         </div>
         <div className="stack">
-          <BalancePanel refreshKey={0} />
+          <BalancePanel refreshKey={balanceKey} />
 
           <div className="card">
             <h3 className="card-title">Quick Actions</h3>

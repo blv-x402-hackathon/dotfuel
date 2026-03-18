@@ -874,6 +874,25 @@ textarea {
 
 /* ─── Sponsor empty state ─────────────────────────── */
 
+/* ── Pull-to-Refresh Indicator ─────────────────────────────────────────────── */
+
+.pull-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  margin: -12px 0 8px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--accent);
+  transition: opacity 120ms;
+}
+
+@keyframes spinForever {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Smart Hints (contextual dashboard CTAs) ───────────────────────────────── */
 
 .smart-hints {

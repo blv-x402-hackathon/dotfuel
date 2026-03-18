@@ -896,6 +896,39 @@ textarea {
   gap: 10px;
 }
 
+.budget-bar-wrap {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.budget-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.budget-bar-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.budget-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(36, 24, 14, 0.1);
+  overflow: hidden;
+}
+
+.budget-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 600ms ease, background 400ms ease;
+  min-width: 2px;
+}
+
 .status-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

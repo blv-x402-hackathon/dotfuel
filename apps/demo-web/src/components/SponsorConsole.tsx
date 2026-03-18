@@ -156,8 +156,13 @@ export function SponsorConsole(props: {
     setTargets((current) => current.filter((value) => value !== target));
   }
 
-  const spent = status ? formatAmount(hexToBigInt(status.spent), 18, 5) : null;
-  const budget = status ? formatAmount(hexToBigInt(status.budget), 18, 5) : null;
+  const spentBig = status ? hexToBigInt(status.spent) : 0n;
+  const budgetBig = status ? hexToBigInt(status.budget) : 0n;
+  const spentPct = budgetBig > 0n ? Math.min(100, Number((spentBig * 10000n) / budgetBig) / 100) : 0;
+  const budgetBarColor = spentPct >= 90 ? "var(--danger)" : spentPct >= 70 ? "#d97706" : "var(--success)";
+
+  const spent = status ? formatAmount(spentBig, 18, 5) : null;
+  const budget = status ? formatAmount(budgetBig, 18, 5) : null;
   const remaining = status ? formatAmount(hexToBigInt(status.remainingBudget), 18, 5) : null;
   const isCampaignIdValid = /^0x[a-fA-F0-9]{64}$/.test(campaignIdInput);
 
@@ -276,6 +281,18 @@ export function SponsorConsole(props: {
 
       {feedback ? <div className="feedback feedback--success">{feedback}</div> : null}
       {error ? <ErrorNotice error={error} /> : null}
+
+      {status && budgetBig > 0n ? (
+        <div className="budget-bar-wrap">
+          <div className="budget-bar-header">
+            <span className="label">Budget Spent</span>
+            <span className="budget-bar-pct">{spentPct.toFixed(1)}%</span>
+          </div>
+          <div className="budget-bar">
+            <div className="budget-bar__fill" style={{ width: `${spentPct}%`, background: budgetBarColor }} />
+          </div>
+        </div>
+      ) : null}
 
       <div className="status-grid">
         <article className="status-card">

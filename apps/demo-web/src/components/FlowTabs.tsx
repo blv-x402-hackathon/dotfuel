@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import { BalancePanel } from "@/components/BalancePanel";
-import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { SponsorConsole } from "@/components/SponsorConsole";
 import { SponsorModeFlow } from "@/components/SponsorModeFlow";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
@@ -15,7 +14,6 @@ const EMPTY_CAMPAIGN_ID = "0x000000000000000000000000000000000000000000000000000
 export function FlowTabs() {
   const [tab, setTab] = useState<"token" | "sponsor">("token");
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
   const [campaignId, setCampaignId] = useState<`0x${string}`>(
     (process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}` | undefined) ?? EMPTY_CAMPAIGN_ID
@@ -23,7 +21,6 @@ export function FlowTabs() {
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
 
   const onTx = (result: FlowResult) => {
-    setLoading(false);
     setBalanceRefreshKey((current) => current + 1);
     if (result.mode === "sponsor") {
       setCampaignRefreshKey((current) => current + 1);
@@ -67,7 +64,6 @@ export function FlowTabs() {
         </>
       ) : null}
       <TxHistory items={history} />
-      <LoadingOverlay show={loading} />
     </div>
   );
 }

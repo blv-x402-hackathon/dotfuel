@@ -1,0 +1,157 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+export type InlineProgressStage = "signing" | "submitting" | "waiting" | "done";
+
+const STEPS = [
+  { key: "signing", label: "Signing..." },
+  { key: "submitting", label: "Submitting to bundler..." },
+  { key: "waiting", label: "Waiting for receipt..." },
+  { key: "done", label: "Done ✓" }
+] as const;
+
+const STEP_INDEX: Record<InlineProgressStage, number> = {
+  signing: 0,
+  submitting: 1,
+  waiting: 2,
+  done: 3
+};
+
+function getStepStatus(stage: InlineProgressStage, stepIndex: number) {
+  const currentIndex = STEP_INDEX[stage];
+  if (stepIndex < currentIndex) return "done";
+  if (stepIndex === currentIndex) return stage === "done" ? "done" : "active";
+  return "pending";
+}
+
+export function InlineProgressStepper({ stage, startedAt }: { stage: InlineProgressStage | null; startedAt: number | null }) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!startedAt) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const tick = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    };
+    tick();
+    const interval = window.setInterval(tick, 500);
+
+    return () => window.clearInterval(interval);
+  }, [startedAt]);
+
+  const elapsedLabel = useMemo(() => `${elapsedSeconds}s`, [elapsedSeconds]);
+
+  if (!stage || !startedAt) return null;
+
+  return (
+    <div className="progress-stepper" aria-live="polite">
+      <div className="progress-stepper__header">
+        <span className="label">Execution Progress</span>
+        <span className="progress-stepper__time">{elapsedLabel}</span>
+      </div>
+      <ol className="progress-stepper__list">
+        {STEPS.map((step, index) => {
+          const status = getStepStatus(stage, index);
+          return (
+            <li className={`progress-step progress-step--${status}`} key={step.key}>
+              <span className="progress-step__dot" aria-hidden>
+                {status === "active" ? <span className="progress-step__spinner" /> : status === "done" ? "✓" : "•"}
+              </span>
+              <span>{step.label}</span>
+            </li>
+          );
+        })}
+      </ol>
+      <style jsx>{`
+        .progress-stepper {
+          margin-top: 14px;
+          padding: 14px;
+          border-radius: 18px;
+          border: 1px solid rgba(78, 54, 32, 0.12);
+          background: rgba(255, 255, 255, 0.62);
+        }
+
+        .progress-stepper__header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+
+        .progress-stepper__time {
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .progress-stepper__list {
+          display: grid;
+          gap: 8px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .progress-step {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--muted);
+          font-size: 14px;
+        }
+
+        .progress-step--done {
+          color: var(--success);
+        }
+
+        .progress-step--active {
+          color: var(--ink);
+          font-weight: 600;
+        }
+
+        .progress-step__dot {
+          display: inline-flex;
+          width: 18px;
+          height: 18px;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          border: 1px solid rgba(78, 54, 32, 0.18);
+          background: #fff;
+          font-size: 12px;
+          flex: none;
+        }
+
+        .progress-step--done .progress-step__dot {
+          border-color: rgba(12, 122, 92, 0.3);
+          background: rgba(12, 122, 92, 0.12);
+        }
+
+        .progress-step--active .progress-step__dot {
+          border-color: rgba(199, 90, 46, 0.28);
+          background: rgba(199, 90, 46, 0.1);
+        }
+
+        .progress-step__spinner {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          border: 2px solid rgba(199, 90, 46, 0.3);
+          border-top-color: var(--accent);
+          animation: spin 800ms linear infinite;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

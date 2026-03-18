@@ -5,6 +5,7 @@ import { GasStationPaymasterAbi } from "@dotfuel/shared";
 import { decodeEventLog, getAddress, hexToBigInt } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
+import type { InlineProgressStage } from "@/components/InlineProgressStepper";
 import { fetchSponsorQuote } from "@/lib/paymaster-client";
 import {
   estimateUserOperationGas,
@@ -25,6 +26,8 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<UiError | null>(null);
   const [result, setResult] = useState<FlowResult | null>(null);
+  const [progressStage, setProgressStage] = useState<InlineProgressStage | null>(null);
+  const [progressStartedAt, setProgressStartedAt] = useState<number | null>(null);
 
   async function executeSponsored() {
     if (!address || !walletClient || !publicClient) {
@@ -35,6 +38,8 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
     setIsLoading(true);
     setError(null);
     setResult(null);
+    setProgressStage("signing");
+    setProgressStartedAt(Date.now());
 
     try {
       const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
@@ -92,7 +97,9 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
         message: { raw: userOpHash }
       });
 
+      setProgressStage("submitting");
       const submittedUserOpHash = await sendUserOperation(userOp, entryPoint);
+      setProgressStage("waiting");
       const receipt = await waitForUserOperationReceipt(submittedUserOpHash);
       const txHash = receipt?.receipt?.transactionHash;
       const explorerUrl = txHash ? `https://blockscout-testnet.polkadot.io/tx/${txHash}` : undefined;
@@ -121,6 +128,7 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
       }
 
       const gasCostLabel = `${formatAmount(gasCost, 18, 6)} PAS`;
+      setProgressStage("done");
       setResult({
         mode: "sponsor",
         hash: txHash ?? submittedUserOpHash,
@@ -154,6 +162,8 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
       });
     } catch (err) {
       setError(toUiError(err, "sponsor"));
+      setProgressStage(null);
+      setProgressStartedAt(null);
     } finally {
       setIsLoading(false);
     }
@@ -163,6 +173,8 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
     executeSponsored,
     isLoading,
     error,
-    result
+    result,
+    progressStage,
+    progressStartedAt
   };
 }

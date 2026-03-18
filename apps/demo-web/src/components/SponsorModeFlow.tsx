@@ -3,11 +3,12 @@
 import { useEffect } from "react";
 
 import { ErrorNotice } from "@/components/ErrorNotice";
+import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
 import type { FlowResult } from "@/lib/flowResults";
 
 export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}`; onTx: (result: FlowResult) => void }) {
-  const { executeSponsored, isLoading, error, result } = useSponsorModeUserOp(campaignId);
+  const { executeSponsored, isLoading, error, result, progressStage, progressStartedAt } = useSponsorModeUserOp(campaignId);
 
   useEffect(() => {
     if (!result) return;
@@ -27,6 +28,7 @@ export function SponsorModeFlow({ campaignId, onTx }: { campaignId: `0x${string}
         {isLoading ? "Submitting..." : "Execute Sponsored"}
         </button>
       </div>
+      <InlineProgressStepper stage={progressStage} startedAt={progressStartedAt} />
 
       {error ? <ErrorNotice error={error} /> : null}
 

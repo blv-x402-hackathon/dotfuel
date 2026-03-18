@@ -6,6 +6,7 @@ import { GasStationPaymasterAbi } from "@dotfuel/shared";
 import { decodeEventLog, getAddress, hexToBigInt, parseAbi, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
+import type { InlineProgressStage } from "@/components/InlineProgressStepper";
 import { fetchTokenQuote } from "@/lib/paymaster-client";
 import {
   estimateUserOperationGas,
@@ -35,6 +36,8 @@ export function useTokenModeUserOp() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<UiError | null>(null);
   const [result, setResult] = useState<FlowResult | null>(null);
+  const [progressStage, setProgressStage] = useState<InlineProgressStage | null>(null);
+  const [progressStartedAt, setProgressStartedAt] = useState<number | null>(null);
 
   async function executeTokenMode() {
     if (!address || !walletClient || !publicClient) {
@@ -45,6 +48,8 @@ export function useTokenModeUserOp() {
     setIsLoading(true);
     setError(null);
     setResult(null);
+    setProgressStage("signing");
+    setProgressStartedAt(Date.now());
 
     try {
       const token = getAddress(process.env.NEXT_PUBLIC_TOKEN_ADDRESS as `0x${string}`);
@@ -116,7 +121,9 @@ export function useTokenModeUserOp() {
         message: { raw: userOpHash }
       });
 
+      setProgressStage("submitting");
       const submittedUserOpHash = await sendUserOperation(userOp, entryPoint);
+      setProgressStage("waiting");
       const receipt = await waitForUserOperationReceipt(submittedUserOpHash);
       const txHash = receipt?.receipt?.transactionHash;
       const explorerUrl = txHash ? `https://blockscout-testnet.polkadot.io/tx/${txHash}` : undefined;
@@ -164,6 +171,7 @@ export function useTokenModeUserOp() {
       const gasCostLabel = `${formatAmount(gasCost, 18, 6)} PAS`;
       const tokenChargeLabel = `${formatAmount(tokenCharge, tokenDecimals, 4)} ${tokenSymbol}`;
 
+      setProgressStage("done");
       setResult({
         mode: "token",
         hash: txHash ?? submittedUserOpHash,
@@ -197,6 +205,8 @@ export function useTokenModeUserOp() {
       });
     } catch (err) {
       setError(toUiError(err, "token"));
+      setProgressStage(null);
+      setProgressStartedAt(null);
     } finally {
       setIsLoading(false);
     }
@@ -206,6 +216,8 @@ export function useTokenModeUserOp() {
     executeTokenMode,
     isLoading,
     error,
-    result
+    result,
+    progressStage,
+    progressStartedAt
   };
 }

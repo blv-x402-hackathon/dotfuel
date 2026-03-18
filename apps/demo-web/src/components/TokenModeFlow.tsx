@@ -3,11 +3,12 @@
 import { useEffect } from "react";
 
 import { ErrorNotice } from "@/components/ErrorNotice";
+import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { type FlowResult } from "@/lib/flowResults";
 import { useTokenModeUserOp } from "@/hooks/useTokenModeUserOp";
 
 export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) {
-  const { executeTokenMode, isLoading, error, result } = useTokenModeUserOp();
+  const { executeTokenMode, isLoading, error, result, progressStage, progressStartedAt } = useTokenModeUserOp();
 
   useEffect(() => {
     if (!result) return;
@@ -23,6 +24,7 @@ export function TokenModeFlow({ onTx }: { onTx: (result: FlowResult) => void }) 
         {isLoading ? "Submitting..." : "Pay gas in tUSDT"}
         </button>
       </div>
+      <InlineProgressStepper stage={progressStage} startedAt={progressStartedAt} />
 
       {error ? <ErrorNotice error={error} /> : null}
 

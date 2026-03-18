@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 function truncateHex(value: string) {
-  if (!value.startsWith("0x") || value.length <= 14) {
+  if (!value.startsWith("0x") || value.length <= 16) {
     return value;
   }
 
-  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
 }
 
 async function copyText(value: string) {
@@ -62,9 +62,20 @@ export function CopyableHex(props: {
         onClick={() => {
           copyText(value).then(() => setCopied(true)).catch(() => setCopied(false));
         }}
+        title={copied ? "Copied!" : "Copy to clipboard"}
         type="button"
       >
-        {copied ? "Copied!" : "Copy"}
+        {copied ? (
+          <svg aria-hidden viewBox="0 0 16 16" fill="none" style={{ width: 12, height: 12 }}>
+            <path d="M2.5 8.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        ) : (
+          <svg aria-hidden viewBox="0 0 16 16" fill="none" style={{ width: 12, height: 12 }}>
+            <rect x="5.5" y="1.5" width="9" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M3.5 4.5H2A1.5 1.5 0 0 0 .5 6v8A1.5 1.5 0 0 0 2 15.5h7A1.5 1.5 0 0 0 10.5 14v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        )}
+        <span>{copied ? "Copied!" : "Copy"}</span>
       </button>
       <style jsx>{`
         .copyable-hex {
@@ -87,6 +98,9 @@ export function CopyableHex(props: {
         }
 
         .copyable-hex__button {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
           border: 1px solid rgba(78, 54, 32, 0.18);
           border-radius: 999px;
           padding: 6px 10px;
@@ -95,6 +109,7 @@ export function CopyableHex(props: {
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
+          white-space: nowrap;
         }
 
         @media (max-width: 600px) {

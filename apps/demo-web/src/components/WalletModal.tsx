@@ -1,9 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useConnect } from "wagmi";
+import { useAccount, useChainId, useConnect, useSwitchChain } from "wagmi";
 
 import { useWalletModal } from "@/components/WalletContext";
+import { polkadotHubTestnet } from "@/lib/chains";
+
+const RECENT_CONNECTOR_KEY = "dotfuel-recent-connector";
+
+function getRecentConnectorId(): string | null {
+  if (typeof window === "undefined") return null;
+  try { return localStorage.getItem(RECENT_CONNECTOR_KEY); } catch { return null; }
+}
+
+function saveRecentConnectorId(id: string) {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem(RECENT_CONNECTOR_KEY, id); } catch {}
+}
 
 function connectorIcon(name: string) {
   const n = name.toLowerCase();
@@ -37,9 +50,19 @@ function connectorIcon(name: string) {
 
 export function WalletModal() {
   const { isModalOpen, closeModal } = useWalletModal();
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
   const { connectors, connect, isPending, error, reset } = useConnect();
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
   const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [recentConnectorId, setRecentConnectorId] = useState<string | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  const isWrongNetwork = isConnected && chainId !== polkadotHubTestnet.id;
+
+  useEffect(() => {
+    setRecentConnectorId(getRecentConnectorId());
+  }, []);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -57,6 +80,13 @@ export function WalletModal() {
     return () => document.removeEventListener("keydown", handleEsc);
   }, [closeModal, isModalOpen]);
 
+  // Auto-close modal when wallet is connected and on correct network
+  useEffect(() => {
+    if (isConnected && !isWrongNetwork && isModalOpen) {
+      closeModal();
+    }
+  }, [isConnected, isWrongNetwork, isModalOpen, closeModal]);
+
   if (!isModalOpen) return null;
 
   return (
@@ -72,51 +102,97 @@ export function WalletModal() {
     >
       <div className="wallet-modal">
         <div className="wallet-modal__header">
-          <h2 className="wallet-modal__title">Connect Wallet</h2>
+          <h2 className="wallet-modal__title">
+            {isWrongNetwork ? "Switch Network" : "Connect Wallet"}
+          </h2>
           <button className="wallet-modal__close" onClick={closeModal} type="button" aria-label="Close">
             <svg viewBox="0 0 16 16" fill="none" style={{ width: 16, height: 16 }}>
               <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
         </div>
-        <p className="wallet-modal__description">Choose a wallet to connect to DotFuel.</p>
-        <ul className="wallet-modal__list">
-          {connectors.map((connector) => {
-            const isConnecting = isPending && connectingId === connector.uid;
-            return (
-              <li key={connector.uid}>
-                <button
-                  className={`wallet-modal__connector ${isConnecting ? "wallet-modal__connector--connecting" : ""}`}
-                  disabled={isPending}
-                  onClick={() => {
-                    setConnectingId(connector.uid);
-                    connect(
-                      { connector },
-                      { onSuccess: () => closeModal() }
-                    );
-                  }}
-                  type="button"
-                >
-                  {connectorIcon(connector.name)}
-                  <span className="wallet-modal__connector-name">{connector.name}</span>
-                  {isConnecting ? (
-                    <span className="wallet-modal__spinner" />
-                  ) : (
-                    <svg viewBox="0 0 16 16" fill="none" style={{ width: 14, height: 14, opacity: 0.4 }}>
-                      <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        {error ? (
-          <div className="wallet-modal__error">
-            <strong>Connection failed</strong>
-            <p>{error.message.length > 120 ? `${error.message.slice(0, 120)}...` : error.message}</p>
-          </div>
-        ) : null}
+
+        {isWrongNetwork ? (
+          <>
+            <p className="wallet-modal__description">
+              DotFuel requires the <strong>Polkadot Hub TestNet</strong> (Chain ID{" "}
+              {polkadotHubTestnet.id}). Your wallet is connected to a different network.
+            </p>
+            <div className="wallet-modal__network-banner">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18" aria-hidden style={{ flex: "none" }}>
+                <circle cx="10" cy="10" r="9" stroke="var(--warning)" strokeWidth="1.4" />
+                <path d="M10 6v5M10 13v1" stroke="var(--warning)" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <span>Wrong network detected</span>
+            </div>
+            <button
+              className="wallet-modal__switch-btn"
+              disabled={isSwitching}
+              onClick={() => switchChain({ chainId: polkadotHubTestnet.id })}
+              type="button"
+            >
+              {isSwitching ? (
+                <span className="wallet-modal__spinner" />
+              ) : (
+                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                  <path d="M4 10h12M12 6l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              Switch to Polkadot Hub TestNet
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="wallet-modal__description">
+              Choose a wallet to connect to DotFuel.
+            </p>
+            <ul className="wallet-modal__list">
+              {connectors.map((connector) => {
+                const isConnecting = isPending && connectingId === connector.uid;
+                const isRecent = connector.uid === recentConnectorId;
+                return (
+                  <li key={connector.uid}>
+                    <button
+                      className={`wallet-modal__connector ${isConnecting ? "wallet-modal__connector--connecting" : ""}`}
+                      disabled={isPending}
+                      onClick={() => {
+                        setConnectingId(connector.uid);
+                        connect(
+                          { connector },
+                          {
+                            onSuccess: () => {
+                              saveRecentConnectorId(connector.uid);
+                              closeModal();
+                            }
+                          }
+                        );
+                      }}
+                      type="button"
+                    >
+                      {connectorIcon(connector.name)}
+                      <span className="wallet-modal__connector-name">{connector.name}</span>
+                      {isRecent && !isConnecting ? (
+                        <span className="wallet-modal__recent-badge">Recent</span>
+                      ) : isConnecting ? (
+                        <span className="wallet-modal__spinner" />
+                      ) : (
+                        <svg viewBox="0 0 16 16" fill="none" style={{ width: 14, height: 14, opacity: 0.4 }}>
+                          <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            {error ? (
+              <div className="wallet-modal__error">
+                <strong>Connection failed</strong>
+                <p>{error.message.length > 120 ? `${error.message.slice(0, 120)}...` : error.message}</p>
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
       <style jsx>{`
         .wallet-modal__overlay {
@@ -180,6 +256,43 @@ export function WalletModal() {
           line-height: 1.5;
         }
 
+        .wallet-modal__network-banner {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 14px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          border: 1px solid rgba(217, 119, 6, 0.25);
+          background: rgba(217, 119, 6, 0.08);
+          color: var(--warning);
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .wallet-modal__switch-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          margin-top: 14px;
+          padding: 14px 16px;
+          border-radius: 16px;
+          border: 1px solid var(--accent-border);
+          background: var(--accent);
+          color: #fff;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: opacity 120ms ease;
+        }
+
+        .wallet-modal__switch-btn:disabled {
+          opacity: 0.6;
+          cursor: wait;
+        }
+
         .wallet-modal__list {
           display: grid;
           gap: 8px;
@@ -223,6 +336,17 @@ export function WalletModal() {
         .wallet-modal__connector-name {
           flex: 1;
           text-align: left;
+        }
+
+        .wallet-modal__recent-badge {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          padding: 3px 8px;
+          border-radius: 999px;
+          background: var(--accent-hover);
+          border: 1px solid var(--accent-border);
+          color: var(--accent-strong);
         }
 
         .wallet-modal__spinner {
@@ -273,6 +397,37 @@ export function WalletModal() {
 
         @keyframes modalSpin {
           to { transform: rotate(360deg); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .wallet-modal__close:hover {
+            background: rgba(240, 230, 216, 0.08);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .wallet-modal__overlay {
+            align-items: flex-end;
+            padding: 0;
+          }
+
+          .wallet-modal {
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            animation: modalInMobile 240ms ease;
+          }
+        }
+
+        @keyframes modalInMobile {
+          from {
+            opacity: 0;
+            transform: translateY(40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </div>

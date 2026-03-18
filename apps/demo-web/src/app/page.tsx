@@ -155,11 +155,24 @@ export default function HomePage() {
             <span className="stat-value stat-value--text">Permit2</span>
           </div>
         </div>
-        {!isConnected ? (
-          <div id="wallet-connect-cta" style={{ marginTop: 24 }}>
-            <WalletConnect variant="hero" />
-          </div>
-        ) : null}
+        <div className="hero-cta-row">
+          {!isConnected ? (
+            <div id="wallet-connect-cta">
+              <WalletConnect variant="hero" />
+            </div>
+          ) : (
+            <button
+              className="button button--accent"
+              onClick={() => {
+                setPreferredTab("token");
+                document.getElementById("flow-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              type="button"
+            >
+              Start Token Mode →
+            </button>
+          )}
+        </div>
       </section>
 
       <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />

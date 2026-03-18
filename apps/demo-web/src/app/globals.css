@@ -191,6 +191,10 @@ textarea {
   line-height: 1.6;
 }
 
+.hero-cta-row {
+  margin-top: 24px;
+}
+
 .hero-grid {
   display: grid;
   gap: 18px;

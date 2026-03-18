@@ -151,6 +151,29 @@ textarea {
   color: var(--polkadot-strong);
 }
 
+/* health-dot state variants — override the base polkadot pink */
+.hero-live-dot.health-dot--ok {
+  background: var(--polkadot);
+  box-shadow: 0 0 0 0 rgba(230, 0, 122, 0.42);
+}
+
+.hero-live-dot.health-dot--checking {
+  background: var(--muted);
+  animation: none;
+  opacity: 0.6;
+}
+
+.hero-live-dot.health-dot--degraded {
+  background: #d97706;
+  box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.42);
+  animation: livePulse 1400ms ease-out infinite;
+}
+
+.hero-live-dot.health-dot--down {
+  background: var(--danger);
+  animation: none;
+}
+
 .hero-title {
   max-width: 9ch;
   margin: 18px 0 10px;

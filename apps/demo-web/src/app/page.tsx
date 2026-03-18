@@ -10,6 +10,21 @@ import { StepIndicator, type GuidedStep } from "@/components/StepIndicator";
 import type { TxHistoryItem } from "@/components/TxHistory";
 import { WalletConnect } from "@/components/WalletConnect";
 import { useAccount, usePublicClient } from "wagmi";
+import { useHealthCheck, type HealthStatus } from "@/hooks/useHealthCheck";
+
+const HEALTH_DOT: Record<HealthStatus, string> = {
+  checking: "health-dot--checking",
+  ok: "health-dot--ok",
+  degraded: "health-dot--degraded",
+  down: "health-dot--down"
+};
+
+const HEALTH_LABEL: Record<HealthStatus, string> = {
+  checking: "Connecting...",
+  ok: "Live",
+  degraded: "Degraded",
+  down: "Offline"
+};
 
 export default function HomePage() {
   const { address, isConnected } = useAccount();
@@ -18,6 +33,7 @@ export default function HomePage() {
   const [preferredTab, setPreferredTab] = useState<"token" | "sponsor">("token");
   const [eoaBalance, setEoaBalance] = useState<bigint | null>(null);
   const [claimLive, setClaimLive] = useState(false);
+  const health = useHealthCheck();
 
   useEffect(() => {
     const claimTimer = window.setTimeout(() => setClaimLive(true), 420);
@@ -117,8 +133,8 @@ export default function HomePage() {
           <LogoMark className="hero-logo" />
           <div className="hero-brand-copy">
             <div className="hero-eyebrow">
-              <span className="hero-live-dot" aria-hidden />
-              Polkadot Hub TestNet • Chain ID 420420417 • Live
+              <span className={`hero-live-dot ${HEALTH_DOT[health.overall]}`} aria-hidden />
+              Polkadot Hub TestNet • Chain ID 420420417 • {HEALTH_LABEL[health.overall]}
             </div>
             <h1 className="hero-title">DotFuel</h1>
           </div>

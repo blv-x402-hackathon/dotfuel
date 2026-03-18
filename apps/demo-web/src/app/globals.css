@@ -572,6 +572,23 @@ textarea {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
 }
 
+.button--danger {
+  background: var(--danger);
+  color: #fffaf2;
+}
+
+.button--sm {
+  padding: 8px 14px;
+  min-width: auto;
+  font-size: 13px;
+}
+
+.button--lg {
+  padding: 14px 24px;
+  min-width: 180px;
+  font-size: 16px;
+}
+
 .tab-bar {
   display: inline-flex;
   gap: 8px;

@@ -1,27 +1,80 @@
 :root {
+  /* Colors — surfaces */
   --bg: #f6efe3;
   --bg-deep: #e7dcc8;
   --card: rgba(255, 252, 245, 0.86);
   --card-strong: #fffaf2;
   --line: rgba(78, 54, 32, 0.12);
+
+  /* Colors — text */
   --ink: #24180e;
   --muted: #6f6256;
+
+  /* Colors — interactive */
   --accent: #c75a2e;
   --accent-strong: #8f2f14;
+  --accent-hover: rgba(199, 90, 46, 0.08);
+  --accent-border: rgba(199, 90, 46, 0.28);
+
+  /* Colors — semantic */
   --success: #0c7a5c;
+  --success-bg: rgba(12, 122, 92, 0.08);
+  --success-border: rgba(12, 122, 92, 0.2);
   --danger: #b54330;
-  --shadow: 0 24px 60px rgba(74, 50, 30, 0.12);
+  --danger-bg: rgba(181, 67, 48, 0.08);
+  --danger-border: rgba(181, 67, 48, 0.2);
+  --warning: #d97706;
+
+  /* Colors — brand */
   --polkadot: #E6007A;
   --polkadot-muted: rgba(230, 0, 122, 0.12);
   --polkadot-strong: #b5005f;
 
+  /* Spacing — 4px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 8px 20px rgba(68, 47, 29, 0.06);
+  --shadow-md: 0 16px 36px rgba(68, 47, 29, 0.08);
+  --shadow-lg: 0 24px 60px rgba(74, 50, 30, 0.12);
+  --shadow-xl: 0 24px 44px rgba(143, 47, 20, 0.18);
+  --shadow: var(--shadow-lg);
+
   /* Typography scale */
   --text-hero: clamp(48px, 10vw, 88px);
-  --text-section: 32px;
-  --text-card: 24px;
-  --text-body: 16px;
-  --text-small: 14px;
-  --text-label: 13px;
+  --text-2xl: 32px;
+  --text-xl: 24px;
+  --text-lg: 18px;
+  --text-base: 16px;
+  --text-sm: 14px;
+  --text-xs: 13px;
+  --text-2xs: 12px;
+  --text-3xs: 11px;
+
+  /* Legacy aliases (deprecated — migrate to new names) */
+  --text-section: var(--text-2xl);
+  --text-card: var(--text-xl);
+  --text-body: var(--text-base);
+  --text-small: var(--text-sm);
+  --text-label: var(--text-xs);
 }
 
 * {
@@ -131,7 +184,7 @@ textarea {
   overflow: hidden;
   padding: 28px;
   border: 1px solid var(--line);
-  border-radius: 28px;
+  border-radius: var(--radius-xl);
   background:
     linear-gradient(135deg, rgba(255, 250, 242, 0.96), rgba(244, 230, 207, 0.92)),
     var(--card-strong);
@@ -269,9 +322,9 @@ textarea {
   overflow: hidden;
   padding: 20px;
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
   background: var(--card);
-  box-shadow: 0 16px 36px rgba(68, 47, 29, 0.08);
+  box-shadow: var(--shadow-md);
   backdrop-filter: blur(12px);
   animation: cardEnter 260ms ease both;
 }
@@ -287,7 +340,7 @@ textarea {
 .card--primary {
   padding: 24px;
   border-color: rgba(199, 90, 46, 0.26);
-  box-shadow: 0 24px 44px rgba(143, 47, 20, 0.18);
+  box-shadow: var(--shadow-xl);
   background:
     linear-gradient(160deg, rgba(255, 250, 242, 0.98), rgba(255, 239, 220, 0.88)),
     var(--card);
@@ -303,7 +356,7 @@ textarea {
 }
 
 .card--info {
-  box-shadow: 0 12px 24px rgba(68, 47, 29, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .card--data {
@@ -314,7 +367,7 @@ textarea {
 .card--log {
   padding: 16px;
   background: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 8px 20px rgba(68, 47, 29, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-title {
@@ -345,7 +398,7 @@ textarea {
 
 .stat {
   padding: 16px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(78, 54, 32, 0.08);
 }
@@ -575,7 +628,7 @@ textarea {
   display: grid;
   gap: 6px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(78, 54, 32, 0.08);
 }
@@ -636,7 +689,7 @@ textarea {
   gap: 8px;
   margin-top: 16px;
   padding: 18px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   border: 1px dashed rgba(78, 54, 32, 0.24);
   background: rgba(255, 255, 255, 0.36);
   text-align: center;
@@ -669,7 +722,7 @@ textarea {
 .feedback {
   margin-top: 14px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(181, 67, 48, 0.18);
   background: rgba(181, 67, 48, 0.08);
   color: var(--danger);
@@ -686,7 +739,7 @@ textarea {
   gap: 16px;
   margin-top: 14px;
   padding: 16px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   border: 1px solid rgba(12, 122, 92, 0.18);
 }
 
@@ -705,7 +758,7 @@ textarea {
   display: grid;
   gap: 6px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.58);
 }
 
@@ -766,7 +819,7 @@ textarea {
   display: grid;
   gap: 4px;
   padding: 13px 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   border: 1px solid rgba(78, 54, 32, 0.08);
   background: rgba(255, 255, 255, 0.48);
 }
@@ -814,7 +867,7 @@ textarea {
 .debug-details pre {
   margin: 10px 0 0;
   padding: 12px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   overflow: auto;
   background: rgba(36, 24, 14, 0.08);
   color: var(--ink);
@@ -832,7 +885,7 @@ textarea {
   display: grid;
   gap: 10px;
   padding: 16px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.58);
   border: 1px solid rgba(78, 54, 32, 0.08);
 }
@@ -861,7 +914,7 @@ textarea {
   gap: 8px;
   margin-top: 6px;
   padding: 8px 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: rgba(36, 24, 14, 0.05);
 }
 
@@ -949,7 +1002,7 @@ textarea {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid rgba(78, 54, 32, 0.12);
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.82);
   color: var(--ink);
 }
@@ -975,7 +1028,7 @@ textarea {
 .advanced-console {
   margin-top: 14px;
   padding: 12px 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   border: 1px dashed rgba(78, 54, 32, 0.2);
   background: rgba(255, 255, 255, 0.3);
 }
@@ -988,7 +1041,7 @@ textarea {
 
 .campaign-panel {
   padding: 12px 14px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   border: 1px dashed rgba(78, 54, 32, 0.2);
   background: rgba(255, 255, 255, 0.28);
 }
@@ -1082,7 +1135,7 @@ textarea {
   display: grid;
   gap: 8px;
   padding: 16px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.58);
   border: 1px solid rgba(78, 54, 32, 0.08);
 }
@@ -1189,7 +1242,18 @@ textarea {
     --accent-strong: #f0a170;
     --success: #53d6a1;
     --danger: #ff9581;
-    --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+    --accent-hover: rgba(211, 130, 82, 0.12);
+    --accent-border: rgba(211, 130, 82, 0.3);
+    --success-bg: rgba(83, 214, 161, 0.12);
+    --success-border: rgba(83, 214, 161, 0.2);
+    --danger-bg: rgba(255, 149, 129, 0.12);
+    --danger-border: rgba(255, 149, 129, 0.2);
+    --warning: #f59e0b;
+    --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.18);
+    --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.24);
+    --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.42);
+    --shadow-xl: 0 24px 44px rgba(0, 0, 0, 0.48);
+    --shadow: var(--shadow-lg);
     --polkadot: #ff4da6;
     --polkadot-muted: rgba(255, 77, 166, 0.14);
     --polkadot-strong: #ff4da6;
@@ -1423,7 +1487,7 @@ textarea {
 @media (max-width: 420px) {
   .card {
     padding: 16px;
-    border-radius: 20px;
+    border-radius: var(--radius-lg);
   }
 
   .balance-card {

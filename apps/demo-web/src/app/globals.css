@@ -165,6 +165,7 @@ textarea {
   background: var(--card);
   box-shadow: 0 16px 36px rgba(68, 47, 29, 0.08);
   backdrop-filter: blur(12px);
+  animation: cardEnter 260ms ease both;
 }
 
 .card::before {
@@ -349,6 +350,10 @@ textarea {
   transform: translateY(-1px);
 }
 
+.button:active {
+  transform: translateY(0) scale(0.97);
+}
+
 .button:disabled {
   cursor: wait;
   opacity: 0.6;
@@ -499,6 +504,9 @@ textarea {
   border-radius: 18px;
   border: 1px solid rgba(78, 54, 32, 0.08);
   background: rgba(255, 255, 255, 0.48);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: timelineItemEnter 320ms ease forwards;
 }
 
 .timeline-item--pending {
@@ -670,6 +678,30 @@ textarea {
 
   50% {
     transform: translate3d(-14px, 10px, 0) rotate(6deg);
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.985) translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes timelineItemEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

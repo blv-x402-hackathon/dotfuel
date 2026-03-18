@@ -33,6 +33,55 @@ function formatAmount(value: bigint, decimals: number, maxFractionDigits: number
   return trimmed ? `${whole}.${trimmed}` : whole;
 }
 
+function useAnimatedNumber(value: string | null) {
+  const [rendered, setRendered] = useState(value);
+  const previousNumberRef = useRef<number | null>(value ? Number(value) : null);
+
+  useEffect(() => {
+    if (!value) {
+      setRendered(value);
+      previousNumberRef.current = null;
+      return;
+    }
+
+    const nextNumber = Number(value);
+    if (!Number.isFinite(nextNumber)) {
+      setRendered(value);
+      return;
+    }
+
+    const previousNumber = previousNumberRef.current;
+    previousNumberRef.current = nextNumber;
+    if (previousNumber === null || Math.abs(previousNumber - nextNumber) < Number.EPSILON) {
+      setRendered(value);
+      return;
+    }
+
+    const decimalCount = value.includes(".") ? Math.min(4, value.split(".")[1]?.length ?? 0) : 0;
+    const startedAt = performance.now();
+    const duration = 420;
+    let animationFrame = 0;
+
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const eased = 1 - (1 - progress) ** 3;
+      const current = previousNumber + (nextNumber - previousNumber) * eased;
+      setRendered(current.toLocaleString(undefined, { maximumFractionDigits: decimalCount }));
+
+      if (progress < 1) {
+        animationFrame = window.requestAnimationFrame(animate);
+      } else {
+        setRendered(value);
+      }
+    };
+
+    animationFrame = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [value]);
+
+  return rendered;
+}
+
 export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const { address: eoaAddress } = useAccount();
   const publicClient = usePublicClient();
@@ -113,6 +162,8 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const pasValue = snapshot ? formatAmount(snapshot.eoaPas, 18, 4) : null;
   const previousPasValue = previousSnapshot ? formatAmount(previousSnapshot.eoaPas, 18, 4) : null;
   const tokenValue = snapshot ? formatAmount(snapshot.smartAccountToken, snapshot.tokenDecimals, 4) : null;
+  const animatedPasValue = useAnimatedNumber(pasValue);
+  const animatedTokenValue = useAnimatedNumber(tokenValue);
   const previousTokenValue = previousSnapshot
     ? formatAmount(previousSnapshot.smartAccountToken, previousSnapshot.tokenDecimals, 4)
     : null;
@@ -159,7 +210,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
               ) : null}
             </div>
           </div>
-          <div className="balance-card__value">{pasValue ? `${pasValue} PAS` : "Connect wallet"}</div>
+          <div className="balance-card__value">{animatedPasValue ? `${animatedPasValue} PAS` : "Connect wallet"}</div>
           <div className="balance-card__meta">
             {previousPasValue ? `Before: ${previousPasValue} PAS` : "Waiting for first refresh"}
           </div>
@@ -173,7 +224,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             <span className="label">Smart Account Token</span>
             <span className="badge badge--success">{tokenSymbol}</span>
           </div>
-          <div className="balance-card__value">{tokenValue ? `${tokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
+          <div className="balance-card__value">{animatedTokenValue ? `${animatedTokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
           <div className="balance-card__meta">
             {previousTokenValue ? `Before: ${previousTokenValue} ${tokenSymbol}` : "Refresh after a UserOperation"}
           </div>

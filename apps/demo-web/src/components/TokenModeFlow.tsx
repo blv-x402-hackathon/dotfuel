@@ -74,7 +74,11 @@ export function TokenModeFlow({
           </div>
           <ol className="timeline-list">
             {result.timeline.map((step, index) => (
-              <li className={`timeline-item timeline-item--${step.status}`} key={`${step.title}-${index}`}>
+              <li
+                className={`timeline-item timeline-item--${step.status}`}
+                key={`${step.title}-${index}`}
+                style={{ animationDelay: `${index * 55}ms` }}
+              >
                 <div className="timeline-item__title">
                   {index + 1}. {step.title}
                 </div>

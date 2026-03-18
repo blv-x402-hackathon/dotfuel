@@ -8,3 +8,4 @@ deployments/testnet.json
 .DS_Store
 .idea/
 .next/
+.vercel

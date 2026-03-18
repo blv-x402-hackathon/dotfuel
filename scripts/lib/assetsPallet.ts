@@ -78,9 +78,21 @@ export async function bootstrapViaAssetsPallet(params: AssetsBootstrapParams): P
   try {
     await cryptoWaitReady();
 
-    const keyring = new Keyring({ type: "sr25519" });
-    const signer = keyring.addFromUri(params.assetHubSuri);
-    const mintPlan = resolveMintPlan(params, signer.address);
+    const suri = params.assetHubSuri!;
+    const isEthKey = suri.startsWith("0x") && suri.length === 66;
+    const keyType = isEthKey ? "ethereum" : "sr25519";
+    const keyring = new Keyring({ type: keyType as any });
+    const signer = keyring.addFromUri(suri);
+
+    // For ethereum keys, compute the 32-byte mapped AccountId for queries
+    let mappedAccountId: string | undefined;
+    if (isEthKey) {
+      const evmHex = signer.address.slice(2).toLowerCase();
+      mappedAccountId = `0x${evmHex}${"ee".repeat(12)}`;
+    }
+
+    const signerAddress = mappedAccountId ?? signer.address;
+    const mintPlan = resolveMintPlan(params, signerAddress);
     const assetId = await resolveAssetId(api, params.assetIdHint);
     const adminAddress = params.assetAdminAddress ?? signer.address;
     const assetName = params.assetName ?? "Test USDT";
@@ -89,29 +101,22 @@ export async function bootstrapViaAssetsPallet(params: AssetsBootstrapParams): P
     const mintAmount = params.mintAmount ?? 1_000_000_000n;
     const minBalance = 1n;
 
-    const createAssetTx = await submitExtrinsic(
-      api,
-      signer,
+    const submit = (tx: SubmittableExtrinsicLike) =>
+      submitExtrinsic(api, signer, tx, mappedAccountId);
+
+    const createAssetTx = await submit(
       api.tx.assets.create(assetId, adminAddress, minBalance)
     );
-    const setMetadataTx = await submitExtrinsic(
-      api,
-      signer,
+    const setMetadataTx = await submit(
       api.tx.assets.setMetadata(assetId, assetName, assetSymbol, assetDecimals)
     );
-    const mintToDeployerTx = await submitExtrinsic(
-      api,
-      signer,
+    const mintToDeployerTx = await submit(
       api.tx.assets.mint(assetId, mintPlan.deployerRecipient, mintAmount)
     );
-    const mintToAccountTx = await submitExtrinsic(
-      api,
-      signer,
+    const mintToAccountTx = await submit(
       api.tx.assets.mint(assetId, mintPlan.counterfactualRecipient, mintAmount)
     );
-    const mintToUserTx = await submitExtrinsic(
-      api,
-      signer,
+    const mintToUserTx = await submit(
       api.tx.assets.mint(assetId, mintPlan.userRecipient, mintAmount)
     );
 
@@ -180,7 +185,49 @@ function normalizeRecipient(recipient: string): string {
   return `0x${normalized.slice(2)}${"ee".repeat(12)}`;
 }
 
-async function submitExtrinsic(api: ApiPromise, signer: unknown, tx: SubmittableExtrinsicLike): Promise<string> {
+async function submitExtrinsic(
+  api: ApiPromise,
+  signer: unknown,
+  tx: SubmittableExtrinsicLike,
+  mappedAccountId?: string
+): Promise<string> {
+  // For ethereum accounts, use manual nonce + signAndSend with nonce option
+  // to avoid the storage subscription issue with 20-byte addresses
+  if (mappedAccountId) {
+    const nonceCodec = await api.rpc.system.accountNextIndex(mappedAccountId);
+    const nonce = (nonceCodec as any).toNumber ? (nonceCodec as any).toNumber() : Number(nonceCodec.toString());
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      let unsubscribe: (() => void) | undefined;
+
+      const finish = (callback: () => void) => {
+        if (settled) return;
+        settled = true;
+        if (unsubscribe) unsubscribe();
+        callback();
+      };
+
+      (tx as any).signAndSend(signer, { nonce }, (result: any) => {
+        if (result.dispatchError) {
+          finish(() => reject(new Error(formatDispatchError(api, result.dispatchError))));
+          return;
+        }
+        const failed = result.events?.find(({ event }: any) => api.events.system.ExtrinsicFailed.is(event));
+        if (failed) {
+          finish(() => reject(new Error(formatDispatchError(api, failed.event.data[0]))));
+          return;
+        }
+        if (result.status.isFinalized) {
+          const txHash = result.txHash ? result.txHash.toHex() : tx.hash.toHex();
+          finish(() => resolve(txHash));
+        }
+      })
+        .then((unsub: any) => { unsubscribe = unsub; })
+        .catch((error: any) => { finish(() => reject(error instanceof Error ? error : new Error(String(error)))); });
+    });
+  }
+
   return new Promise((resolve, reject) => {
     let settled = false;
     let unsubscribe: (() => void) | undefined;

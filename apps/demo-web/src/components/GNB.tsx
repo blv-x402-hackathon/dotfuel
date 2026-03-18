@@ -176,36 +176,48 @@ export function GNB() {
         .gnb__nav {
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding: 4px;
-          border-radius: var(--radius-full);
-          background: rgba(36, 24, 14, 0.05);
+          gap: 2px;
         }
 
         .gnb__link {
-          padding: 8px 16px;
-          border-radius: var(--radius-full);
+          position: relative;
+          padding: 6px 14px;
           color: var(--muted);
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
+          letter-spacing: 0.01em;
           text-decoration: none;
-          transition: color 120ms ease, background 120ms ease;
+          transition: color 160ms ease;
           white-space: nowrap;
+        }
+
+        .gnb__link::after {
+          content: "";
+          position: absolute;
+          bottom: -2px;
+          left: 50%;
+          width: 0;
+          height: 2px;
+          border-radius: 1px;
+          background: var(--accent);
+          transition: width 180ms ease, left 180ms ease;
         }
 
         .gnb__link:hover {
           color: var(--ink);
-          background: rgba(36, 24, 14, 0.06);
         }
 
         .gnb__link--active {
-          color: #fffaf2;
-          background: var(--ink);
+          color: var(--ink);
+        }
+
+        .gnb__link--active::after {
+          width: 16px;
+          left: calc(50% - 8px);
         }
 
         .gnb__link--active:hover {
-          color: #fffaf2;
-          background: var(--ink);
+          color: var(--ink);
         }
 
         .gnb__right {
@@ -275,17 +287,11 @@ export function GNB() {
 
         @media (prefers-color-scheme: dark) {
           :global(html:not([data-theme="light"])) .gnb { background: rgba(26, 20, 16, 0.88); }
-          :global(html:not([data-theme="light"])) .gnb__nav { background: rgba(240, 230, 216, 0.06); }
-          :global(html:not([data-theme="light"])) .gnb__link:hover { background: rgba(240, 230, 216, 0.08); }
-          :global(html:not([data-theme="light"])) .gnb__link--active { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
-          :global(html:not([data-theme="light"])) .gnb__link--active:hover { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
         }
 
         :global(html[data-theme="dark"]) .gnb { background: rgba(26, 20, 16, 0.88); }
-        :global(html[data-theme="dark"]) .gnb__nav { background: rgba(240, 230, 216, 0.06); }
-        :global(html[data-theme="dark"]) .gnb__link:hover { background: rgba(240, 230, 216, 0.08); }
-        :global(html[data-theme="dark"]) .gnb__link--active { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
-        :global(html[data-theme="dark"]) .gnb__link--active:hover { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+        :global(html[data-theme="dark"]) .gnb__link--active { color: var(--ink); }
+        :global(html[data-theme="dark"]) .gnb__link--active::after { background: var(--accent); }
 
         @media (max-width: 768px) {
           .gnb__nav {

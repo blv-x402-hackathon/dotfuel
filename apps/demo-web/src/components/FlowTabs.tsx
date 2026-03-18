@@ -5,12 +5,16 @@ import { useEffect, useState } from "react";
 import { BalancePanel } from "@/components/BalancePanel";
 import { SponsorConsole } from "@/components/SponsorConsole";
 import { SponsorModeFlow } from "@/components/SponsorModeFlow";
+import { Toast, type ToastMessage } from "@/components/Toast";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
 import { TokenModeFlow } from "@/components/TokenModeFlow";
 import { type FlowResult } from "@/lib/flowResults";
 import { useAccount } from "wagmi";
 
 const EMPTY_CAMPAIGN_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
+interface FlowToast extends ToastMessage {
+  targetId: string;
+}
 
 export function FlowTabs(props: {
   preferredTab?: "token" | "sponsor";
@@ -25,6 +29,7 @@ export function FlowTabs(props: {
     (process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}` | undefined) ?? EMPTY_CAMPAIGN_ID
   );
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
+  const [toast, setToast] = useState<FlowToast | null>(null);
 
   useEffect(() => {
     if (!preferredTab) return;
@@ -51,6 +56,24 @@ export function FlowTabs(props: {
       },
       ...prev
     ].slice(0, 5));
+
+    setToast({
+      id: Date.now(),
+      kind: "success",
+      title: "TX confirmed!",
+      description: `Gas: ${result.gasCostLabel} -> ${result.settlementLabel}`,
+      targetId: result.mode === "token" ? "token-flow-result" : "sponsor-flow-result"
+    });
+  };
+
+  const onFlowError = (mode: "token" | "sponsor", message: string) => {
+    setToast({
+      id: Date.now(),
+      kind: "error",
+      title: "TX failed",
+      description: message,
+      targetId: mode === "token" ? "token-flow" : "sponsor-flow"
+    });
   };
 
   return (
@@ -76,14 +99,33 @@ export function FlowTabs(props: {
         </button>
       </div>
 
-      {tab === "token" ? <TokenModeFlow onTx={onTx} walletRequired={!isConnected} /> : null}
+      {tab === "token" ? (
+        <TokenModeFlow
+          onTx={onTx}
+          onFlowError={(message) => onFlowError("token", message)}
+          walletRequired={!isConnected}
+        />
+      ) : null}
       {tab === "sponsor" ? (
         <>
           <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
-          <SponsorModeFlow campaignId={campaignId} onTx={onTx} walletRequired={!isConnected} />
+          <SponsorModeFlow
+            campaignId={campaignId}
+            onTx={onTx}
+            onFlowError={(message) => onFlowError("sponsor", message)}
+            walletRequired={!isConnected}
+          />
         </>
       ) : null}
       <TxHistory items={history} />
+      <Toast
+        toast={toast}
+        onDismiss={() => setToast(null)}
+        onOpen={() => {
+          if (!toast) return;
+          document.getElementById(toast.targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }}
+      />
     </div>
   );
 }

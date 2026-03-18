@@ -10,9 +10,11 @@ import { useTokenModeUserOp } from "@/hooks/useTokenModeUserOp";
 
 export function TokenModeFlow({
   onTx,
+  onFlowError,
   walletRequired = false
 }: {
   onTx: (result: FlowResult) => void;
+  onFlowError?: (message: string) => void;
   walletRequired?: boolean;
 }) {
   const { executeTokenMode, isLoading, error, result, progressStage, progressStartedAt } = useTokenModeUserOp();
@@ -22,8 +24,13 @@ export function TokenModeFlow({
     onTx(result);
   }, [result, onTx]);
 
+  useEffect(() => {
+    if (!error) return;
+    onFlowError?.(error.message);
+  }, [error, onFlowError]);
+
   return (
-    <section className="card card--primary">
+    <section className="card card--primary" id="token-flow">
       <h2 className="card-title">Flow A — Token Mode</h2>
       <p className="card-subtitle">Approve Permit2, call DemoDapp, and settle gas in tUSDT with zero PAS on hand.</p>
       <div className="button-row" style={{ marginTop: 16 }}>
@@ -42,7 +49,7 @@ export function TokenModeFlow({
       {error ? <ErrorNotice error={error} /> : null}
 
       {result ? (
-        <div className="result-panel result-panel--success">
+        <div className="result-panel result-panel--success" id="token-flow-result">
           <div className="result-grid">
             <div className="result-metric">
               <span className="label">Gas Cost</span>

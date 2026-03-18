@@ -11,10 +11,12 @@ import type { FlowResult } from "@/lib/flowResults";
 export function SponsorModeFlow({
   campaignId,
   onTx,
+  onFlowError,
   walletRequired = false
 }: {
   campaignId: `0x${string}`;
   onTx: (result: FlowResult) => void;
+  onFlowError?: (message: string) => void;
   walletRequired?: boolean;
 }) {
   const { executeSponsored, isLoading, error, result, progressStage, progressStartedAt } = useSponsorModeUserOp(campaignId);
@@ -24,8 +26,13 @@ export function SponsorModeFlow({
     onTx(result);
   }, [onTx, result]);
 
+  useEffect(() => {
+    if (!error) return;
+    onFlowError?.(error.message);
+  }, [error, onFlowError]);
+
   return (
-    <section className="card card--primary">
+    <section className="card card--primary" id="sponsor-flow">
       <h2 className="card-title">Flow B — Sponsor Mode</h2>
       <p className="card-subtitle">
         Use the active campaign budget to sponsor the same DemoDapp action without token spend. Active ID:
@@ -48,7 +55,7 @@ export function SponsorModeFlow({
       {error ? <ErrorNotice error={error} /> : null}
 
       {result ? (
-        <div className="result-panel result-panel--success">
+        <div className="result-panel result-panel--success" id="sponsor-flow-result">
           <div className="result-grid">
             <div className="result-metric">
               <span className="label">Gas Cost</span>

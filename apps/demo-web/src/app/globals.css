@@ -448,6 +448,32 @@ textarea {
   border: 1px solid rgba(78, 54, 32, 0.08);
 }
 
+.history-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px dashed rgba(78, 54, 32, 0.24);
+  background: rgba(255, 255, 255, 0.36);
+  text-align: center;
+}
+
+.history-empty svg {
+  width: 30px;
+  height: 30px;
+  stroke: var(--accent-strong);
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.history-empty p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .inline-link {
   color: var(--accent-strong);
   font-weight: 700;

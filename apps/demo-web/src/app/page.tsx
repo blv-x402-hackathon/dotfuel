@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { FlowTabs } from "@/components/FlowTabs";
 import { LogoMark } from "@/components/LogoMark";
+import { SectionNav } from "@/components/SectionNav";
 import { StepIndicator, type GuidedStep } from "@/components/StepIndicator";
 import type { TxHistoryItem } from "@/components/TxHistory";
 import { WalletConnect } from "@/components/WalletConnect";
@@ -131,6 +132,7 @@ export default function HomePage() {
   return (
     <main className="page-shell">
       <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />
+      <SectionNav />
 
       <section className="hero">
         <div className="hero-brand">

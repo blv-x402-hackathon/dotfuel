@@ -23,6 +23,10 @@ body {
   min-height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   color: var(--ink);
   font-family: var(--font-sans), "Segoe UI", sans-serif;

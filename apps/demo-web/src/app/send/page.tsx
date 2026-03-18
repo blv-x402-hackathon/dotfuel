@@ -10,6 +10,7 @@ import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { ErrorNotice } from "@/components/ErrorNotice";
 import { FlowResultPanel } from "@/components/FlowResultPanel";
 import { InlineProgressStepper } from "@/components/InlineProgressStepper";
+import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
 import { useSendWizard, type SendStep } from "@/hooks/useSendWizard";
@@ -85,15 +86,13 @@ export default function SendPage() {
           Send a gasless transaction and settle gas in tUSDT via Permit2.
         </p>
         <div className="card card--centered mt-6">
-          <div className="empty-state">
-            <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none" aria-hidden>
-              <circle cx="24" cy="24" r="20" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="5 3" />
-              <path d="M16 24h16M24 16v16" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <strong>Wallet Required</strong>
-            <p>Connect your wallet to send gasless transactions.</p>
+          <EmptyState
+            illustration="wallet-required"
+            title="Wallet Required"
+            description="Connect your wallet to send gasless transactions."
+          >
             <Button variant="accent" onClick={openModal}>Connect Wallet</Button>
-          </div>
+          </EmptyState>
         </div>
       </main>
     );

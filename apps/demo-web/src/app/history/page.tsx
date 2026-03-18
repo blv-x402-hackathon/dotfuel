@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { CopyableHex } from "@/components/CopyableHex";
+import { EmptyState } from "@/components/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { exportTxHistoryCsv } from "@/lib/exportCsv";
 import { loadTxHistory, type StoredTxItem } from "@/lib/txHistory";
@@ -184,30 +185,25 @@ export default function HistoryPage() {
           ) : isEmpty ? (
             <div className="history-empty">
               {hasNoHistory ? (
-                <>
-                  <svg className="history-empty__icon" viewBox="0 0 56 56" fill="none" aria-hidden>
-                    <circle cx="28" cy="28" r="26" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="6 4" />
-                    <path d="M20 28h16M28 20v16" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
-                    <circle cx="28" cy="28" r="6" stroke="var(--accent)" strokeWidth="1.5" />
-                  </svg>
-                  <strong>No transactions yet</strong>
-                  <p>Send your first gasless transaction to see it here.</p>
+                <EmptyState
+                  illustration="empty-tx"
+                  title="No transactions yet"
+                  description="Send your first gasless transaction to see it here."
+                >
                   <Link href="/send" className="button button--accent">
                     Send a Gasless Transaction
                   </Link>
-                </>
+                </EmptyState>
               ) : (
-                <>
-                  <svg className="history-empty__icon" viewBox="0 0 56 56" fill="none" aria-hidden>
-                    <circle cx="28" cy="28" r="26" stroke="var(--muted)" strokeWidth="1.5" strokeDasharray="6 4" />
-                    <path d="M20 20l16 16M36 20L20 36" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  <strong>No results found</strong>
-                  <p>
-                    {search
+                <EmptyState
+                  illustration="no-results"
+                  title="No results found"
+                  description={
+                    search
                       ? "No transactions match that hash. Try a different search term."
-                      : `No ${filter === "token" ? "token" : "sponsor"} transactions yet.`}
-                  </p>
+                      : `No ${filter === "token" ? "token" : "sponsor"} transactions yet.`
+                  }
+                >
                   {search ? (
                     <button className="button button--ghost" onClick={() => setSearch("")} type="button">
                       Clear Search
@@ -217,7 +213,7 @@ export default function HistoryPage() {
                       View All
                     </button>
                   )}
-                </>
+                </EmptyState>
               )}
             </div>
           ) : (

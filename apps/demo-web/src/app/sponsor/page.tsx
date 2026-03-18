@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
+import { EmptyState } from "@/components/EmptyState";
 import { createCampaign, fetchCampaignStatus, addRecentCampaign, type CampaignStatus } from "@/lib/campaign-client";
 import { CampaignSelector } from "@/components/CampaignSelector";
 import { formatAmount } from "@/lib/flowResults";
@@ -150,16 +151,13 @@ export default function SponsorPage() {
         <h1 className="page-section-title">Sponsor</h1>
         <p className="card-subtitle mt-1-5">Create gas sponsorship campaigns for your users.</p>
         <div className="card card--centered mt-6">
-          <div className="empty-state">
-            <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none" aria-hidden>
-              <circle cx="24" cy="24" r="20" stroke="var(--polkadot)" strokeWidth="1.5" strokeDasharray="5 3" />
-              <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8" stroke="var(--polkadot)" strokeWidth="1.8" strokeLinecap="round" />
-              <circle cx="24" cy="24" r="3" fill="var(--polkadot)" />
-            </svg>
-            <strong>Wallet Required</strong>
-            <p>Connect your wallet to create and manage gas sponsorship campaigns.</p>
+          <EmptyState
+            illustration="wallet-required"
+            title="Wallet Required"
+            description="Connect your wallet to create and manage gas sponsorship campaigns."
+          >
             <Button variant="accent" onClick={openModal}>Connect Wallet</Button>
-          </div>
+          </EmptyState>
         </div>
       </main>
     );
@@ -201,11 +199,11 @@ export default function SponsorPage() {
 
             {!hasActiveCampaign && !status ? (
               <div className="sponsor-empty-state">
-                <svg viewBox="0 0 40 40" fill="none" width="40" height="40" aria-hidden>
-                  <rect x="1" y="1" width="38" height="38" rx="10" stroke="var(--muted)" strokeWidth="1.2" strokeDasharray="5 3" />
-                  <path d="M13 20h14M20 13v14" stroke="var(--muted)" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-                <span>No campaign loaded. Enter a Campaign ID above or create one below.</span>
+                <EmptyState
+                  illustration="empty-campaign"
+                  title="No Campaign Loaded"
+                  description="Select a recent campaign above or create one below."
+                />
               </div>
             ) : (
               <div className="status-grid">

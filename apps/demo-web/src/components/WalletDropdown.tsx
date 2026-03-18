@@ -1,16 +1,18 @@
 "use client";
 
 import { formatEther } from "viem";
-import { useAccount, useChainId, useDisconnect, usePublicClient } from "wagmi";
+import { useAccount, useChainId, useConnect, useDisconnect, usePublicClient } from "wagmi";
 import { useEffect, useState } from "react";
 
 import { CopyableHex } from "@/components/CopyableHex";
+import { useWalletModal } from "@/components/WalletContext";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 
 export function WalletDropdown({ onClose }: { onClose: () => void }) {
-  const { address } = useAccount();
+  const { address, connector } = useAccount();
   const chainId = useChainId();
   const { disconnect } = useDisconnect();
+  const { openModal } = useWalletModal();
   const publicClient = usePublicClient();
   const { address: smartAccountAddress, status: saStatus } = useCounterfactualAddress();
   const [balance, setBalance] = useState<bigint | null>(null);
@@ -43,8 +45,23 @@ export function WalletDropdown({ onClose }: { onClose: () => void }) {
     ? `${Number(formatEther(balance)).toFixed(6)} PAS`
     : "Loading...";
 
+  const explorerBaseUrl = "https://blockscout-testnet.polkadot.io";
+
   return (
     <div className="wallet-dropdown">
+      {connector ? (
+        <div className="wallet-dropdown__connector-row">
+          <span className="wallet-dropdown__connector-label">Connected via {connector.name}</span>
+          <button
+            className="wallet-dropdown__switch"
+            type="button"
+            onClick={() => { onClose(); openModal(); }}
+          >
+            Switch Wallet
+          </button>
+        </div>
+      ) : null}
+
       <div className="wallet-dropdown__section">
         <span className="wallet-dropdown__label">Wallet</span>
         <CopyableHex value={address ?? null} />
@@ -53,7 +70,18 @@ export function WalletDropdown({ onClose }: { onClose: () => void }) {
       <div className="wallet-dropdown__section">
         <span className="wallet-dropdown__label">Network</span>
         <span className="wallet-dropdown__value">Polkadot Hub TestNet</span>
-        <span className="wallet-dropdown__meta">Chain ID: {chainId}</span>
+        <span className="wallet-dropdown__meta">
+          Chain ID: {chainId}
+          {" · "}
+          <a
+            href={`${explorerBaseUrl}/address/${address}`}
+            target="_blank"
+            rel="noreferrer"
+            className="wallet-dropdown__explorer-link"
+          >
+            View on Blockscout ↗
+          </a>
+        </span>
       </div>
 
       <div className="wallet-dropdown__section">
@@ -106,6 +134,48 @@ export function WalletDropdown({ onClose }: { onClose: () => void }) {
           background: var(--card-strong);
           box-shadow: 0 20px 48px rgba(40, 24, 10, 0.22);
           animation: dropdownIn 160ms ease;
+        }
+
+        .wallet-dropdown__connector-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid var(--line);
+          margin-bottom: 4px;
+        }
+
+        .wallet-dropdown__connector-label {
+          color: var(--muted);
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .wallet-dropdown__switch {
+          font-size: 12px;
+          font-weight: 700;
+          color: var(--accent-strong);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px 6px;
+          border-radius: 6px;
+          transition: background 100ms ease;
+        }
+
+        .wallet-dropdown__switch:hover {
+          background: var(--accent-hover);
+        }
+
+        .wallet-dropdown__explorer-link {
+          color: var(--accent-strong);
+          text-decoration: none;
+          font-weight: 600;
+        }
+
+        .wallet-dropdown__explorer-link:hover {
+          text-decoration: underline;
         }
 
         .wallet-dropdown__section {

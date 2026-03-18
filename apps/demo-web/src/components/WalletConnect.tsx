@@ -12,7 +12,7 @@ export function WalletConnect({ variant = "sidebar" }: { variant?: "sidebar" | "
 
   if (isConnected) {
     return (
-      <section className={`card ${variant === "hero" ? "wallet-connect--hero" : ""}`}>
+      <section className={`card card--info ${variant === "hero" ? "wallet-connect--hero" : ""}`}>
         <h2 className="card-title">Wallet Session</h2>
         <p className="card-subtitle">Connected signer used for Permit2 and UserOperation signatures.</p>
         <div className="stack" style={{ marginTop: 16 }}>
@@ -35,7 +35,7 @@ export function WalletConnect({ variant = "sidebar" }: { variant?: "sidebar" | "
   }
 
   return (
-    <section className={`card ${variant === "hero" ? "wallet-connect--hero" : ""}`}>
+    <section className={`card card--info ${variant === "hero" ? "wallet-connect--hero" : ""}`}>
       <h2 className="card-title">{variant === "hero" ? "Connect Wallet to Start" : "Wallet Session"}</h2>
       <p className="card-subtitle">
         {variant === "hero"

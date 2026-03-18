@@ -25,7 +25,7 @@ export function SponsorModeFlow({
   }, [onTx, result]);
 
   return (
-    <section className="card">
+    <section className="card card--primary">
       <h2 className="card-title">Flow B — Sponsor Mode</h2>
       <p className="card-subtitle">
         Use the active campaign budget to sponsor the same DemoDapp action without token spend. Active ID:

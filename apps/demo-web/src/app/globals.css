@@ -149,6 +149,39 @@ textarea {
   pointer-events: none;
 }
 
+.card--primary {
+  padding: 24px;
+  border-color: rgba(199, 90, 46, 0.26);
+  box-shadow: 0 24px 44px rgba(143, 47, 20, 0.18);
+  background:
+    linear-gradient(160deg, rgba(255, 250, 242, 0.98), rgba(255, 239, 220, 0.88)),
+    var(--card);
+}
+
+.card--primary::after {
+  content: "";
+  position: absolute;
+  inset: 10px auto 10px 10px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(199, 90, 46, 0.92), rgba(143, 47, 20, 0.5));
+}
+
+.card--info {
+  box-shadow: 0 12px 24px rgba(68, 47, 29, 0.08);
+}
+
+.card--data {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(78, 54, 32, 0.16);
+}
+
+.card--log {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 20px rgba(68, 47, 29, 0.06);
+}
+
 .card-title {
   margin: 0 0 8px;
   font-family: "Iowan Old Style", "Palatino Linotype", serif;

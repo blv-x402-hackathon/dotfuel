@@ -129,7 +129,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
     : "Pending";
 
   return (
-    <section className="card">
+    <section className="card card--data">
       <div className="card-header">
         <div>
           <h2 className="card-title">Live Balances</h2>

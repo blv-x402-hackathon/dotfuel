@@ -23,7 +23,7 @@ export function TokenModeFlow({
   }, [result, onTx]);
 
   return (
-    <section className="card">
+    <section className="card card--primary">
       <h2 className="card-title">Flow A — Token Mode</h2>
       <p className="card-subtitle">Approve Permit2, call DemoDapp, and settle gas in tUSDT with zero PAS on hand.</p>
       <div className="button-row" style={{ marginTop: 16 }}>

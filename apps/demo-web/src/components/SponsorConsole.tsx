@@ -140,7 +140,7 @@ export function SponsorConsole(props: {
   const remaining = status ? formatAmount(hexToBigInt(status.remainingBudget), 18, 5) : null;
 
   return (
-    <section className="card">
+    <section className="card card--data">
       <div className="card-header">
         <div>
           <h2 className="card-title">Sponsor Console</h2>

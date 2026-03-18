@@ -8,7 +8,7 @@ export function CounterfactualAddress() {
   const counterfactual = address ?? (status === "loading" ? "Deriving..." : error ?? "-");
 
   return (
-    <section className="card">
+    <section className="card card--info">
       <h2 className="card-title">Smart Account</h2>
       <p className="card-subtitle">Counterfactual address derived from the GasStationFactory on sender salt `0`.</p>
       <div className="address-line" style={{ marginTop: 16 }}>

@@ -5,6 +5,7 @@ import { useAccount, usePublicClient } from "wagmi";
 
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 import { CopyableHex } from "@/components/CopyableHex";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export function CounterfactualAddress() {
   const { address: eoaAddress } = useAccount();
@@ -48,7 +49,7 @@ export function CounterfactualAddress() {
         {!isConnected ? (
           <span className="value value--muted">Connect wallet to derive</span>
         ) : status === "loading" ? (
-          <span className="value value--muted">Deriving...</span>
+          <Skeleton height={20} width="80%" variant="rect" />
         ) : error ? (
           <span className="value value--danger">{error}</span>
         ) : address ? (

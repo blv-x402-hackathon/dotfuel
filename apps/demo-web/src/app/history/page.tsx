@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { CopyableHex } from "@/components/CopyableHex";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { loadTxHistory, type StoredTxItem } from "@/lib/txHistory";
 
 function formatTime(ts: number) {
@@ -94,11 +95,13 @@ function TxItemRow({ item }: { item: StoredTxItem }) {
 
 export default function HistoryPage() {
   const [items, setItems] = useState<StoredTxItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterMode>("all");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     setItems(loadTxHistory());
+    setLoading(false);
   }, []);
 
   const filtered = items.filter((item) => {
@@ -141,7 +144,21 @@ export default function HistoryPage() {
         </div>
 
         <div className="card card--log">
-          {isEmpty ? (
+          {loading ? (
+            <ul className="history-list" aria-label="Loading transactions">
+              {[0, 1, 2, 3].map((i) => (
+                <li key={i} className="history-item history-item--bordered">
+                  <div className="history-item__head">
+                    <Skeleton height={22} width={80} variant="rect" />
+                    <Skeleton height={12} width={120} />
+                  </div>
+                  <div className="history-item__preview">
+                    <Skeleton height={14} width={160} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : isEmpty ? (
             <div className="history-empty">
               {hasNoHistory ? (
                 <>

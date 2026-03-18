@@ -479,24 +479,25 @@ textarea {
   color: #fffaf2;
 }
 
-.tab-panel {
-  transition: opacity 160ms ease, transform 160ms ease, max-height 220ms ease;
-}
-
 .tab-panel--active {
-  opacity: 1;
-  transform: translateY(0);
-  max-height: 4000px;
-  visibility: visible;
+  display: block;
+  animation: tabEnter 180ms ease both;
 }
 
 .tab-panel--inactive {
-  opacity: 0;
-  transform: translateY(6px);
-  max-height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  pointer-events: none;
+  display: none;
+}
+
+@keyframes tabEnter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .history-list {

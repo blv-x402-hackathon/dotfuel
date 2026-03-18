@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAccount, useChainId, useConnect, useSwitchChain } from "wagmi";
 
 import { useWalletModal } from "@/components/WalletContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { polkadotHubTestnet } from "@/lib/chains";
 
 const RECENT_CONNECTOR_KEY = "dotfuel-recent-connector";
@@ -57,6 +58,7 @@ export function WalletModal() {
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const [recentConnectorId, setRecentConnectorId] = useState<string | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const focusTrapRef = useFocusTrap(isModalOpen);
 
   const isWrongNetwork = isConnected && chainId !== polkadotHubTestnet.id;
 
@@ -100,7 +102,7 @@ export function WalletModal() {
       aria-modal="true"
       aria-label="Connect wallet"
     >
-      <div className="wallet-modal">
+      <div className="wallet-modal" ref={focusTrapRef as React.RefObject<HTMLDivElement>}>
         <div className="wallet-modal__header">
           <h2 className="wallet-modal__title">
             {isWrongNetwork ? "Switch Network" : "Connect Wallet"}

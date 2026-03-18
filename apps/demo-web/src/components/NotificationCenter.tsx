@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useToast, type ToastKind } from "@/components/ToastContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 function kindIcon(kind: ToastKind) {
   const color =
@@ -29,6 +30,7 @@ export function NotificationCenter() {
   const { history, unreadCount, markAllRead, clearHistory } = useToast();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const focusTrapRef = useFocusTrap(open);
 
   // Close on outside click or ESC
   useEffect(() => {
@@ -83,7 +85,7 @@ export function NotificationCenter() {
       </button>
 
       {open ? (
-        <div className="notif-center__panel" role="dialog" aria-label="Notifications">
+        <div className="notif-center__panel" role="dialog" aria-modal="true" aria-label="Notifications" ref={focusTrapRef as React.RefObject<HTMLDivElement>}>
           <div className="notif-center__header">
             <span className="notif-center__title">Notifications</span>
             <div className="notif-center__actions">

@@ -1,0 +1,297 @@
+"use client";
+
+import { useState } from "react";
+import { isAddress, getAddress, keccak256, parseEther, stringToHex, hexToBigInt } from "viem";
+import { useAccount } from "wagmi";
+
+import { BalancePanel } from "@/components/BalancePanel";
+import { CopyableHex } from "@/components/CopyableHex";
+import { ErrorNotice } from "@/components/ErrorNotice";
+import { FlowResultPanel } from "@/components/FlowResultPanel";
+import { InlineProgressStepper } from "@/components/InlineProgressStepper";
+import { Button } from "@/components/ui/Button";
+import { useWalletModal } from "@/components/WalletContext";
+import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
+import { createCampaign, fetchCampaignStatus, type CampaignStatus } from "@/lib/campaign-client";
+import { formatAmount } from "@/lib/flowResults";
+import { toUiError, type UiError } from "@/lib/uiError";
+import { useEffect } from "react";
+
+const EMPTY_CAMPAIGN_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+export default function SponsorPage() {
+  const { address, isConnected } = useAccount();
+  const { openModal } = useWalletModal();
+  const [campaignId, setCampaignId] = useState<`0x${string}`>(
+    (process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}` | undefined) ?? EMPTY_CAMPAIGN_ID
+  );
+  const [campaignIdInput, setCampaignIdInput] = useState<string>(campaignId);
+  const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
+  const hasActiveCampaign = campaignId !== EMPTY_CAMPAIGN_ID;
+
+  // Campaign creation state
+  const [name, setName] = useState("DotFuel Launch Day");
+  const [budgetPas, setBudgetPas] = useState("0.25");
+  const [targets, setTargets] = useState<string[]>(() => {
+    const defaultTarget = process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS;
+    if (!defaultTarget || !isAddress(defaultTarget)) return [];
+    return [getAddress(defaultTarget)];
+  });
+  const [targetDraft, setTargetDraft] = useState("");
+  const [perUserMaxOps, setPerUserMaxOps] = useState("3");
+  const [durationMinutes, setDurationMinutes] = useState("90");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [formError, setFormError] = useState<UiError | null>(null);
+
+  // Campaign status
+  const [status, setStatus] = useState<CampaignStatus | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [statusError, setStatusError] = useState<UiError | null>(null);
+
+  // Sponsor execution
+  const sponsor = useSponsorModeUserOp(campaignId);
+
+  useEffect(() => {
+    setCampaignIdInput(campaignId);
+  }, [campaignId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStatus() {
+      if (!campaignId || campaignId === EMPTY_CAMPAIGN_ID) { setStatus(null); return; }
+      setIsRefreshing(true);
+      setStatusError(null);
+      try {
+        const nextStatus = await fetchCampaignStatus(campaignId, address);
+        if (!cancelled) setStatus(nextStatus);
+      } catch (e) {
+        if (!cancelled) setStatusError(toUiError(e, "campaign"));
+      } finally {
+        if (!cancelled) setIsRefreshing(false);
+      }
+    }
+    loadStatus();
+    const interval = window.setInterval(loadStatus, 10_000);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [address, campaignId]);
+
+  if (sponsor.result) {
+    setBalanceRefreshKey((k) => k + 1);
+  }
+
+  async function handleCreate() {
+    setIsSubmitting(true);
+    setFormError(null);
+    setFeedback(null);
+    try {
+      const trimmedName = name.trim();
+      if (!trimmedName) throw new Error("Campaign name is required");
+      const allowedTargets = targets.map((v) => {
+        if (!isAddress(v)) throw new Error(`Invalid target: ${v}`);
+        return getAddress(v);
+      });
+      if (allowedTargets.length === 0) throw new Error("At least one allowed target is required");
+      const duration = Number(durationMinutes);
+      const perUser = Number(perUserMaxOps);
+      if (!Number.isFinite(duration) || duration <= 0) throw new Error("Duration must be positive");
+      if (!Number.isFinite(perUser) || perUser <= 0) throw new Error("Per-user max ops must be positive");
+
+      const start = Math.floor(Date.now() / 1000);
+      const end = start + duration * 60;
+      const newId = keccak256(stringToHex(`${trimmedName}:${Date.now()}`));
+      const result = await createCampaign({
+        campaignId: newId, start, end,
+        budget: parseEther(budgetPas),
+        allowedTargets,
+        perUserMaxOps: perUser
+      });
+      setCampaignId(newId);
+      setFeedback(`Campaign ready: ${newId.slice(0, 12)}... (${result.txHash.slice(0, 12)}...)`);
+    } catch (e) {
+      setFormError(toUiError(e, "campaign"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleLoad() {
+    setFormError(null);
+    if (!/^0x[a-fA-F0-9]{64}$/.test(campaignIdInput)) {
+      setFormError(toUiError("Campaign ID must be a 32-byte hex value", "campaign"));
+      return;
+    }
+    setCampaignId(campaignIdInput as `0x${string}`);
+  }
+
+  function handleAddTarget() {
+    setFormError(null);
+    const value = targetDraft.trim();
+    if (!value) return;
+    if (!isAddress(value)) { setFormError(toUiError(`Invalid target: ${value}`, "campaign")); return; }
+    const normalized = getAddress(value);
+    setTargets((current) => (current.includes(normalized) ? current : [...current, normalized]));
+    setTargetDraft("");
+  }
+
+  const isCampaignIdValid = /^0x[a-fA-F0-9]{64}$/.test(campaignIdInput);
+  const spentBig = status ? hexToBigInt(status.spent) : 0n;
+  const budgetBig = status ? hexToBigInt(status.budget) : 0n;
+  const spentPct = budgetBig > 0n ? Math.min(100, Number((spentBig * 10000n) / budgetBig) / 100) : 0;
+  const budgetBarColor = spentPct >= 90 ? "var(--danger)" : spentPct >= 70 ? "var(--warning)" : "var(--success)";
+
+  if (!isConnected) {
+    return (
+      <main className="page-shell">
+        <section className="hero" style={{ padding: 24 }}>
+          <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Sponsor</h1>
+          <p className="hero-copy">Create gas sponsorship campaigns for your users.</p>
+        </section>
+        <section className="card" style={{ marginTop: 18, textAlign: "center", padding: 32 }}>
+          <h2 className="card-title">Wallet Required</h2>
+          <p className="card-subtitle">Connect your wallet to manage sponsorship campaigns.</p>
+          <div className="button-row" style={{ marginTop: 16, justifyContent: "center" }}>
+            <Button variant="accent" onClick={openModal}>Connect Wallet</Button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="page-shell">
+      <section className="hero" style={{ padding: 24 }}>
+        <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Sponsor</h1>
+        <p className="hero-copy">Create and manage gas sponsorship campaigns.</p>
+      </section>
+
+      <section className="section-grid" style={{ marginTop: 18 }}>
+        <div className="stack sidebar-stack">
+          <BalancePanel refreshKey={balanceRefreshKey} />
+        </div>
+        <div className="stack">
+          {/* Campaign ID / Load */}
+          <div className="card card--data">
+            <h2 className="card-title">Active Campaign</h2>
+            <div className="field" style={{ marginTop: 12 }}>
+              <span className="label">Campaign ID</span>
+              <div className="target-input-row">
+                <input
+                  className={`input ${campaignIdInput.length > 0 ? (isCampaignIdValid ? "input--valid" : "input--invalid") : ""}`}
+                  placeholder="0x0000...0000 (32 bytes)"
+                  value={campaignIdInput}
+                  onChange={(e) => setCampaignIdInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLoad(); } }}
+                />
+                <Button variant="ghost" loading={isRefreshing} onClick={handleLoad}>Load</Button>
+              </div>
+            </div>
+
+            {/* Status */}
+            {status && budgetBig > 0n ? (
+              <div className="budget-bar-wrap">
+                <div className="budget-bar-header">
+                  <span className="label">Budget Spent</span>
+                  <span className="budget-bar-pct">{spentPct.toFixed(1)}%</span>
+                </div>
+                <div className="budget-bar">
+                  <div className="budget-bar__fill" style={{ width: `${spentPct}%`, background: budgetBarColor }} />
+                </div>
+              </div>
+            ) : null}
+
+            <div className="status-grid">
+              <article className="status-card">
+                <span className="label">Status</span>
+                <strong>{status ? (status.enabled ? "Enabled" : "Disabled") : "Unknown"}</strong>
+              </article>
+              <article className="status-card">
+                <span className="label">Budget</span>
+                <strong>{status ? `${formatAmount(budgetBig, 18, 5)} PAS` : "—"}</strong>
+              </article>
+              <article className="status-card">
+                <span className="label">Remaining</span>
+                <strong>{status ? `${formatAmount(hexToBigInt(status.remainingBudget), 18, 5)} PAS` : "—"}</strong>
+              </article>
+              <article className="status-card">
+                <span className="label">Ops Used</span>
+                <strong>{typeof status?.userOpsUsed === "number" ? status.userOpsUsed : "—"}</strong>
+              </article>
+            </div>
+
+            {statusError ? <ErrorNotice error={statusError} /> : null}
+          </div>
+
+          {/* Execute sponsored */}
+          {hasActiveCampaign ? (
+            <div className="card card--primary">
+              <h2 className="card-title">Execute Sponsored Transaction</h2>
+              <p className="card-subtitle">
+                Campaign: <CopyableHex value={campaignId} />
+              </p>
+              <div className="button-row" style={{ marginTop: 16 }}>
+                <Button loading={sponsor.isLoading} onClick={sponsor.executeSponsored}>
+                  {sponsor.isLoading ? "Submitting..." : "Execute Sponsored"}
+                </Button>
+              </div>
+              <InlineProgressStepper stage={sponsor.progressStage} startedAt={sponsor.progressStartedAt} />
+              {sponsor.error ? <ErrorNotice error={sponsor.error} /> : null}
+              {sponsor.result ? <FlowResultPanel result={sponsor.result} id="sponsor-flow-result" /> : null}
+            </div>
+          ) : null}
+
+          {/* Create campaign */}
+          <div className="card card--data">
+            <h2 className="card-title">Create Campaign</h2>
+            <p className="card-subtitle">Set up a new gas sponsorship campaign.</p>
+            <div className="form-grid" style={{ marginTop: 14 }}>
+              <label className="field">
+                <span className="label">Campaign Name</span>
+                <input className="input" placeholder="My Campaign" value={name} onChange={(e) => setName(e.target.value)} />
+              </label>
+              <label className="field">
+                <span className="label">Budget (PAS)</span>
+                <input className="input" min={0.001} step={0.001} type="number" value={budgetPas} onChange={(e) => setBudgetPas(e.target.value)} />
+              </label>
+              <label className="field">
+                <span className="label">Per-User Max Ops</span>
+                <input className="input" min={1} step={1} type="number" value={perUserMaxOps} onChange={(e) => setPerUserMaxOps(e.target.value)} />
+              </label>
+              <label className="field">
+                <span className="label">Duration (Minutes)</span>
+                <input className="input" min={1} step={1} type="number" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />
+              </label>
+            </div>
+            <div className="field" style={{ marginTop: 12 }}>
+              <span className="label">Allowed Targets</span>
+              <div className="target-tag-list">
+                {targets.length === 0 ? <span className="card-subtitle">Add at least one target address.</span> : null}
+                {targets.map((t) => (
+                  <span className="target-tag" key={t}>
+                    {t.slice(0, 8)}...{t.slice(-4)}
+                    <button className="target-tag__remove" onClick={() => setTargets((c) => c.filter((v) => v !== t))} type="button">Remove</button>
+                  </span>
+                ))}
+              </div>
+              <div className="target-input-row">
+                <input
+                  className="input" placeholder="0x..." value={targetDraft}
+                  onChange={(e) => setTargetDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddTarget(); } }}
+                />
+                <Button variant="ghost" onClick={handleAddTarget}>Add</Button>
+              </div>
+            </div>
+            <div className="button-row" style={{ marginTop: 16 }}>
+              <Button variant="accent" loading={isSubmitting} onClick={handleCreate}>
+                {isSubmitting ? "Creating..." : "Create Campaign"}
+              </Button>
+            </div>
+            {feedback ? <div className="feedback feedback--success">{feedback}</div> : null}
+            {formError ? <ErrorNotice error={formError} /> : null}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

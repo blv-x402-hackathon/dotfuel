@@ -50,17 +50,19 @@ export function FlowTabs(props: {
     if (result.mode === "sponsor") {
       setCampaignRefreshKey((current) => current + 1);
     }
-    setHistory((prev) => [
-      {
-        mode: result.mode,
-        hash: result.hash,
-        explorerUrl: result.explorerUrl,
-        gasCostLabel: result.gasCostLabel,
-        settlementLabel: result.settlementLabel,
-        createdAt: Date.now()
-      },
-      ...prev
-    ].slice(0, 10));
+    const newItem = {
+      mode: result.mode,
+      hash: result.hash,
+      explorerUrl: result.explorerUrl,
+      gasCostLabel: result.gasCostLabel,
+      settlementLabel: result.settlementLabel,
+      createdAt: Date.now()
+    };
+    setHistory((prev) => {
+      const next = [newItem, ...prev].slice(0, 10);
+      try { localStorage.setItem("dotfuel-tx-history", JSON.stringify(next)); } catch {}
+      return next;
+    });
 
     setToast({
       id: Date.now(),

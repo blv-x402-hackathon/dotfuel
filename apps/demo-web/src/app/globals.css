@@ -1356,8 +1356,12 @@ textarea {
   }
 }
 
+/* ─── Dark mode ────────────────────────────────────── */
+/* ThemeProvider sets data-theme="dark"|"light" on <html>.     */
+/* @media block is a no-JS fallback (system preference only). */
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  html:not([data-theme="light"]) {
     --bg: #1a1410;
     --bg-deep: #120e0a;
     --card: rgba(38, 30, 22, 0.86);
@@ -1385,122 +1389,150 @@ textarea {
     --polkadot-muted: rgba(255, 77, 166, 0.14);
     --polkadot-strong: #ff4da6;
   }
+}
 
-  body {
+/* Explicit dark (JS-controlled, overrides media query) */
+html[data-theme="dark"] {
+  --bg: #1a1410;
+  --bg-deep: #120e0a;
+  --card: rgba(38, 30, 22, 0.86);
+  --card-strong: #2a2119;
+  --line: rgba(240, 230, 216, 0.15);
+  --ink: #f0e6d8;
+  --muted: #c8baaa;
+  --accent: #d38252;
+  --accent-strong: #f0a170;
+  --success: #53d6a1;
+  --danger: #ff9581;
+  --accent-hover: rgba(211, 130, 82, 0.12);
+  --accent-border: rgba(211, 130, 82, 0.3);
+  --success-bg: rgba(83, 214, 161, 0.12);
+  --success-border: rgba(83, 214, 161, 0.2);
+  --danger-bg: rgba(255, 149, 129, 0.12);
+  --danger-border: rgba(255, 149, 129, 0.2);
+  --warning: #f59e0b;
+  --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.24);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.42);
+  --shadow-xl: 0 24px 44px rgba(0, 0, 0, 0.48);
+  --shadow: var(--shadow-lg);
+  --polkadot: #ff4da6;
+  --polkadot-muted: rgba(255, 77, 166, 0.14);
+  --polkadot-strong: #ff4da6;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) body {
     background:
       radial-gradient(circle at top left, rgba(211, 130, 82, 0.16), transparent 34%),
       radial-gradient(circle at 85% 12%, rgba(83, 214, 161, 0.1), transparent 22%),
       linear-gradient(180deg, var(--bg), var(--bg-deep));
   }
 
-  .page-header {
+  html:not([data-theme="light"]) .page-header {
     background: rgba(26, 20, 16, 0.88);
     border-bottom-color: var(--line);
   }
 
-  .hero {
+  html:not([data-theme="light"]) .hero {
     background:
       linear-gradient(135deg, rgba(56, 43, 33, 0.94), rgba(38, 29, 22, 0.9)),
       var(--card-strong);
   }
 
-  .stat,
-  .history-item,
-  .result-metric,
-  .timeline-item__body,
-  .balance-card,
-  .status-card {
+  html:not([data-theme="light"]) .stat,
+  html:not([data-theme="light"]) .history-item,
+  html:not([data-theme="light"]) .result-metric,
+  html:not([data-theme="light"]) .timeline-item__body,
+  html:not([data-theme="light"]) .balance-card,
+  html:not([data-theme="light"]) .status-card {
     background: rgba(47, 36, 27, 0.84);
     border-color: rgba(240, 230, 216, 0.12);
   }
 
-  .timeline-item__node {
+  html:not([data-theme="light"]) .timeline-item__node {
     border-color: rgba(240, 230, 216, 0.26);
     background: rgba(32, 24, 18, 0.92);
     color: var(--muted);
   }
 
-  .card--primary {
+  html:not([data-theme="light"]) .card--primary {
     background:
       linear-gradient(160deg, rgba(56, 43, 33, 0.96), rgba(43, 33, 25, 0.9)),
       var(--card);
   }
 
-  .card--data,
-  .card--log {
-    background: rgba(42, 32, 24, 0.9);
-  }
-
-  .tab-bar {
-    background: rgba(240, 230, 216, 0.08);
-  }
-
-  .tab-button--active {
-    background: rgba(240, 230, 216, 0.14);
-    color: var(--ink);
-  }
-
-  .button--ghost {
-    background: rgba(240, 230, 216, 0.1);
-    color: var(--ink);
-  }
-
-  .input {
-    background: rgba(23, 17, 13, 0.92);
-    border-color: rgba(240, 230, 216, 0.16);
-    color: var(--ink);
-  }
-
-  .advanced-console {
-    background: rgba(47, 36, 27, 0.6);
-    border-color: rgba(240, 230, 216, 0.2);
-  }
-
-  .campaign-panel {
-    background: rgba(47, 36, 27, 0.6);
-    border-color: rgba(240, 230, 216, 0.2);
-  }
-
-  .target-tag {
-    background: rgba(38, 29, 22, 0.88);
-    border-color: rgba(240, 230, 216, 0.2);
-  }
-
-  .target-tag__remove {
-    background: rgba(240, 230, 216, 0.14);
-    color: var(--ink);
-  }
-
-  .flow-tabs-shell__overlay {
-    background: rgba(59, 44, 34, 0.94);
-    border-color: rgba(211, 130, 82, 0.35);
-  }
-
-  .feedback {
-    border-color: rgba(255, 149, 129, 0.3);
-    background: rgba(255, 149, 129, 0.12);
-  }
-
-  .feedback--success {
-    border-color: rgba(83, 214, 161, 0.3);
-    background: rgba(83, 214, 161, 0.12);
-  }
-
-  .result-panel--success {
-    background: rgba(83, 214, 161, 0.14);
-  }
-
-  .badge--neutral {
-    background: rgba(240, 230, 216, 0.14);
-    color: var(--muted);
-  }
-
-  .copyable-hex__button {
-    border-color: rgba(240, 230, 216, 0.24);
-    background: rgba(45, 35, 26, 0.86);
-    color: var(--ink);
-  }
+  html:not([data-theme="light"]) .card--data,
+  html:not([data-theme="light"]) .card--log { background: rgba(42, 32, 24, 0.9); }
+  html:not([data-theme="light"]) .tab-bar { background: rgba(240, 230, 216, 0.08); }
+  html:not([data-theme="light"]) .tab-button--active { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+  html:not([data-theme="light"]) .button--ghost { background: rgba(240, 230, 216, 0.1); color: var(--ink); }
+  html:not([data-theme="light"]) .input { background: rgba(23, 17, 13, 0.92); border-color: rgba(240, 230, 216, 0.16); color: var(--ink); }
+  html:not([data-theme="light"]) .advanced-console { background: rgba(47, 36, 27, 0.6); border-color: rgba(240, 230, 216, 0.2); }
+  html:not([data-theme="light"]) .campaign-panel { background: rgba(47, 36, 27, 0.6); border-color: rgba(240, 230, 216, 0.2); }
+  html:not([data-theme="light"]) .target-tag { background: rgba(38, 29, 22, 0.88); border-color: rgba(240, 230, 216, 0.2); }
+  html:not([data-theme="light"]) .target-tag__remove { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+  html:not([data-theme="light"]) .flow-tabs-shell__overlay { background: rgba(59, 44, 34, 0.94); border-color: rgba(211, 130, 82, 0.35); }
+  html:not([data-theme="light"]) .feedback { border-color: rgba(255, 149, 129, 0.3); background: rgba(255, 149, 129, 0.12); }
+  html:not([data-theme="light"]) .feedback--success { border-color: rgba(83, 214, 161, 0.3); background: rgba(83, 214, 161, 0.12); }
+  html:not([data-theme="light"]) .result-panel--success { background: rgba(83, 214, 161, 0.14); }
+  html:not([data-theme="light"]) .badge--neutral { background: rgba(240, 230, 216, 0.14); color: var(--muted); }
+  html:not([data-theme="light"]) .copyable-hex__button { border-color: rgba(240, 230, 216, 0.24); background: rgba(45, 35, 26, 0.86); color: var(--ink); }
 }
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(211, 130, 82, 0.16), transparent 34%),
+    radial-gradient(circle at 85% 12%, rgba(83, 214, 161, 0.1), transparent 22%),
+    linear-gradient(180deg, var(--bg), var(--bg-deep));
+}
+
+html[data-theme="dark"] .page-header { background: rgba(26, 20, 16, 0.88); border-bottom-color: var(--line); }
+
+html[data-theme="dark"] .hero {
+  background:
+    linear-gradient(135deg, rgba(56, 43, 33, 0.94), rgba(38, 29, 22, 0.9)),
+    var(--card-strong);
+}
+
+html[data-theme="dark"] .stat,
+html[data-theme="dark"] .history-item,
+html[data-theme="dark"] .result-metric,
+html[data-theme="dark"] .timeline-item__body,
+html[data-theme="dark"] .balance-card,
+html[data-theme="dark"] .status-card {
+  background: rgba(47, 36, 27, 0.84);
+  border-color: rgba(240, 230, 216, 0.12);
+}
+
+html[data-theme="dark"] .timeline-item__node {
+  border-color: rgba(240, 230, 216, 0.26);
+  background: rgba(32, 24, 18, 0.92);
+  color: var(--muted);
+}
+
+html[data-theme="dark"] .card--primary {
+  background:
+    linear-gradient(160deg, rgba(56, 43, 33, 0.96), rgba(43, 33, 25, 0.9)),
+    var(--card);
+}
+
+html[data-theme="dark"] .card--data,
+html[data-theme="dark"] .card--log { background: rgba(42, 32, 24, 0.9); }
+html[data-theme="dark"] .tab-bar { background: rgba(240, 230, 216, 0.08); }
+html[data-theme="dark"] .tab-button--active { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+html[data-theme="dark"] .button--ghost { background: rgba(240, 230, 216, 0.1); color: var(--ink); }
+html[data-theme="dark"] .input { background: rgba(23, 17, 13, 0.92); border-color: rgba(240, 230, 216, 0.16); color: var(--ink); }
+html[data-theme="dark"] .advanced-console { background: rgba(47, 36, 27, 0.6); border-color: rgba(240, 230, 216, 0.2); }
+html[data-theme="dark"] .campaign-panel { background: rgba(47, 36, 27, 0.6); border-color: rgba(240, 230, 216, 0.2); }
+html[data-theme="dark"] .target-tag { background: rgba(38, 29, 22, 0.88); border-color: rgba(240, 230, 216, 0.2); }
+html[data-theme="dark"] .target-tag__remove { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+html[data-theme="dark"] .flow-tabs-shell__overlay { background: rgba(59, 44, 34, 0.94); border-color: rgba(211, 130, 82, 0.35); }
+html[data-theme="dark"] .feedback { border-color: rgba(255, 149, 129, 0.3); background: rgba(255, 149, 129, 0.12); }
+html[data-theme="dark"] .feedback--success { border-color: rgba(83, 214, 161, 0.3); background: rgba(83, 214, 161, 0.12); }
+html[data-theme="dark"] .result-panel--success { background: rgba(83, 214, 161, 0.14); }
+html[data-theme="dark"] .badge--neutral { background: rgba(240, 230, 216, 0.14); color: var(--muted); }
+html[data-theme="dark"] .copyable-hex__button { border-color: rgba(240, 230, 216, 0.24); background: rgba(45, 35, 26, 0.86); color: var(--ink); }
 
 /* ─── Page section title ──────────────────────────── */
 

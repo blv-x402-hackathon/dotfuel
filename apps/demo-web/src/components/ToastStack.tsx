@@ -156,30 +156,16 @@ export function ToastStack() {
         }
 
         @media (prefers-color-scheme: dark) {
-          :global(.toast-card--success) {
-            background: rgba(20, 48, 38, 0.97);
-            border-color: var(--success-border);
-            color: var(--success);
-          }
-
-          :global(.toast-card--error) {
-            background: rgba(48, 24, 20, 0.97);
-            border-color: var(--danger-border);
-            color: var(--danger);
-          }
-
-          :global(.toast-card--warning) {
-            background: rgba(48, 36, 16, 0.97);
-            border-color: rgba(217, 119, 6, 0.3);
-            color: #d97706;
-          }
-
-          :global(.toast-card--info) {
-            background: rgba(18, 32, 54, 0.97);
-            border-color: rgba(59, 130, 246, 0.3);
-            color: #60a5fa;
-          }
+          :global(html:not([data-theme="light"]) .toast-card--success) { background: rgba(20, 48, 38, 0.97); border-color: var(--success-border); color: var(--success); }
+          :global(html:not([data-theme="light"]) .toast-card--error) { background: rgba(48, 24, 20, 0.97); border-color: var(--danger-border); color: var(--danger); }
+          :global(html:not([data-theme="light"]) .toast-card--warning) { background: rgba(48, 36, 16, 0.97); border-color: rgba(217, 119, 6, 0.3); color: #d97706; }
+          :global(html:not([data-theme="light"]) .toast-card--info) { background: rgba(18, 32, 54, 0.97); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
         }
+
+        :global(html[data-theme="dark"] .toast-card--success) { background: rgba(20, 48, 38, 0.97); border-color: var(--success-border); color: var(--success); }
+        :global(html[data-theme="dark"] .toast-card--error) { background: rgba(48, 24, 20, 0.97); border-color: var(--danger-border); color: var(--danger); }
+        :global(html[data-theme="dark"] .toast-card--warning) { background: rgba(48, 36, 16, 0.97); border-color: rgba(217, 119, 6, 0.3); color: #d97706; }
+        :global(html[data-theme="dark"] .toast-card--info) { background: rgba(18, 32, 54, 0.97); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa; }
 
         @media (max-width: 480px) {
           .toast-stack {

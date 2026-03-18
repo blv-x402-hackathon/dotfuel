@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LogoMark } from "@/components/LogoMark";
 import { NotificationCenter } from "@/components/NotificationCenter";
 import { WalletButton } from "@/components/WalletButton";
+import { useTheme } from "@/components/ThemeProvider";
 import { useHealthCheck, type HealthStatus } from "@/hooks/useHealthCheck";
 
 const HEALTH_DOT_CLASS: Record<HealthStatus, string> = {
@@ -32,6 +33,15 @@ const NAV_ITEMS = [
 export function GNB() {
   const pathname = usePathname();
   const health = useHealthCheck();
+  const { preference, setPreference } = useTheme();
+
+  function cycleTheme() {
+    if (preference === "system") setPreference("light");
+    else if (preference === "light") setPreference("dark");
+    else setPreference("system");
+  }
+
+  const themeLabel = preference === "system" ? "System theme" : preference === "light" ? "Light mode" : "Dark mode";
 
   return (
     <header className="gnb">
@@ -61,6 +71,29 @@ export function GNB() {
             <span className={`hero-live-dot ${HEALTH_DOT_CLASS[health.overall]}`} aria-hidden />
             <span className="gnb__network-label">{HEALTH_LABEL[health.overall]}</span>
           </span>
+          <button
+            className="gnb__theme-btn"
+            onClick={cycleTheme}
+            type="button"
+            aria-label={themeLabel}
+            title={themeLabel}
+          >
+            {preference === "dark" ? (
+              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                <path d="M17.3 13.3A8 8 0 0 1 6.7 2.7a8 8 0 1 0 10.6 10.6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : preference === "light" ? (
+              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
           <NotificationCenter />
           <WalletButton />
         </div>
@@ -143,6 +176,25 @@ export function GNB() {
           flex: none;
         }
 
+        .gnb__theme-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 999px;
+          border: 1px solid var(--line);
+          background: transparent;
+          color: var(--muted);
+          cursor: pointer;
+          transition: background 120ms ease, color 120ms ease;
+        }
+
+        .gnb__theme-btn:hover {
+          background: rgba(36, 24, 14, 0.06);
+          color: var(--ink);
+        }
+
         .gnb__network {
           display: inline-flex;
           align-items: center;
@@ -158,28 +210,18 @@ export function GNB() {
         }
 
         @media (prefers-color-scheme: dark) {
-          .gnb {
-            background: rgba(26, 20, 16, 0.88);
-          }
-
-          .gnb__nav {
-            background: rgba(240, 230, 216, 0.06);
-          }
-
-          .gnb__link:hover {
-            background: rgba(240, 230, 216, 0.08);
-          }
-
-          .gnb__link--active {
-            background: rgba(240, 230, 216, 0.14);
-            color: var(--ink);
-          }
-
-          .gnb__link--active:hover {
-            background: rgba(240, 230, 216, 0.14);
-            color: var(--ink);
-          }
+          :global(html:not([data-theme="light"])) .gnb { background: rgba(26, 20, 16, 0.88); }
+          :global(html:not([data-theme="light"])) .gnb__nav { background: rgba(240, 230, 216, 0.06); }
+          :global(html:not([data-theme="light"])) .gnb__link:hover { background: rgba(240, 230, 216, 0.08); }
+          :global(html:not([data-theme="light"])) .gnb__link--active { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+          :global(html:not([data-theme="light"])) .gnb__link--active:hover { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
         }
+
+        :global(html[data-theme="dark"]) .gnb { background: rgba(26, 20, 16, 0.88); }
+        :global(html[data-theme="dark"]) .gnb__nav { background: rgba(240, 230, 216, 0.06); }
+        :global(html[data-theme="dark"]) .gnb__link:hover { background: rgba(240, 230, 216, 0.08); }
+        :global(html[data-theme="dark"]) .gnb__link--active { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
+        :global(html[data-theme="dark"]) .gnb__link--active:hover { background: rgba(240, 230, 216, 0.14); color: var(--ink); }
 
         @media (max-width: 768px) {
           .gnb__nav {

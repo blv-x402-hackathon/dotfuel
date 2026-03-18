@@ -112,14 +112,10 @@ export function BottomNav() {
         }
 
         @media (prefers-color-scheme: dark) {
-          .bottom-nav {
-            background: rgba(26, 20, 16, 0.92);
-          }
-
-          .bottom-nav__item--active {
-            color: var(--accent);
-          }
+          :global(html:not([data-theme="light"])) .bottom-nav { background: rgba(26, 20, 16, 0.92); }
         }
+
+        :global(html[data-theme="dark"]) .bottom-nav { background: rgba(26, 20, 16, 0.92); }
 
         @media (max-width: 768px) {
           .bottom-nav {

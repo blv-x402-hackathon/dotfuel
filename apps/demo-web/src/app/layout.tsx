@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Footer } from "@/components/Footer";
 import { GNB } from "@/components/GNB";
 import { Providers } from "@/components/Providers";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,11 +61,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className={`${inter.variable} ${fraunces.variable}`}>
         <Providers>
-          <a href="#main-content" className="skip-to-content">Skip to content</a>
-          <GNB />
-          <div id="main-content">{children}</div>
-          <Footer />
-          <BottomNav />
+          <ThemeProvider>
+            <a href="#main-content" className="skip-to-content">Skip to content</a>
+            <GNB />
+            <div id="main-content">{children}</div>
+            <Footer />
+            <BottomNav />
+          </ThemeProvider>
         </Providers>
       </body>
     </html>

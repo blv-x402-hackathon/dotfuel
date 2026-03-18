@@ -309,18 +309,14 @@ export function NotificationCenter() {
         }
 
         @media (prefers-color-scheme: dark) {
-          .notif-center__trigger:hover {
-            background: rgba(240, 230, 216, 0.08);
-          }
-
-          .notif-item--unread {
-            background: rgba(199, 90, 46, 0.06);
-          }
-
-          .notif-center__action:hover {
-            background: rgba(240, 230, 216, 0.08);
-          }
+          :global(html:not([data-theme="light"])) .notif-center__trigger:hover { background: rgba(240, 230, 216, 0.08); }
+          :global(html:not([data-theme="light"])) .notif-item--unread { background: rgba(199, 90, 46, 0.06); }
+          :global(html:not([data-theme="light"])) .notif-center__action:hover { background: rgba(240, 230, 216, 0.08); }
         }
+
+        :global(html[data-theme="dark"]) .notif-center__trigger:hover { background: rgba(240, 230, 216, 0.08); }
+        :global(html[data-theme="dark"]) .notif-item--unread { background: rgba(199, 90, 46, 0.06); }
+        :global(html[data-theme="dark"]) .notif-center__action:hover { background: rgba(240, 230, 216, 0.08); }
 
         @media (max-width: 480px) {
           .notif-center__panel {

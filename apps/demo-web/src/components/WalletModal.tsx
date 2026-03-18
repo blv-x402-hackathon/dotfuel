@@ -402,10 +402,10 @@ export function WalletModal() {
         }
 
         @media (prefers-color-scheme: dark) {
-          .wallet-modal__close:hover {
-            background: rgba(240, 230, 216, 0.08);
-          }
+          :global(html:not([data-theme="light"])) .wallet-modal__close:hover { background: rgba(240, 230, 216, 0.08); }
         }
+
+        :global(html[data-theme="dark"]) .wallet-modal__close:hover { background: rgba(240, 230, 216, 0.08); }
 
         @media (max-width: 480px) {
           .wallet-modal__overlay {

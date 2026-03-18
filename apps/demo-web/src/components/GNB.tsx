@@ -166,6 +166,13 @@ export function GNB() {
           letter-spacing: -0.03em;
         }
 
+        :global(.gnb__logo) {
+          width: 32px;
+          height: 32px;
+          flex: none;
+          border-radius: 8px;
+        }
+
         .gnb__nav {
           display: flex;
           align-items: center;

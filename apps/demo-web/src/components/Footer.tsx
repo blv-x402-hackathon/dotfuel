@@ -77,6 +77,13 @@ export function Footer() {
           letter-spacing: -0.03em;
         }
 
+        :global(.footer__logo) {
+          width: 28px;
+          height: 28px;
+          flex: none;
+          border-radius: 6px;
+        }
+
         .footer__tagline {
           margin: 8px 0 0;
           color: var(--muted);

@@ -14,7 +14,7 @@ export interface TxHistoryItem {
 
 export function TxHistory({ items }: { items: TxHistoryItem[] }) {
   return (
-    <section className="card">
+    <section className="card" id="tx-history">
       <h3 className="card-title">Recent Transactions</h3>
       <p className="card-subtitle">Keep the latest demo steps visible for judges during repeat runs.</p>
       {items.length === 0 ? <p className="card-subtitle" style={{ marginTop: 16 }}>No transactions yet.</p> : null}

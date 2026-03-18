@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { BalancePanel } from "@/components/BalancePanel";
 import { SponsorConsole } from "@/components/SponsorConsole";
@@ -11,7 +11,11 @@ import { type FlowResult } from "@/lib/flowResults";
 
 const EMPTY_CAMPAIGN_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-export function FlowTabs() {
+export function FlowTabs(props: {
+  preferredTab?: "token" | "sponsor";
+  onHistoryChange?: (items: TxHistoryItem[]) => void;
+}) {
+  const { preferredTab, onHistoryChange } = props;
   const [tab, setTab] = useState<"token" | "sponsor">("token");
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
   const [balanceRefreshKey, setBalanceRefreshKey] = useState(0);
@@ -19,6 +23,15 @@ export function FlowTabs() {
     (process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}` | undefined) ?? EMPTY_CAMPAIGN_ID
   );
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!preferredTab) return;
+    setTab(preferredTab);
+  }, [preferredTab]);
+
+  useEffect(() => {
+    onHistoryChange?.(history);
+  }, [history, onHistoryChange]);
 
   const onTx = (result: FlowResult) => {
     setBalanceRefreshKey((current) => current + 1);
@@ -39,7 +52,7 @@ export function FlowTabs() {
   };
 
   return (
-    <div className="stack">
+    <div className="stack" id="flow-tabs">
       <BalancePanel refreshKey={balanceRefreshKey} />
       <div className="tab-bar">
         <button

@@ -121,8 +121,11 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const tokenDelta = snapshot && previousSnapshot
     ? formatAmount(snapshot.smartAccountToken - previousSnapshot.smartAccountToken, snapshot.tokenDecimals, 4)
     : null;
-  const pasBadgeClass = snapshot ? (snapshot.eoaPas === 0n ? "badge badge--danger" : "badge badge--success") : "badge badge--neutral";
-  const pasBadgeLabel = snapshot ? (snapshot.eoaPas === 0n ? "0 PAS" : "PAS funded") : "Pending";
+  const isGasless = snapshot ? snapshot.eoaPas === 0n : false;
+  const pasBadgeClass = snapshot ? (isGasless ? "badge badge--success" : "badge badge--neutral") : "badge badge--neutral";
+  const pasBadgeLabel = snapshot
+    ? (isGasless ? "Gasless ✓" : `${formatAmount(snapshot.eoaPas, 18, 4)} PAS`)
+    : "Pending";
 
   return (
     <section className="card">
@@ -146,7 +149,14 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
         <article className="balance-card">
           <div className="balance-card__head">
             <span className="label">EOA Native</span>
-            <span className={pasBadgeClass}>{pasBadgeLabel}</span>
+            <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
+              <span className={pasBadgeClass}>{pasBadgeLabel}</span>
+              {snapshot ? (
+                <span style={{ maxWidth: "21ch", color: "var(--muted)", fontSize: 12, textAlign: "right" }}>
+                  {isGasless ? "This is the magic: no native gas needed." : "Native gas is available on this wallet."}
+                </span>
+              ) : null}
+            </div>
           </div>
           <div className="balance-card__value">{pasValue ? `${pasValue} PAS` : "Connect wallet"}</div>
           <div className="balance-card__meta">

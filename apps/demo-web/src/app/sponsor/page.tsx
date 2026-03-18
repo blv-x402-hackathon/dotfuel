@@ -275,20 +275,58 @@ export default function SponsorPage() {
             <div className="form-grid mt-3">
               <label className="field">
                 <span className="label">Campaign Name</span>
-                <input className="input" placeholder="My Campaign" value={name} onChange={(e) => setName(e.target.value)} />
+                <input
+                  className={`input ${name.trim() ? "input--valid" : "input--invalid"}`}
+                  placeholder="My Campaign"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </label>
               <label className="field">
-                <span className="label">Budget (PAS)</span>
-                <input className="input" min={0.001} step={0.001} type="number" value={budgetPas} onChange={(e) => setBudgetPas(e.target.value)} />
+                <span className="label">Budget</span>
+                <div className="input-suffix-wrap">
+                  <input
+                    className={`input input--with-suffix ${Number(budgetPas) > 0 ? "input--valid" : "input--invalid"}`}
+                    inputMode="decimal"
+                    placeholder="0.25"
+                    value={budgetPas}
+                    onChange={(e) => setBudgetPas(e.target.value)}
+                  />
+                  <span className="input-suffix">PAS</span>
+                </div>
               </label>
               <label className="field">
                 <span className="label">Per-User Max Ops</span>
-                <input className="input" min={1} step={1} type="number" value={perUserMaxOps} onChange={(e) => setPerUserMaxOps(e.target.value)} />
+                <input
+                  className={`input ${Number(perUserMaxOps) > 0 ? "input--valid" : "input--invalid"}`}
+                  inputMode="numeric"
+                  placeholder="3"
+                  value={perUserMaxOps}
+                  onChange={(e) => setPerUserMaxOps(e.target.value)}
+                />
               </label>
-              <label className="field">
-                <span className="label">Duration (Minutes)</span>
-                <input className="input" min={1} step={1} type="number" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />
-              </label>
+              <div className="field">
+                <span className="label">Duration</span>
+                <div className="duration-preset-row">
+                  {[["30m", "30"], ["1h", "60"], ["2h", "120"], ["24h", "1440"]].map(([label, val]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={`button button--sm button--ghost ${durationMinutes === val ? "button--duration-active" : ""}`}
+                      onClick={() => setDurationMinutes(val)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <input
+                    className={`input ${Number(durationMinutes) > 0 ? "input--valid" : "input--invalid"}`}
+                    inputMode="numeric"
+                    placeholder="Custom (min)"
+                    value={durationMinutes}
+                    onChange={(e) => setDurationMinutes(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
             <div className="field mt-3">
               <span className="label">Allowed Targets</span>

@@ -1197,6 +1197,46 @@ textarea {
   resize: vertical;
 }
 
+.input-suffix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-suffix-wrap .input {
+  padding-right: 48px;
+}
+
+.input--with-suffix {
+  padding-right: 48px;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.duration-preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.duration-preset-row .input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.button--duration-active {
+  background: var(--accent) !important;
+  color: #fffaf2 !important;
+}
+
 .advanced-console {
   margin-top: 14px;
   padding: 12px 14px;

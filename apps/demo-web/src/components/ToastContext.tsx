@@ -31,6 +31,17 @@ let nextId = 1;
 function reducer(state: ToastState, action: ToastAction): ToastState {
   switch (action.type) {
     case "ADD": {
+      // Deduplicate: if same title+kind already in queue, reset its createdAt (timer restart)
+      const existingIdx = state.queue.findIndex(
+        (t) => t.title === action.item.title && t.kind === action.item.kind
+      );
+      if (existingIdx !== -1) {
+        const queue = state.queue.map((t, i) =>
+          i === existingIdx ? { ...t, createdAt: action.item.createdAt, id: action.item.id } : t
+        );
+        return { ...state, queue };
+      }
+      // Max 3 visible at once: drop oldest if over limit
       const queue = [...state.queue, action.item].slice(-3);
       const history = [action.item, ...state.history].slice(0, 20);
       return { queue, history, unreadCount: state.unreadCount + 1 };

@@ -1536,10 +1536,38 @@ textarea {
   gap: 8px;
 }
 
+.budget-bar-header__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .budget-bar-pct {
   font-size: 13px;
   font-weight: 700;
   color: var(--ink);
+}
+
+.budget-bar-status {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.budget-bar-status--healthy {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.budget-bar-status--warning {
+  background: rgba(217, 119, 6, 0.1);
+  color: var(--warning);
+}
+
+.budget-bar-status--critical {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .budget-bar {

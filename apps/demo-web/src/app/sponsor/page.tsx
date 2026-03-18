@@ -189,9 +189,17 @@ export default function SponsorPage() {
               <div className="budget-bar-wrap">
                 <div className="budget-bar-header">
                   <span className="label">Budget Spent</span>
-                  <span className="budget-bar-pct">{spentPct.toFixed(1)}%</span>
+                  <div className="budget-bar-header__right">
+                    <span
+                      className={`budget-bar-status${spentPct >= 90 ? " budget-bar-status--critical" : spentPct >= 70 ? " budget-bar-status--warning" : " budget-bar-status--healthy"}`}
+                      aria-label={`Budget status: ${spentPct >= 90 ? "Critical" : spentPct >= 70 ? "Warning" : "Healthy"}`}
+                    >
+                      {spentPct >= 90 ? "⚠ Critical" : spentPct >= 70 ? "⚠ Warning" : "✓ Healthy"}
+                    </span>
+                    <span className="budget-bar-pct">{spentPct.toFixed(1)}%</span>
+                  </div>
                 </div>
-                <div className="budget-bar">
+                <div className="budget-bar" role="progressbar" aria-valuenow={spentPct} aria-valuemin={0} aria-valuemax={100} aria-label="Budget spent">
                   <div className="budget-bar__fill" style={{ width: `${spentPct}%`, background: budgetBarColor }} />
                 </div>
               </div>

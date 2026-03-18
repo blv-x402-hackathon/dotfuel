@@ -31,7 +31,7 @@ export function StepIndicator({ steps, onQuickDemo }: { steps: GuidedStep[]; onQ
       </ol>
       <style jsx>{`
         .step-indicator {
-          margin-top: 18px;
+          margin-top: 12px;
         }
 
         .step-indicator__header {

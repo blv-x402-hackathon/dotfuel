@@ -131,9 +131,6 @@ export default function HomePage() {
 
   return (
     <main className="page-shell">
-      <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />
-      <SectionNav />
-
       <section className="hero">
         <div className="hero-brand">
           <LogoMark className="hero-logo" />
@@ -160,13 +157,15 @@ export default function HomePage() {
             <span className="stat-value">{modeCount}</span>
           </div>
         </div>
+        {!isConnected ? (
+          <div id="wallet-connect-cta" style={{ marginTop: 24 }}>
+            <WalletConnect variant="hero" />
+          </div>
+        ) : null}
       </section>
 
-      {!isConnected ? (
-        <div id="wallet-connect-cta">
-          <WalletConnect variant="hero" />
-        </div>
-      ) : null}
+      <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />
+      <SectionNav />
 
       <section className="section-grid">
         <div className="stack sidebar-stack">

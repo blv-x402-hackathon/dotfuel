@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 
@@ -9,6 +9,7 @@ import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { ErrorNotice } from "@/components/ErrorNotice";
 import { FlowResultPanel } from "@/components/FlowResultPanel";
 import { InlineProgressStepper } from "@/components/InlineProgressStepper";
+import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
 import { useSendWizard, type SendStep } from "@/hooks/useSendWizard";
 import { formatAmount } from "@/lib/flowResults";
@@ -47,17 +48,25 @@ function WizardStepIndicator({ current }: { current: 0 | 1 | 2 }) {
 export default function SendPage() {
   const { isConnected } = useAccount();
   const { openModal } = useWalletModal();
+  const { toast } = useToast();
   const {
     step, isFetchingQuote, isSigningPermit2, quoteCtx, result, error,
     progressStage, progressStartedAt,
     fetchQuote, signPermit2, executeUserOp, reset
   } = useSendWizard();
 
+  const prevStepRef = useRef(step);
   useEffect(() => {
+    const prev = prevStepRef.current;
+    prevStepRef.current = step;
     if (step === "execute") {
       executeUserOp();
+    } else if (step === "success" && prev === "execute" && result) {
+      toast("success", "Transaction confirmed", `Gas: ${result.gasCostLabel} → ${result.settlementLabel}`);
+    } else if (step === "failed" && prev === "execute" && error) {
+      toast("error", "Transaction failed", error.message);
     }
-  }, [step, executeUserOp]);
+  }, [step, executeUserOp, result, error, toast]);
 
   if (!isConnected) {
     return (

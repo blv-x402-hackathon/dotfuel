@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 import { LogoMark } from "@/components/LogoMark";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { WalletButton } from "@/components/WalletButton";
 import { useHealthCheck, type HealthStatus } from "@/hooks/useHealthCheck";
 
@@ -60,6 +61,7 @@ export function GNB() {
             <span className={`hero-live-dot ${HEALTH_DOT_CLASS[health.overall]}`} aria-hidden />
             <span className="gnb__network-label">{HEALTH_LABEL[health.overall]}</span>
           </span>
+          <NotificationCenter />
           <WalletButton />
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isAddress, getAddress, keccak256, parseEther, stringToHex, hexToBigInt } from "viem";
 import { useAccount } from "wagmi";
 
@@ -10,18 +10,20 @@ import { ErrorNotice } from "@/components/ErrorNotice";
 import { FlowResultPanel } from "@/components/FlowResultPanel";
 import { InlineProgressStepper } from "@/components/InlineProgressStepper";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
 import { useSponsorModeUserOp } from "@/hooks/useSponsorModeUserOp";
 import { createCampaign, fetchCampaignStatus, type CampaignStatus } from "@/lib/campaign-client";
 import { formatAmount } from "@/lib/flowResults";
+import { appendTxHistory } from "@/lib/txHistory";
 import { toUiError, type UiError } from "@/lib/uiError";
-import { useEffect } from "react";
 
 const EMPTY_CAMPAIGN_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 export default function SponsorPage() {
   const { address, isConnected } = useAccount();
   const { openModal } = useWalletModal();
+  const { toast } = useToast();
   const [campaignId, setCampaignId] = useState<`0x${string}`>(
     (process.env.NEXT_PUBLIC_CAMPAIGN_ID as `0x${string}` | undefined) ?? EMPTY_CAMPAIGN_ID
   );
@@ -76,9 +78,23 @@ export default function SponsorPage() {
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [address, campaignId]);
 
-  if (sponsor.result) {
-    setBalanceRefreshKey((k) => k + 1);
-  }
+  const prevSponsorResultRef = useRef(sponsor.result);
+  useEffect(() => {
+    const prev = prevSponsorResultRef.current;
+    prevSponsorResultRef.current = sponsor.result;
+    if (sponsor.result && sponsor.result !== prev) {
+      setBalanceRefreshKey((k) => k + 1);
+      toast("success", "Sponsored transaction confirmed", `Gas: ${sponsor.result.gasCostLabel} → ${sponsor.result.settlementLabel}`);
+      appendTxHistory({
+        mode: "sponsor",
+        hash: sponsor.result.hash,
+        explorerUrl: sponsor.result.explorerUrl,
+        gasCostLabel: sponsor.result.gasCostLabel,
+        settlementLabel: sponsor.result.settlementLabel,
+        createdAt: Date.now()
+      });
+    }
+  }, [sponsor.result, toast]);
 
   async function handleCreate() {
     setIsSubmitting(true);

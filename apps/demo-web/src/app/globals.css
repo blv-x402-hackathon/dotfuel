@@ -391,6 +391,11 @@ textarea {
   color: var(--danger);
 }
 
+.value--muted {
+  color: var(--muted);
+  font-weight: 400;
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;

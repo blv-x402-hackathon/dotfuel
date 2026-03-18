@@ -72,9 +72,11 @@ export function CopyableHex(props: {
           align-items: center;
           gap: 8px;
           max-width: 100%;
+          min-width: 0;
         }
 
         .copyable-hex__value {
+          display: inline-block;
           max-width: 100%;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -93,6 +95,12 @@ export function CopyableHex(props: {
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+          .copyable-hex__value {
+            max-width: 14ch;
+          }
         }
       `}</style>
     </span>

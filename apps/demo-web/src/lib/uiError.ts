@@ -69,6 +69,24 @@ export function toUiError(error: unknown, context: "token" | "sponsor" | "campai
     return { message: "One of the allowed target addresses is invalid.", debug: raw };
   }
 
+  if (normalized.includes("aa21")) {
+    return { message: "Smart account not yet deployed. Send some token first.", debug: raw };
+  }
+
+  if (normalized.includes("aa31")) {
+    return { message: "Paymaster rejected - check campaign budget or token balance.", debug: raw };
+  }
+
+  if (
+    normalized.includes("network error")
+    || normalized.includes("failed to fetch")
+    || normalized.includes("fetch failed")
+    || normalized.includes("econnrefused")
+    || normalized.includes("timeout")
+  ) {
+    return { message: "Could not reach the bundler. Is it running?", debug: raw };
+  }
+
   if (context === "token") {
     return { message: "Token mode could not finish. Expand debug details for the original error.", debug: raw };
   }

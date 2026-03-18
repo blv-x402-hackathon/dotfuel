@@ -101,8 +101,11 @@ export function SponsorModeFlow({
             ))}
           </ol>
           {result.explorerUrl ? (
-            <a className="inline-link" href={result.explorerUrl} target="_blank" rel="noreferrer">
-              Open Blockscout
+            <a className="inline-link explorer-link" href={result.explorerUrl} target="_blank" rel="noreferrer">
+              View on Blockscout
+              <svg className="external-icon" aria-hidden viewBox="0 0 16 16" fill="none">
+                <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3M9 2h5m0 0v5m0-5L7 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </a>
           ) : null}
         </div>

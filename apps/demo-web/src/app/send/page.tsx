@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 
 import { Button } from "@/components/ui/Button";
+import { TokenSelector, type TokenOption } from "@/components/ui/TokenSelector";
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { ErrorNotice } from "@/components/ErrorNotice";
 import { FlowResultPanel } from "@/components/FlowResultPanel";
@@ -13,6 +14,15 @@ import { useToast } from "@/components/ToastContext";
 import { useWalletModal } from "@/components/WalletContext";
 import { useSendWizard, type SendStep } from "@/hooks/useSendWizard";
 import { formatAmount } from "@/lib/flowResults";
+
+const SUPPORTED_TOKENS: TokenOption[] = [
+  {
+    address: (process.env.NEXT_PUBLIC_TOKEN_ADDRESS as `0x${string}`) ?? "0x0",
+    symbol: "tUSDT",
+    name: "Test USDT",
+    decimals: 6
+  }
+];
 
 const WIZARD_STEPS = [
   { label: "Configure" },
@@ -49,6 +59,7 @@ export default function SendPage() {
   const { isConnected } = useAccount();
   const { openModal } = useWalletModal();
   const { toast } = useToast();
+  const [selectedToken, setSelectedToken] = useState<TokenOption>(SUPPORTED_TOKENS[0]);
   const {
     step, isFetchingQuote, isSigningPermit2, quoteCtx, result, error,
     progressStage, progressStartedAt,
@@ -112,14 +123,13 @@ export default function SendPage() {
             <div className="card card--primary">
               <h2 className="card-title">Configure Transaction</h2>
               <div className="wizard-field-group">
-                <div className="wizard-field">
-                  <span className="label">Payment Token</span>
-                  <div className="token-chip">
-                    <span className="token-chip__symbol">$</span>
-                    <span className="token-chip__name">tUSDT</span>
-                    <span className="badge badge--accent" style={{ marginLeft: "auto" }}>Active</span>
-                  </div>
-                </div>
+                <TokenSelector
+                  tokens={SUPPORTED_TOKENS}
+                  selected={selectedToken}
+                  onChange={setSelectedToken}
+                  label="Payment Token"
+                  disabled={isFetchingQuote}
+                />
 
                 <div className="wizard-field">
                   <span className="label">Target Contract</span>

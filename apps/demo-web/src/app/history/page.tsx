@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { CopyableHex } from "@/components/CopyableHex";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { exportTxHistoryCsv } from "@/lib/exportCsv";
 import { loadTxHistory, type StoredTxItem } from "@/lib/txHistory";
 
 function formatTime(ts: number) {
@@ -153,6 +154,15 @@ export default function HistoryPage() {
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search transactions by hash"
             />
+            {items.length > 0 ? (
+              <button
+                className="button button--sm button--ghost"
+                onClick={() => exportTxHistoryCsv(items)}
+                type="button"
+              >
+                Export CSV
+              </button>
+            ) : null}
           </div>
         </div>
 

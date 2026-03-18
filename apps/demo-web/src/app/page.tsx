@@ -1,155 +1,107 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 
+import { BalancePanel } from "@/components/BalancePanel";
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
-import { FlowTabs } from "@/components/FlowTabs";
-import { StepIndicator, type GuidedStep } from "@/components/StepIndicator";
-import type { TxHistoryItem } from "@/components/TxHistory";
+import { Button } from "@/components/ui/Button";
+import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
 import { useWalletModal } from "@/components/WalletContext";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount } from "wagmi";
 
 export default function HomePage() {
-  const { address, isConnected } = useAccount();
-  const publicClient = usePublicClient();
+  const { isConnected } = useAccount();
   const { openModal } = useWalletModal();
-  const [history, setHistory] = useState<TxHistoryItem[]>([]);
-  const [preferredTab, setPreferredTab] = useState<"token" | "sponsor">("token");
-  const [eoaBalance, setEoaBalance] = useState<bigint | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchBalance() {
-      if (!isConnected || !address || !publicClient) {
-        setEoaBalance(null);
-        return;
-      }
-
-      try {
-        const nextBalance = await publicClient.getBalance({ address });
-        if (!cancelled) {
-          setEoaBalance(nextBalance);
-        }
-      } catch {
-        if (!cancelled) {
-          setEoaBalance(null);
-        }
-      }
+  const [history] = useState<TxHistoryItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem("dotfuel-tx-history");
+      return raw ? JSON.parse(raw).slice(0, 3) : [];
+    } catch {
+      return [];
     }
+  });
 
-    fetchBalance();
-    return () => {
-      cancelled = true;
-    };
-  }, [address, history.length, isConnected, publicClient]);
+  if (!isConnected) {
+    return (
+      <main className="page-shell">
+        <section className="hero">
+          <h1 className="hero-title">DotFuel</h1>
+          <p className="hero-copy">Pay blockchain gas with any token. Zero native balance required.</p>
+          <div className="stat-grid">
+            <div className="stat">
+              <span className="stat-label">Gas Required</span>
+              <span className="stat-value stat-value--live">0 PAS</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Payment Modes</span>
+              <span className="stat-value">2</span>
+              <span className="stat-sublabel">Token + Sponsor</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Settlement</span>
+              <span className="stat-value stat-value--text">Permit2</span>
+            </div>
+          </div>
+          <div className="hero-cta-row">
+            <Button variant="accent" size="lg" onClick={openModal}>
+              Connect Wallet to Start
+            </Button>
+          </div>
+        </section>
 
-  const steps = useMemo<GuidedStep[]>(() => {
-    const hasTokenRun = history.some((item) => item.mode === "token");
-    const hasSettlement = history.some((item) => Boolean(item.explorerUrl));
-    const checkedNativeGas = isConnected && eoaBalance !== null;
-    const doneFlags = [isConnected, checkedNativeGas, hasTokenRun, hasSettlement];
-    const activeIndex = doneFlags.findIndex((flag) => !flag);
-
-    return [
-      {
-        title: "Connect Wallet",
-        description: isConnected ? "Wallet connected." : "Connect your wallet to get started.",
-        status: doneFlags[0] ? "done" : activeIndex === 0 ? "active" : "locked"
-      },
-      {
-        title: "Check Balance",
-        description: !isConnected
-          ? "Available after wallet connection."
-          : eoaBalance === null
-            ? "Checking current native balance..."
-            : eoaBalance === 0n
-              ? "0 PAS confirmed — ready for gasless transactions."
-              : "Native PAS detected. You can still continue.",
-        status: doneFlags[1] ? "done" : activeIndex === 1 ? "active" : "locked"
-      },
-      {
-        title: "Send Transaction",
-        description: hasTokenRun ? "Transaction executed successfully." : "Submit a gasless transaction paid in token.",
-        status: doneFlags[2] ? "done" : activeIndex === 2 ? "active" : "locked"
-      },
-      {
-        title: "Verify On-chain",
-        description: hasSettlement ? "Transaction confirmed on-chain." : "Open the transaction and verify settlement.",
-        status: doneFlags[3] ? "done" : activeIndex === 3 || activeIndex === -1 ? "active" : "locked"
-      }
-    ];
-  }, [eoaBalance, history, isConnected]);
-
-  function handleQuickDemo() {
-    if (!isConnected) {
-      openModal();
-      return;
-    }
-
-    const hasTokenRun = history.some((item) => item.mode === "token");
-    const hasSettlement = history.some((item) => Boolean(item.explorerUrl));
-    if (!hasTokenRun) {
-      setPreferredTab("token");
-      document.getElementById("flow-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-
-    if (!hasSettlement) {
-      document.getElementById("tx-history")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-
-    document.getElementById("tx-history")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        <div className="hero-grid hero-grid--two" style={{ marginTop: 18 }}>
+          <div className="card">
+            <h3 className="card-title">Pay with Token</h3>
+            <p className="card-subtitle">Use any supported ERC-20 token to pay for gas. No native balance needed.</p>
+          </div>
+          <div className="card">
+            <h3 className="card-title">Sponsored Gas</h3>
+            <p className="card-subtitle">dApps can sponsor gas for their users through onboarding campaigns.</p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="page-shell">
-      <section className="hero">
-        <h1 className="hero-title">DotFuel</h1>
-        <p className="hero-copy">Pay blockchain gas with any token. Zero native balance required.</p>
-        <div className="stat-grid">
-          <div className="stat">
-            <span className="stat-label">Gas Required</span>
-            <span className="stat-value stat-value--live">0 PAS</span>
-          </div>
-          <div className="stat">
-            <span className="stat-label">Payment Modes</span>
-            <span className="stat-value">2</span>
-            <span className="stat-sublabel">Token + Sponsor</span>
-          </div>
-          <div className="stat">
-            <span className="stat-label">Settlement</span>
-            <span className="stat-value stat-value--text">Permit2</span>
-          </div>
-        </div>
-        <div className="hero-cta-row">
-          {!isConnected ? (
-            <button className="button button--accent" onClick={openModal} type="button">
-              Connect Wallet
-            </button>
-          ) : (
-            <button
-              className="button button--accent"
-              onClick={() => {
-                setPreferredTab("token");
-                document.getElementById("flow-tabs")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              type="button"
-            >
-              Start Token Mode
-            </button>
-          )}
-        </div>
+      <section className="hero" style={{ padding: 24 }}>
+        <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Dashboard</h1>
+        <p className="hero-copy">Welcome back. Here's your account overview.</p>
       </section>
 
-      <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />
-
-      <section className="section-grid">
+      <section className="section-grid" style={{ marginTop: 18 }}>
         <div className="stack sidebar-stack">
           <CounterfactualAddress />
         </div>
-        <FlowTabs preferredTab={preferredTab} onHistoryChange={setHistory} />
+        <div className="stack">
+          <BalancePanel refreshKey={0} />
+
+          <div className="card">
+            <h3 className="card-title">Quick Actions</h3>
+            <div className="button-row" style={{ marginTop: 12 }}>
+              <Link href="/send" className="button button--accent" style={{ textDecoration: "none" }}>
+                Pay with Token
+              </Link>
+              <Link href="/sponsor" className="button button--ghost" style={{ textDecoration: "none" }}>
+                Create Campaign
+              </Link>
+            </div>
+          </div>
+
+          {history.length > 0 ? (
+            <div>
+              <TxHistory items={history} />
+              <div style={{ marginTop: 12, textAlign: "center" }}>
+                <Link href="/history" className="inline-link">
+                  View all transactions
+                </Link>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </section>
     </main>
   );

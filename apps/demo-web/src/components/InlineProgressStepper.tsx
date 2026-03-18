@@ -166,7 +166,7 @@ export function InlineProgressStepper({ stage, startedAt }: { stage: InlineProgr
           justify-content: center;
           border-radius: 999px;
           border: 1px solid rgba(78, 54, 32, 0.18);
-          background: #fff;
+          background: var(--card-strong, #fff);
           font-size: 12px;
           flex: none;
         }

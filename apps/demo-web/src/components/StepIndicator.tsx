@@ -56,7 +56,7 @@ export function StepIndicator({ steps, onQuickDemo }: { steps: GuidedStep[]; onQ
           padding: 14px;
           border: 1px solid rgba(78, 54, 32, 0.12);
           border-radius: 16px;
-          background: rgba(255, 255, 255, 0.52);
+          background: var(--card, rgba(255, 252, 245, 0.86));
           transition: 180ms ease;
         }
 
@@ -84,7 +84,7 @@ export function StepIndicator({ steps, onQuickDemo }: { steps: GuidedStep[]; onQ
           height: 28px;
           border-radius: 999px;
           border: 1px solid rgba(78, 54, 32, 0.22);
-          background: #fff;
+          background: var(--card-strong, #fff);
           font-size: 13px;
           font-weight: 700;
         }

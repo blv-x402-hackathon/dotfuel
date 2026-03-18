@@ -1,29 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { CopyableHex } from "@/components/CopyableHex";
-
-interface StoredTxItem {
-  mode: "token" | "sponsor";
-  hash?: string;
-  explorerUrl?: string;
-  gasCostLabel: string;
-  settlementLabel: string;
-  createdAt: number;
-}
-
-const STORAGE_KEY = "dotfuel-tx-history";
-
-function loadHistory(): StoredTxItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+import { loadTxHistory, type StoredTxItem } from "@/lib/txHistory";
 
 function formatTime(ts: number) {
   return new Date(ts).toLocaleString(undefined, {
@@ -44,7 +25,7 @@ export default function HistoryPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    setItems(loadHistory());
+    setItems(loadTxHistory());
   }, []);
 
   const filtered = items.filter((item) => {
@@ -53,16 +34,17 @@ export default function HistoryPage() {
     return true;
   });
 
+  const isEmpty = filtered.length === 0;
+  const hasNoHistory = items.length === 0;
+
   return (
     <main className="page-shell">
-      <section className="hero" style={{ padding: 24 }}>
-        <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Transaction History</h1>
-        <p className="hero-copy">Browse your gasless transaction history.</p>
-      </section>
+      <h1 className="page-section-title">Transaction History</h1>
+      <p className="card-subtitle" style={{ marginTop: 6 }}>Browse your gasless transaction history.</p>
 
-      <div className="stack" style={{ marginTop: 18 }}>
+      <div className="stack" style={{ marginTop: 24 }}>
         <div className="card card--data">
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <div className="history-filter-row">
             <div className="tab-bar">
               {(["all", "token", "sponsor"] as FilterMode[]).map((mode) => (
                 <button
@@ -80,20 +62,52 @@ export default function HistoryPage() {
               placeholder="Search by tx hash..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ flex: 1, minWidth: 200 }}
+              aria-label="Search transactions by hash"
             />
           </div>
         </div>
 
         <div className="card card--log">
-          {filtered.length === 0 ? (
+          {isEmpty ? (
             <div className="history-empty">
-              <svg aria-hidden viewBox="0 0 24 24">
-                <path d="M5 3.75h10.5L20 8.25V20a1.75 1.75 0 0 1-1.75 1.75H5A1.75 1.75 0 0 1 3.25 20V5.5A1.75 1.75 0 0 1 5 3.75zm9.5 1.9V9h3.35" />
-                <path d="M7.25 12h9.5M7.25 15.5h9.5" />
-              </svg>
-              <strong>No transactions found</strong>
-              <p>{search ? "Try a different search term." : "Your transaction history will appear here after sending gasless transactions."}</p>
+              {hasNoHistory ? (
+                /* First-time empty state */
+                <>
+                  <svg className="history-empty__icon" viewBox="0 0 56 56" fill="none" aria-hidden>
+                    <circle cx="28" cy="28" r="26" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="6 4" />
+                    <path d="M20 28h16M28 20v16" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
+                    <circle cx="28" cy="28" r="6" stroke="var(--accent)" strokeWidth="1.5" />
+                  </svg>
+                  <strong>No transactions yet</strong>
+                  <p>Send your first gasless transaction to see it here.</p>
+                  <Link href="/send" className="button button--accent">
+                    Send a Gasless Transaction
+                  </Link>
+                </>
+              ) : (
+                /* No results for current filter/search */
+                <>
+                  <svg className="history-empty__icon" viewBox="0 0 56 56" fill="none" aria-hidden>
+                    <circle cx="28" cy="28" r="26" stroke="var(--muted)" strokeWidth="1.5" strokeDasharray="6 4" />
+                    <path d="M20 20l16 16M36 20L20 36" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  <strong>No results found</strong>
+                  <p>
+                    {search
+                      ? "No transactions match that hash. Try a different search term."
+                      : `No ${filter === "token" ? "token" : "sponsor"} transactions yet.`}
+                  </p>
+                  {search ? (
+                    <button className="button button--ghost" onClick={() => setSearch("")} type="button">
+                      Clear Search
+                    </button>
+                  ) : (
+                    <button className="button button--ghost" onClick={() => setFilter("all")} type="button">
+                      View All
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           ) : (
             <ul className="history-list">

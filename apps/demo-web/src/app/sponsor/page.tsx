@@ -143,29 +143,30 @@ export default function SponsorPage() {
   if (!isConnected) {
     return (
       <main className="page-shell">
-        <section className="hero" style={{ padding: 24 }}>
-          <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Sponsor</h1>
-          <p className="hero-copy">Create gas sponsorship campaigns for your users.</p>
-        </section>
-        <section className="card" style={{ marginTop: 18, textAlign: "center", padding: 32 }}>
-          <h2 className="card-title">Wallet Required</h2>
-          <p className="card-subtitle">Connect your wallet to manage sponsorship campaigns.</p>
-          <div className="button-row" style={{ marginTop: 16, justifyContent: "center" }}>
+        <h1 className="page-section-title">Sponsor</h1>
+        <p className="card-subtitle" style={{ marginTop: 6 }}>Create gas sponsorship campaigns for your users.</p>
+        <div className="card" style={{ marginTop: 24, textAlign: "center", padding: 40 }}>
+          <div className="empty-state">
+            <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none" aria-hidden>
+              <circle cx="24" cy="24" r="20" stroke="var(--polkadot)" strokeWidth="1.5" strokeDasharray="5 3" />
+              <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8" stroke="var(--polkadot)" strokeWidth="1.8" strokeLinecap="round" />
+              <circle cx="24" cy="24" r="3" fill="var(--polkadot)" />
+            </svg>
+            <strong>Wallet Required</strong>
+            <p>Connect your wallet to create and manage gas sponsorship campaigns.</p>
             <Button variant="accent" onClick={openModal}>Connect Wallet</Button>
           </div>
-        </section>
+        </div>
       </main>
     );
   }
 
   return (
     <main className="page-shell">
-      <section className="hero" style={{ padding: 24 }}>
-        <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Sponsor</h1>
-        <p className="hero-copy">Create and manage gas sponsorship campaigns.</p>
-      </section>
+      <h1 className="page-section-title">Sponsor</h1>
+      <p className="card-subtitle" style={{ marginTop: 6 }}>Create and manage gas sponsorship campaigns.</p>
 
-      <section className="section-grid" style={{ marginTop: 18 }}>
+      <section className="section-grid" style={{ marginTop: 24 }}>
         <div className="stack sidebar-stack">
           <BalancePanel refreshKey={balanceRefreshKey} />
         </div>
@@ -200,24 +201,34 @@ export default function SponsorPage() {
               </div>
             ) : null}
 
-            <div className="status-grid">
-              <article className="status-card">
-                <span className="label">Status</span>
-                <strong>{status ? (status.enabled ? "Enabled" : "Disabled") : "Unknown"}</strong>
-              </article>
-              <article className="status-card">
-                <span className="label">Budget</span>
-                <strong>{status ? `${formatAmount(budgetBig, 18, 5)} PAS` : "—"}</strong>
-              </article>
-              <article className="status-card">
-                <span className="label">Remaining</span>
-                <strong>{status ? `${formatAmount(hexToBigInt(status.remainingBudget), 18, 5)} PAS` : "—"}</strong>
-              </article>
-              <article className="status-card">
-                <span className="label">Ops Used</span>
-                <strong>{typeof status?.userOpsUsed === "number" ? status.userOpsUsed : "—"}</strong>
-              </article>
-            </div>
+            {!hasActiveCampaign && !status ? (
+              <div className="sponsor-empty-state">
+                <svg viewBox="0 0 40 40" fill="none" width="40" height="40" aria-hidden>
+                  <rect x="1" y="1" width="38" height="38" rx="10" stroke="var(--muted)" strokeWidth="1.2" strokeDasharray="5 3" />
+                  <path d="M13 20h14M20 13v14" stroke="var(--muted)" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <span>No campaign loaded. Enter a Campaign ID above or create one below.</span>
+              </div>
+            ) : (
+              <div className="status-grid">
+                <article className="status-card">
+                  <span className="label">Status</span>
+                  <strong>{status ? (status.enabled ? "Enabled" : "Disabled") : "—"}</strong>
+                </article>
+                <article className="status-card">
+                  <span className="label">Budget</span>
+                  <strong>{status ? `${formatAmount(budgetBig, 18, 5)} PAS` : "—"}</strong>
+                </article>
+                <article className="status-card">
+                  <span className="label">Remaining</span>
+                  <strong>{status ? `${formatAmount(hexToBigInt(status.remainingBudget), 18, 5)} PAS` : "—"}</strong>
+                </article>
+                <article className="status-card">
+                  <span className="label">Ops Used</span>
+                  <strong>{typeof status?.userOpsUsed === "number" ? status.userOpsUsed : "—"}</strong>
+                </article>
+              </div>
+            )}
 
             {statusError ? <ErrorNotice error={statusError} /> : null}
           </div>

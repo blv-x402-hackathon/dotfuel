@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type InlineProgressStage = "signing" | "submitting" | "waiting" | "done";
 
@@ -27,6 +27,9 @@ function getStepStatus(stage: InlineProgressStage, stepIndex: number) {
 
 export function InlineProgressStepper({ stage, startedAt }: { stage: InlineProgressStage | null; startedAt: number | null }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [showComplete, setShowComplete] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+  const completedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!startedAt) {
@@ -43,7 +46,29 @@ export function InlineProgressStepper({ stage, startedAt }: { stage: InlineProgr
     return () => window.clearInterval(interval);
   }, [startedAt]);
 
+  useEffect(() => {
+    if (stage === "done") {
+      completedAtRef.current = Date.now();
+      setShowComplete(true);
+      setFadeOut(false);
+      const fadeTimer = window.setTimeout(() => setFadeOut(true), 1600);
+      const hideTimer = window.setTimeout(() => setShowComplete(false), 2200);
+      return () => {
+        window.clearTimeout(fadeTimer);
+        window.clearTimeout(hideTimer);
+      };
+    }
+  }, [stage]);
+
   const elapsedLabel = useMemo(() => `${elapsedSeconds}s`, [elapsedSeconds]);
+
+  if (showComplete) {
+    return (
+      <div className={`progress-stepper progress-stepper--complete ${fadeOut ? "progress-stepper--fade" : ""}`} aria-live="polite">
+        <span className="progress-stepper__done-label">✓ Completed in {elapsedLabel}</span>
+      </div>
+    );
+  }
 
   if (!stage || !startedAt) return null;
 
@@ -73,6 +98,25 @@ export function InlineProgressStepper({ stage, startedAt }: { stage: InlineProgr
           border-radius: 18px;
           border: 1px solid rgba(78, 54, 32, 0.12);
           background: rgba(255, 255, 255, 0.62);
+          transition: opacity 600ms ease;
+        }
+
+        .progress-stepper--complete {
+          border-color: rgba(12, 122, 92, 0.28);
+          background: rgba(12, 122, 92, 0.08);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .progress-stepper--fade {
+          opacity: 0;
+        }
+
+        .progress-stepper__done-label {
+          color: var(--success);
+          font-weight: 700;
+          font-size: 14px;
         }
 
         .progress-stepper__header {

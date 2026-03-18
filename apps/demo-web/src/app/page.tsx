@@ -4,28 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { FlowTabs } from "@/components/FlowTabs";
-import { LogoMark } from "@/components/LogoMark";
-import { SectionNav } from "@/components/SectionNav";
 import { StepIndicator, type GuidedStep } from "@/components/StepIndicator";
 import type { TxHistoryItem } from "@/components/TxHistory";
-import { WalletButton } from "@/components/WalletButton";
 import { useWalletModal } from "@/components/WalletContext";
 import { useAccount, usePublicClient } from "wagmi";
-import { useHealthCheck, type HealthStatus } from "@/hooks/useHealthCheck";
-
-const HEALTH_DOT: Record<HealthStatus, string> = {
-  checking: "health-dot--checking",
-  ok: "health-dot--ok",
-  degraded: "health-dot--degraded",
-  down: "health-dot--down"
-};
-
-const HEALTH_LABEL: Record<HealthStatus, string> = {
-  checking: "Connecting...",
-  ok: "Live",
-  degraded: "Degraded",
-  down: "Offline"
-};
 
 export default function HomePage() {
   const { address, isConnected } = useAccount();
@@ -34,13 +16,6 @@ export default function HomePage() {
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
   const [preferredTab, setPreferredTab] = useState<"token" | "sponsor">("token");
   const [eoaBalance, setEoaBalance] = useState<bigint | null>(null);
-  const [claimLive, setClaimLive] = useState(false);
-  const health = useHealthCheck();
-
-  useEffect(() => {
-    const claimTimer = window.setTimeout(() => setClaimLive(true), 420);
-    return () => window.clearTimeout(claimTimer);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,24 +58,24 @@ export default function HomePage() {
         status: doneFlags[0] ? "done" : activeIndex === 0 ? "active" : "locked"
       },
       {
-        title: "Check 0 PAS",
+        title: "Check Balance",
         description: !isConnected
           ? "Available after wallet connection."
           : eoaBalance === null
             ? "Checking current native balance..."
             : eoaBalance === 0n
-              ? "0 PAS confirmed."
+              ? "0 PAS confirmed — ready for gasless transactions."
               : "Native PAS detected. You can still continue.",
         status: doneFlags[1] ? "done" : activeIndex === 1 ? "active" : "locked"
       },
       {
-        title: "Execute Token Mode",
-        description: hasTokenRun ? "Token mode flow executed." : "Submit a gasless transaction paid in token.",
+        title: "Send Transaction",
+        description: hasTokenRun ? "Transaction executed successfully." : "Submit a gasless transaction paid in token.",
         status: doneFlags[2] ? "done" : activeIndex === 2 ? "active" : "locked"
       },
       {
-        title: "Verify Settlement",
-        description: hasSettlement ? "Transaction confirmed on-chain." : "Open the latest transaction and verify settlement.",
+        title: "Verify On-chain",
+        description: hasSettlement ? "Transaction confirmed on-chain." : "Open the transaction and verify settlement.",
         status: doneFlags[3] ? "done" : activeIndex === 3 || activeIndex === -1 ? "active" : "locked"
       }
     ];
@@ -130,35 +105,13 @@ export default function HomePage() {
 
   return (
     <main className="page-shell">
-      <header className="page-header">
-        <div className="page-header__left">
-          <LogoMark className="page-header__logo" />
-          <span className="page-header__brand">DotFuel</span>
-        </div>
-        <div className="page-header__right">
-          <span className="page-header__network">
-            <span className={`hero-live-dot ${HEALTH_DOT[health.overall]}`} aria-hidden />
-            {HEALTH_LABEL[health.overall]}
-          </span>
-          <WalletButton />
-        </div>
-      </header>
-
       <section className="hero">
-        <div className="hero-brand">
-          <div className="hero-brand-copy">
-            <div className="hero-eyebrow">
-              <span className={`hero-live-dot ${HEALTH_DOT[health.overall]}`} aria-hidden />
-              Polkadot Hub TestNet
-            </div>
-            <h1 className="hero-title">DotFuel</h1>
-          </div>
-        </div>
+        <h1 className="hero-title">DotFuel</h1>
         <p className="hero-copy">Pay blockchain gas with any token. Zero native balance required.</p>
         <div className="stat-grid">
           <div className="stat">
             <span className="stat-label">Gas Required</span>
-            <span className={`stat-value ${claimLive ? "stat-value--live" : ""}`}>0 PAS</span>
+            <span className="stat-value stat-value--live">0 PAS</span>
           </div>
           <div className="stat">
             <span className="stat-label">Payment Modes</span>
@@ -191,7 +144,6 @@ export default function HomePage() {
       </section>
 
       <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />
-      <SectionNav onTabChange={setPreferredTab} />
 
       <section className="section-grid">
         <div className="stack sidebar-stack">

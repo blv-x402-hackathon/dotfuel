@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import type { ReactNode } from "react";
 
 import "@/app/globals.css";
+import { GNB } from "@/components/GNB";
 import { Providers } from "@/components/Providers";
 
 const inter = Inter({
@@ -21,7 +22,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dotfuel-demo.vercel
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "DotFuel Demo",
+  title: { default: "DotFuel", template: "%s | DotFuel" },
   description: "DotFuel — Pay gas with any token",
   openGraph: {
     title: "DotFuel",
@@ -56,7 +57,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} ${fraunces.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <GNB />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -25,7 +25,7 @@ export function SectionNav({ onTabChange }: { onTabChange?: (tab: "token" | "spo
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
         if (visible.length > 0) {
-          setActiveLabel(visible[0].target.dataset.navLabel ?? visible[0].target.id);
+          setActiveLabel((visible[0].target as HTMLElement).dataset.navLabel ?? visible[0].target.id);
         }
       },
       {

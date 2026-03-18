@@ -8,7 +8,8 @@ import { LogoMark } from "@/components/LogoMark";
 import { SectionNav } from "@/components/SectionNav";
 import { StepIndicator, type GuidedStep } from "@/components/StepIndicator";
 import type { TxHistoryItem } from "@/components/TxHistory";
-import { WalletConnect } from "@/components/WalletConnect";
+import { WalletButton } from "@/components/WalletButton";
+import { useWalletModal } from "@/components/WalletContext";
 import { useAccount, usePublicClient } from "wagmi";
 import { useHealthCheck, type HealthStatus } from "@/hooks/useHealthCheck";
 
@@ -29,6 +30,7 @@ const HEALTH_LABEL: Record<HealthStatus, string> = {
 export default function HomePage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const { openModal } = useWalletModal();
   const [history, setHistory] = useState<TxHistoryItem[]>([]);
   const [preferredTab, setPreferredTab] = useState<"token" | "sponsor">("token");
   const [eoaBalance, setEoaBalance] = useState<bigint | null>(null);
@@ -77,7 +79,7 @@ export default function HomePage() {
     return [
       {
         title: "Connect Wallet",
-        description: isConnected ? "Wallet connected." : "Connect your EOA to start the demo.",
+        description: isConnected ? "Wallet connected." : "Connect your wallet to get started.",
         status: doneFlags[0] ? "done" : activeIndex === 0 ? "active" : "locked"
       },
       {
@@ -93,7 +95,7 @@ export default function HomePage() {
       },
       {
         title: "Execute Token Mode",
-        description: hasTokenRun ? "Token mode flow executed." : "Run Flow A to submit a UserOperation.",
+        description: hasTokenRun ? "Token mode flow executed." : "Submit a gasless transaction paid in token.",
         status: doneFlags[2] ? "done" : activeIndex === 2 ? "active" : "locked"
       },
       {
@@ -106,7 +108,7 @@ export default function HomePage() {
 
   function handleQuickDemo() {
     if (!isConnected) {
-      document.getElementById("wallet-connect-cta")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      openModal();
       return;
     }
 
@@ -128,13 +130,26 @@ export default function HomePage() {
 
   return (
     <main className="page-shell">
+      <header className="page-header">
+        <div className="page-header__left">
+          <LogoMark className="page-header__logo" />
+          <span className="page-header__brand">DotFuel</span>
+        </div>
+        <div className="page-header__right">
+          <span className="page-header__network">
+            <span className={`hero-live-dot ${HEALTH_DOT[health.overall]}`} aria-hidden />
+            {HEALTH_LABEL[health.overall]}
+          </span>
+          <WalletButton />
+        </div>
+      </header>
+
       <section className="hero">
         <div className="hero-brand">
-          <LogoMark className="hero-logo" />
           <div className="hero-brand-copy">
             <div className="hero-eyebrow">
               <span className={`hero-live-dot ${HEALTH_DOT[health.overall]}`} aria-hidden />
-              Polkadot Hub TestNet • Chain ID 420420417 • {HEALTH_LABEL[health.overall]}
+              Polkadot Hub TestNet
             </div>
             <h1 className="hero-title">DotFuel</h1>
           </div>
@@ -157,9 +172,9 @@ export default function HomePage() {
         </div>
         <div className="hero-cta-row">
           {!isConnected ? (
-            <div id="wallet-connect-cta">
-              <WalletConnect variant="hero" />
-            </div>
+            <button className="button button--accent" onClick={openModal} type="button">
+              Connect Wallet
+            </button>
           ) : (
             <button
               className="button button--accent"
@@ -169,7 +184,7 @@ export default function HomePage() {
               }}
               type="button"
             >
-              Start Token Mode →
+              Start Token Mode
             </button>
           )}
         </div>
@@ -180,7 +195,6 @@ export default function HomePage() {
 
       <section className="section-grid">
         <div className="stack sidebar-stack">
-          {isConnected ? <WalletConnect variant="sidebar" /> : null}
           <CounterfactualAddress />
         </div>
         <FlowTabs preferredTab={preferredTab} onHistoryChange={setHistory} />

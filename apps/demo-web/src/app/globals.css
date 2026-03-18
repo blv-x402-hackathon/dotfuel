@@ -74,6 +74,57 @@ textarea {
   padding: 40px 20px 72px;
 }
 
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -40px -20px 24px;
+  padding: 12px 20px;
+  background: rgba(246, 239, 227, 0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.page-header__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-header__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex: none;
+}
+
+.page-header__brand {
+  font-family: var(--font-serif), "Palatino Linotype", serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.page-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-header__network {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .hero {
   position: relative;
   isolation: isolate;
@@ -1151,6 +1202,11 @@ textarea {
       linear-gradient(180deg, var(--bg), var(--bg-deep));
   }
 
+  .page-header {
+    background: rgba(26, 20, 16, 0.88);
+    border-bottom-color: var(--line);
+  }
+
   .hero {
     background:
       linear-gradient(135deg, rgba(56, 43, 33, 0.94), rgba(38, 29, 22, 0.9)),
@@ -1339,6 +1395,15 @@ textarea {
 @media (max-width: 600px) {
   .page-shell {
     padding: 28px 14px 56px;
+  }
+
+  .page-header {
+    margin: -28px -14px 18px;
+    padding: 10px 14px;
+  }
+
+  .page-header__network {
+    display: none;
   }
 
   .hero {

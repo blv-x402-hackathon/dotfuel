@@ -30,6 +30,7 @@ export function FlowTabs(props: {
   );
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
   const [toast, setToast] = useState<FlowToast | null>(null);
+  const hasActiveCampaign = campaignId !== EMPTY_CAMPAIGN_ID;
 
   useEffect(() => {
     if (!preferredTab) return;
@@ -108,13 +109,25 @@ export function FlowTabs(props: {
       </div>
       <div className={`tab-panel ${tab === "sponsor" ? "tab-panel--active" : "tab-panel--inactive"}`}>
         <div className="stack">
-          <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
-          <SponsorModeFlow
-            campaignId={campaignId}
-            onTx={onTx}
-            onFlowError={(message) => onFlowError("sponsor", message)}
-            walletRequired={!isConnected}
-          />
+          {hasActiveCampaign ? (
+            <>
+              <SponsorModeFlow
+                campaignId={campaignId}
+                onTx={onTx}
+                onFlowError={(message) => onFlowError("sponsor", message)}
+                walletRequired={!isConnected}
+              />
+              <details className="campaign-panel">
+                <summary>Campaign Management</summary>
+                <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
+              </details>
+            </>
+          ) : (
+            <>
+              <p className="card-subtitle">No active campaign yet. Create one below to enable sponsored execution.</p>
+              <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
+            </>
+          )}
         </div>
       </div>
       <TxHistory items={history} />

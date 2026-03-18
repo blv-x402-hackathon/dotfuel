@@ -778,6 +778,23 @@ textarea {
   color: var(--accent-strong);
 }
 
+.campaign-panel {
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px dashed rgba(78, 54, 32, 0.2);
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.campaign-panel summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.campaign-panel[open] summary {
+  margin-bottom: 12px;
+}
+
 .target-tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -995,6 +1012,11 @@ textarea {
   }
 
   .advanced-console {
+    background: rgba(47, 36, 27, 0.6);
+    border-color: rgba(240, 230, 216, 0.2);
+  }
+
+  .campaign-panel {
     background: rgba(47, 36, 27, 0.6);
     border-color: rgba(240, 230, 216, 0.2);
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BalancePanel } from "@/components/BalancePanel";
 import { SponsorConsole } from "@/components/SponsorConsole";
@@ -12,6 +12,7 @@ import { type FlowResult } from "@/lib/flowResults";
 import { useAccount } from "wagmi";
 
 const EMPTY_CAMPAIGN_ID = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const DEFAULT_TITLE = "DotFuel Demo";
 interface FlowToast extends ToastMessage {
   targetId: string;
 }
@@ -31,6 +32,8 @@ export function FlowTabs(props: {
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
   const [toast, setToast] = useState<FlowToast | null>(null);
   const hasActiveCampaign = campaignId !== EMPTY_CAMPAIGN_ID;
+  const [isProcessing, setIsProcessing] = useState(false);
+  const successTitleTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!preferredTab) return;
@@ -42,6 +45,7 @@ export function FlowTabs(props: {
   }, [history, onHistoryChange]);
 
   const onTx = (result: FlowResult) => {
+    setIsProcessing(false);
     setBalanceRefreshKey((current) => current + 1);
     if (result.mode === "sponsor") {
       setCampaignRefreshKey((current) => current + 1);
@@ -65,9 +69,20 @@ export function FlowTabs(props: {
       description: `Gas: ${result.gasCostLabel} -> ${result.settlementLabel}`,
       targetId: result.mode === "token" ? "token-flow-result" : "sponsor-flow-result"
     });
+
+    if (typeof document !== "undefined") {
+      document.title = "✅ TX Confirmed | DotFuel";
+      if (successTitleTimerRef.current) {
+        window.clearTimeout(successTitleTimerRef.current);
+      }
+      successTitleTimerRef.current = window.setTimeout(() => {
+        document.title = DEFAULT_TITLE;
+      }, 3000);
+    }
   };
 
   const onFlowError = (mode: "token" | "sponsor", message: string) => {
+    setIsProcessing(false);
     setToast({
       id: Date.now(),
       kind: "error",
@@ -75,7 +90,35 @@ export function FlowTabs(props: {
       description: message,
       targetId: mode === "token" ? "token-flow" : "sponsor-flow"
     });
+
+    if (typeof document !== "undefined") {
+      document.title = "❌ TX Failed | DotFuel";
+    }
   };
+
+  const onFlowLoadingChange = (nextLoading: boolean) => {
+    setIsProcessing(nextLoading);
+    if (typeof document === "undefined") return;
+    if (nextLoading) {
+      if (successTitleTimerRef.current) {
+        window.clearTimeout(successTitleTimerRef.current);
+      }
+      document.title = "⏳ Processing... | DotFuel";
+      return;
+    }
+
+    if (document.title === "⏳ Processing... | DotFuel") {
+      document.title = DEFAULT_TITLE;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (successTitleTimerRef.current) {
+        window.clearTimeout(successTitleTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={`stack flow-tabs-shell ${isConnected ? "" : "flow-tabs-shell--locked"}`} id="flow-tabs">
@@ -104,6 +147,7 @@ export function FlowTabs(props: {
         <TokenModeFlow
           onTx={onTx}
           onFlowError={(message) => onFlowError("token", message)}
+          onLoadingChange={onFlowLoadingChange}
           walletRequired={!isConnected}
         />
       </div>
@@ -115,6 +159,7 @@ export function FlowTabs(props: {
                 campaignId={campaignId}
                 onTx={onTx}
                 onFlowError={(message) => onFlowError("sponsor", message)}
+                onLoadingChange={onFlowLoadingChange}
                 walletRequired={!isConnected}
               />
               <details className="campaign-panel">
@@ -133,7 +178,12 @@ export function FlowTabs(props: {
       <TxHistory items={history} />
       <Toast
         toast={toast}
-        onDismiss={() => setToast(null)}
+        onDismiss={() => {
+          setToast(null);
+          if (typeof document !== "undefined" && document.title === "❌ TX Failed | DotFuel" && !isProcessing) {
+            document.title = DEFAULT_TITLE;
+          }
+        }}
         onOpen={() => {
           if (!toast) return;
           document.getElementById(toast.targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });

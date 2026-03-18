@@ -11,10 +11,12 @@ import { useTokenModeUserOp } from "@/hooks/useTokenModeUserOp";
 export function TokenModeFlow({
   onTx,
   onFlowError,
+  onLoadingChange,
   walletRequired = false
 }: {
   onTx: (result: FlowResult) => void;
   onFlowError?: (message: string) => void;
+  onLoadingChange?: (isLoading: boolean) => void;
   walletRequired?: boolean;
 }) {
   const { executeTokenMode, isLoading, error, result, progressStage, progressStartedAt } = useTokenModeUserOp();
@@ -28,6 +30,10 @@ export function TokenModeFlow({
     if (!error) return;
     onFlowError?.(error.message);
   }, [error, onFlowError]);
+
+  useEffect(() => {
+    onLoadingChange?.(isLoading);
+  }, [isLoading, onLoadingChange]);
 
   return (
     <section className="card card--primary" id="token-flow">

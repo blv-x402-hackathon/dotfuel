@@ -12,11 +12,13 @@ export function SponsorModeFlow({
   campaignId,
   onTx,
   onFlowError,
+  onLoadingChange,
   walletRequired = false
 }: {
   campaignId: `0x${string}`;
   onTx: (result: FlowResult) => void;
   onFlowError?: (message: string) => void;
+  onLoadingChange?: (isLoading: boolean) => void;
   walletRequired?: boolean;
 }) {
   const { executeSponsored, isLoading, error, result, progressStage, progressStartedAt } = useSponsorModeUserOp(campaignId);
@@ -30,6 +32,10 @@ export function SponsorModeFlow({
     if (!error) return;
     onFlowError?.(error.message);
   }, [error, onFlowError]);
+
+  useEffect(() => {
+    onLoadingChange?.(isLoading);
+  }, [isLoading, onLoadingChange]);
 
   return (
     <section className="card card--primary" id="sponsor-flow">

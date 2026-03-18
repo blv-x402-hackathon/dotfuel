@@ -51,7 +51,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div className="hero-grid hero-grid--two" style={{ marginTop: 18 }}>
+        <div className="hero-grid hero-grid--two hero-grid--sm">
           <div className="card">
             <h3 className="card-title">Pay with Token</h3>
             <p className="card-subtitle">Use any supported ERC-20 token to pay for gas. No native balance needed.</p>
@@ -67,12 +67,12 @@ export default function HomePage() {
 
   return (
     <main className="page-shell">
-      <section className="hero" style={{ padding: 24 }}>
-        <h1 className="hero-title" style={{ fontSize: "var(--text-2xl)", marginBottom: 8 }}>Dashboard</h1>
-        <p className="hero-copy">Welcome back. Here's your account overview.</p>
+      <section className="hero hero--compact">
+        <h1 className="hero-title">Dashboard</h1>
+        <p className="hero-copy">Welcome back. Here&apos;s your account overview.</p>
       </section>
 
-      <section className="section-grid" style={{ marginTop: 18 }}>
+      <section className="section-grid">
         <div className="stack sidebar-stack">
           <CounterfactualAddress />
         </div>
@@ -81,11 +81,11 @@ export default function HomePage() {
 
           <div className="card">
             <h3 className="card-title">Quick Actions</h3>
-            <div className="button-row" style={{ marginTop: 12 }}>
-              <Link href="/send" className="button button--accent" style={{ textDecoration: "none" }}>
+            <div className="button-row mt-3">
+              <Link href="/send" className="button button--accent">
                 Pay with Token
               </Link>
-              <Link href="/sponsor" className="button button--ghost" style={{ textDecoration: "none" }}>
+              <Link href="/sponsor" className="button button--ghost">
                 Create Campaign
               </Link>
             </div>
@@ -94,7 +94,7 @@ export default function HomePage() {
           {history.length > 0 ? (
             <div>
               <TxHistory items={history} />
-              <div style={{ marginTop: 12, textAlign: "center" }}>
+              <div className="mt-3 text-center">
                 <Link href="/history" className="inline-link">
                   View all transactions
                 </Link>

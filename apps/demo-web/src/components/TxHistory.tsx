@@ -32,7 +32,7 @@ export function TxHistory({ items }: { items: TxHistoryItem[] }) {
         </div>
       ) : null}
       {items.length > 0 ? (
-        <ul className="history-list" style={{ marginTop: 16 }}>
+        <ul className="history-list mt-4">
           {items.map((item, idx) => (
             <li className="history-item history-item--bordered" key={`${item.createdAt}-${idx}`}>
               <div className="history-item__head">

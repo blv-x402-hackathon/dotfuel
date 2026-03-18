@@ -161,8 +161,8 @@ export default function SponsorPage() {
     return (
       <main className="page-shell">
         <h1 className="page-section-title">Sponsor</h1>
-        <p className="card-subtitle" style={{ marginTop: 6 }}>Create gas sponsorship campaigns for your users.</p>
-        <div className="card" style={{ marginTop: 24, textAlign: "center", padding: 40 }}>
+        <p className="card-subtitle mt-1-5">Create gas sponsorship campaigns for your users.</p>
+        <div className="card card--centered mt-6">
           <div className="empty-state">
             <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none" aria-hidden>
               <circle cx="24" cy="24" r="20" stroke="var(--polkadot)" strokeWidth="1.5" strokeDasharray="5 3" />
@@ -181,9 +181,9 @@ export default function SponsorPage() {
   return (
     <main className="page-shell">
       <h1 className="page-section-title">Sponsor</h1>
-      <p className="card-subtitle" style={{ marginTop: 6 }}>Create and manage gas sponsorship campaigns.</p>
+      <p className="card-subtitle mt-1-5">Create and manage gas sponsorship campaigns.</p>
 
-      <section className="section-grid" style={{ marginTop: 24 }}>
+      <section className="section-grid mt-6">
         <div className="stack sidebar-stack">
           <BalancePanel refreshKey={balanceRefreshKey} />
         </div>
@@ -191,7 +191,7 @@ export default function SponsorPage() {
           {/* Campaign ID / Load */}
           <div className="card card--data">
             <h2 className="card-title">Active Campaign</h2>
-            <div className="field" style={{ marginTop: 12 }}>
+            <div className="field mt-3">
               <span className="label">Campaign ID</span>
               <div className="target-input-row">
                 <input
@@ -257,7 +257,7 @@ export default function SponsorPage() {
               <p className="card-subtitle">
                 Campaign: <CopyableHex value={campaignId} />
               </p>
-              <div className="button-row" style={{ marginTop: 16 }}>
+              <div className="button-row mt-4">
                 <Button loading={sponsor.isLoading} onClick={sponsor.executeSponsored}>
                   {sponsor.isLoading ? "Submitting..." : "Execute Sponsored"}
                 </Button>
@@ -272,7 +272,7 @@ export default function SponsorPage() {
           <div className="card card--data">
             <h2 className="card-title">Create Campaign</h2>
             <p className="card-subtitle">Set up a new gas sponsorship campaign.</p>
-            <div className="form-grid" style={{ marginTop: 14 }}>
+            <div className="form-grid mt-3">
               <label className="field">
                 <span className="label">Campaign Name</span>
                 <input className="input" placeholder="My Campaign" value={name} onChange={(e) => setName(e.target.value)} />
@@ -290,7 +290,7 @@ export default function SponsorPage() {
                 <input className="input" min={1} step={1} type="number" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />
               </label>
             </div>
-            <div className="field" style={{ marginTop: 12 }}>
+            <div className="field mt-3">
               <span className="label">Allowed Targets</span>
               <div className="target-tag-list">
                 {targets.length === 0 ? <span className="card-subtitle">Add at least one target address.</span> : null}
@@ -310,7 +310,7 @@ export default function SponsorPage() {
                 <Button variant="ghost" onClick={handleAddTarget}>Add</Button>
               </div>
             </div>
-            <div className="button-row" style={{ marginTop: 16 }}>
+            <div className="button-row mt-4">
               <Button variant="accent" loading={isSubmitting} onClick={handleCreate}>
                 {isSubmitting ? "Creating..." : "Create Campaign"}
               </Button>

@@ -109,7 +109,7 @@ export function WalletButton() {
     : null;
 
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
+    <div ref={wrapRef} className="wallet-btn-wrap">
       <button
         className="wallet-btn wallet-btn--connected"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -183,6 +183,10 @@ export function WalletButton() {
           .wallet-btn__balance {
             display: none;
           }
+        }
+
+        .wallet-btn-wrap {
+          position: relative;
         }
       `}</style>
     </div>

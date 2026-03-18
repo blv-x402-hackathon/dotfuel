@@ -47,7 +47,7 @@ export function SponsorModeFlow({
         {" "}
         <CopyableHex value={campaignId} />
       </p>
-      <div className="button-row" style={{ marginTop: 16 }}>
+      <div className="button-row mt-4">
         <Button
           loading={isLoading}
           disabled={walletRequired}
@@ -57,7 +57,7 @@ export function SponsorModeFlow({
           {isLoading ? "Submitting..." : "Execute Sponsored"}
         </Button>
       </div>
-      {walletRequired ? <p className="card-subtitle" style={{ marginTop: 10 }}>Connect wallet first.</p> : null}
+      {walletRequired ? <p className="card-subtitle mt-3">Connect wallet first.</p> : null}
       <InlineProgressStepper stage={progressStage} startedAt={progressStartedAt} />
 
       {error ? <ErrorNotice error={error} /> : null}

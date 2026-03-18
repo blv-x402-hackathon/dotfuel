@@ -36,8 +36,8 @@ export function CounterfactualAddress() {
     <section className="card card--info">
       <h2 className="card-title">Smart Account</h2>
       <p className="card-subtitle">Your smart account address, derived deterministically from your wallet.</p>
-      <div className="address-line" style={{ marginTop: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
+      <div className="address-line mt-4">
+        <div className="address-line__header">
           <span className="label">Counterfactual Address</span>
           {address ? (
             <span className={`badge ${isDeployed ? "badge--success" : "badge--neutral"}`}>

@@ -77,12 +77,8 @@ export function TokenSelector({ tokens, selected, onChange, label = "Token", dis
           width="14"
           height="14"
           aria-hidden
-          style={{
-            marginLeft: "auto",
-            transform: open ? "rotate(180deg)" : "none",
-            transition: "transform 160ms ease",
-            flexShrink: 0
-          }}
+          className="token-selector__chevron"
+          style={{ transform: open ? "rotate(180deg)" : "none" }}
         >
           <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -152,6 +148,12 @@ export function TokenSelector({ tokens, selected, onChange, label = "Token", dis
           font-weight: 600;
           transition: border-color 120ms ease, background 120ms ease;
           text-align: left;
+        }
+
+        .token-selector__chevron {
+          margin-left: auto;
+          flex-shrink: 0;
+          transition: transform 160ms ease;
         }
 
         .token-selector__trigger:hover:not(:disabled) {

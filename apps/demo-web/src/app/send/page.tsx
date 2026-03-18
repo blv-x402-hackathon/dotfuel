@@ -83,10 +83,10 @@ export default function SendPage() {
     return (
       <main className="page-shell">
         <h1 className="page-section-title">Pay with Token</h1>
-        <p className="card-subtitle" style={{ marginTop: 6 }}>
+        <p className="card-subtitle mt-1-5">
           Send a gasless transaction and settle gas in tUSDT via Permit2.
         </p>
-        <div className="card" style={{ marginTop: 24, textAlign: "center", padding: 40 }}>
+        <div className="card card--centered mt-6">
           <div className="empty-state">
             <svg className="empty-state__icon" viewBox="0 0 48 48" fill="none" aria-hidden>
               <circle cx="24" cy="24" r="20" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="5 3" />
@@ -106,11 +106,11 @@ export default function SendPage() {
   return (
     <main className="page-shell">
       <h1 className="page-section-title">Pay with Token</h1>
-      <p className="card-subtitle" style={{ marginTop: 6 }}>
+      <p className="card-subtitle mt-1-5">
         Send a gasless transaction and settle gas in tUSDT via Permit2.
       </p>
 
-      <div className="section-grid" style={{ marginTop: 24 }}>
+      <div className="section-grid mt-6">
         <div className="stack sidebar-stack">
           <CounterfactualAddress />
         </div>
@@ -151,7 +151,7 @@ export default function SendPage() {
 
               {error ? <ErrorNotice error={error} /> : null}
 
-              <div className="button-row" style={{ marginTop: 20 }}>
+              <div className="button-row mt-5">
                 <Button variant="accent" loading={isFetchingQuote} onClick={fetchQuote}>
                   {isFetchingQuote ? "Fetching quote..." : "Get Quote →"}
                 </Button>
@@ -191,7 +191,7 @@ export default function SendPage() {
               </div>
 
               <div className="review-notice">
-                <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden style={{ flex: "none" }}>
+                <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden className="flex-none">
                   <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2" />
                   <path d="M8 5.5v3.5M8 10.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
                 </svg>
@@ -202,7 +202,7 @@ export default function SendPage() {
 
               {error ? <ErrorNotice error={error} /> : null}
 
-              <div className="button-row" style={{ marginTop: 20 }}>
+              <div className="button-row mt-5">
                 <Button variant="ghost" onClick={reset}>Back</Button>
                 <Button variant="accent" loading={isSigningPermit2} onClick={signPermit2}>
                   {isSigningPermit2 ? "Awaiting signature..." : "Sign Permit2"}
@@ -233,7 +233,7 @@ export default function SendPage() {
               {result ? <FlowResultPanel result={result} id="token-flow-result" /> : null}
 
               {step === "success" || step === "failed" ? (
-                <div className="button-row" style={{ marginTop: 20 }}>
+                <div className="button-row mt-5">
                   <Button variant="ghost" onClick={reset}>Send Another</Button>
                   {step === "success" ? (
                     <Link href="/history">

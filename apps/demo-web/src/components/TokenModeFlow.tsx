@@ -40,7 +40,7 @@ export function TokenModeFlow({
     <section className="card card--primary" id="token-flow">
       <h2 className="card-title">Pay with Token</h2>
       <p className="card-subtitle">Send a gasless transaction and settle the gas fee in tUSDT via Permit2.</p>
-      <div className="button-row" style={{ marginTop: 16 }}>
+      <div className="button-row mt-4">
         <Button
           variant="accent"
           loading={isLoading}
@@ -51,7 +51,7 @@ export function TokenModeFlow({
           {isLoading ? "Submitting..." : "Pay gas in tUSDT"}
         </Button>
       </div>
-      {walletRequired ? <p className="card-subtitle" style={{ marginTop: 10 }}>Connect wallet first.</p> : null}
+      {walletRequired ? <p className="card-subtitle mt-3">Connect wallet first.</p> : null}
       <InlineProgressStepper stage={progressStage} startedAt={progressStartedAt} />
 
       {error ? <ErrorNotice error={error} /> : null}

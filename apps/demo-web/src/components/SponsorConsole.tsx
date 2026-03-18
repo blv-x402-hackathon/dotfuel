@@ -175,7 +175,7 @@ export function SponsorConsole(props: {
         </div>
       </div>
 
-      <div className="field" style={{ marginTop: 18 }}>
+      <div className="field mt-5">
         <span className="label">Active Campaign ID</span>
         <div className="target-input-row">
           <input
@@ -198,7 +198,7 @@ export function SponsorConsole(props: {
         <span className="field-hint">Format: 0x0000...0000 (32-byte hex)</span>
       </div>
 
-      <div className="button-row" style={{ marginTop: 16 }}>
+      <div className="button-row mt-4">
         <button className="button button--accent" disabled={isSubmitting} onClick={handleCreate}>
           {isSubmitting ? <span className="button__spinner" aria-hidden /> : null}
           {isSubmitting ? "Creating..." : "Create Campaign"}
@@ -207,7 +207,7 @@ export function SponsorConsole(props: {
 
       <details className="advanced-console">
         <summary>Advanced Campaign Settings</summary>
-        <div className="form-grid" style={{ marginTop: 14 }}>
+        <div className="form-grid mt-3">
           <label className="field">
             <span className="label">Campaign Name</span>
             <input
@@ -254,7 +254,7 @@ export function SponsorConsole(props: {
             />
           </label>
         </div>
-        <div className="field" style={{ marginTop: 12 }}>
+        <div className="field mt-3">
           <span className="label">Allowed Targets</span>
           <div className="target-tag-list">
             {targets.length === 0 ? <span className="card-subtitle">Add at least one target address.</span> : null}

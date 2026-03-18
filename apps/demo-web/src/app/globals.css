@@ -550,6 +550,7 @@ textarea {
   font-weight: 700;
   letter-spacing: 0.01em;
   cursor: pointer;
+  text-decoration: none;
   transition: transform 140ms ease, opacity 140ms ease, background 140ms ease;
 }
 
@@ -1886,6 +1887,73 @@ textarea {
   .section-grid {
     grid-template-columns: 360px minmax(0, 1fr);
   }
+}
+
+/* ─── Spacing utilities (4px grid) ──────────────────── */
+
+.mt-1-5 { margin-top: 6px; }
+.mt-3   { margin-top: var(--space-3); }
+.mt-4   { margin-top: var(--space-4); }
+.mt-5   { margin-top: var(--space-5); }
+.mt-6   { margin-top: var(--space-6); }
+.mt-10  { margin-top: var(--space-10); }
+
+/* ─── Layout utilities ──────────────────────────────── */
+
+.text-center { text-align: center; }
+.flex-none   { flex: none; }
+
+/* ─── Hero compact variant (dashboard) ─────────────── */
+
+.hero--compact {
+  padding: var(--space-6);
+}
+
+.hero--compact .hero-title {
+  max-width: none;
+  font-size: var(--text-2xl);
+  margin: 0 0 var(--space-2);
+}
+
+.hero-grid--sm {
+  margin-top: var(--space-5);
+}
+
+/* ─── Card centered (empty state) ───────────────────── */
+
+.card--centered {
+  text-align: center;
+  padding: var(--space-10);
+}
+
+/* ─── Not Found page ─────────────────────────────────── */
+
+.page-shell--centered {
+  text-align: center;
+  padding-top: 80px;
+}
+
+.not-found-title {
+  font-size: var(--text-hero);
+  font-family: var(--font-serif), "Palatino Linotype", serif;
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+
+.not-found-desc {
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-size: 18px;
+}
+
+/* ─── Address line header ────────────────────────────── */
+
+.address-line__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: 6px;
 }
 
 @media (prefers-reduced-motion: reduce) {

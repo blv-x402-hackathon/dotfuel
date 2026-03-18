@@ -113,9 +113,9 @@ export default function HistoryPage() {
   return (
     <main className="page-shell">
       <h1 className="page-section-title">Transaction History</h1>
-      <p className="card-subtitle" style={{ marginTop: 6 }}>Browse your gasless transaction history.</p>
+      <p className="card-subtitle mt-1-5">Browse your gasless transaction history.</p>
 
-      <div className="stack" style={{ marginTop: 24 }}>
+      <div className="stack mt-6">
         <div className="card card--data">
           <div className="history-filter-row">
             <div className="tab-bar">

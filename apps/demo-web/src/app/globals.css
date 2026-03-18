@@ -1088,6 +1088,10 @@ textarea {
   font-weight: 400;
 }
 
+.balance-delta--dim {
+  opacity: 0.45;
+}
+
 .balance-delta__value--neutral {
   color: var(--success);
 }

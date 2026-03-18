@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatEther, formatUnits, getAddress, parseAbi } from "viem";
+import { formatUnits, getAddress, parseAbi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -173,12 +173,20 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const previousTokenValue = previousSnapshot
     ? formatAmount(previousSnapshot.smartAccountToken, previousSnapshot.tokenDecimals, 4)
     : null;
-  const pasDelta = snapshot && previousSnapshot
-    ? formatEther(snapshot.eoaPas - previousSnapshot.eoaPas)
+  const pasDeltaRaw = snapshot && previousSnapshot
+    ? snapshot.eoaPas - previousSnapshot.eoaPas
     : null;
-  const tokenDelta = snapshot && previousSnapshot
-    ? formatAmount(snapshot.smartAccountToken - previousSnapshot.smartAccountToken, snapshot.tokenDecimals, 4)
+  const pasDelta = pasDeltaRaw !== null
+    ? formatAmount(pasDeltaRaw < 0n ? -pasDeltaRaw : pasDeltaRaw, 18, 6)
     : null;
+  const pasDeltaSign = pasDeltaRaw !== null && pasDeltaRaw > 0n ? "+" : pasDeltaRaw !== null && pasDeltaRaw < 0n ? "-" : "";
+  const tokenDeltaRaw = snapshot && previousSnapshot
+    ? snapshot.smartAccountToken - previousSnapshot.smartAccountToken
+    : null;
+  const tokenDelta = tokenDeltaRaw !== null
+    ? formatAmount(tokenDeltaRaw < 0n ? -tokenDeltaRaw : tokenDeltaRaw, snapshot!.tokenDecimals, 6)
+    : null;
+  const tokenDeltaSign = tokenDeltaRaw !== null && tokenDeltaRaw > 0n ? "+" : tokenDeltaRaw !== null && tokenDeltaRaw < 0n ? "-" : "";
   const isGasless = snapshot ? snapshot.eoaPas === 0n : false;
   const pasBadgeClass = snapshot ? (isGasless ? "badge badge--success" : "badge badge--neutral") : "badge badge--neutral";
   const pasBadgeLabel = snapshot
@@ -231,12 +239,12 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
           </div>
           <div className="balance-card__value">{animatedPasValue ? `${animatedPasValue} PAS` : "Connect wallet"}</div>
           <div className="balance-card__meta">Used for network gas fees.</div>
-          <div className="balance-delta">
+          <div className={`balance-delta${pasDeltaRaw === 0n ? " balance-delta--dim" : ""}`}>
             <span className="balance-delta__label">Δ PAS</span>
-            {pasDelta ? (
-              Number(pasDelta) === 0
+            {pasDelta !== null ? (
+              pasDeltaRaw === 0n
                 ? <span className="balance-delta__value balance-delta__value--neutral">No change</span>
-                : <span className={`balance-delta__value ${Number(pasDelta) < 0 ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{pasDelta} PAS</span>
+                : <span className={`balance-delta__value ${pasDeltaRaw! < 0n ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{pasDeltaSign}{pasDelta} PAS</span>
             ) : (
               <span className="balance-delta__value balance-delta__value--empty">—</span>
             )}
@@ -250,10 +258,12 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
           </div>
           <div className="balance-card__value">{animatedTokenValue ? `${animatedTokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
           <div className="balance-card__meta">Deducted when paying gas with token.</div>
-          <div className="balance-delta">
+          <div className={`balance-delta${tokenDeltaRaw === 0n ? " balance-delta--dim" : ""}`}>
             <span className="balance-delta__label">Δ {tokenSymbol}</span>
-            {tokenDelta ? (
-              <span className={`balance-delta__value ${Number(tokenDelta) < 0 ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{tokenDelta} {tokenSymbol}</span>
+            {tokenDelta !== null ? (
+              tokenDeltaRaw === 0n
+                ? <span className="balance-delta__value balance-delta__value--neutral">No change</span>
+                : <span className={`balance-delta__value ${tokenDeltaRaw! < 0n ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{tokenDeltaSign}{tokenDelta} {tokenSymbol}</span>
             ) : (
               <span className="balance-delta__value balance-delta__value--empty">—</span>
             )}

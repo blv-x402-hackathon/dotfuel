@@ -147,7 +147,18 @@ export default function SendPage() {
                 </div>
               </div>
 
-              {error ? <ErrorNotice error={error} /> : null}
+              {error ? (
+                <ErrorNotice
+                  error={error}
+                  action={
+                    error.message.toLowerCase().includes("wallet") || error.message.toLowerCase().includes("connect")
+                      ? { label: "Connect Wallet", onClick: openModal }
+                      : error.debug?.toLowerCase().includes("network") || error.debug?.toLowerCase().includes("fetch")
+                        ? { label: "Retry", onClick: fetchQuote }
+                        : undefined
+                  }
+                />
+              ) : null}
 
               <div className="button-row mt-5">
                 <Button variant="accent" loading={isFetchingQuote} onClick={fetchQuote}>

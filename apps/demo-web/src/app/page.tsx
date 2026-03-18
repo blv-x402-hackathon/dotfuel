@@ -167,7 +167,7 @@ export default function HomePage() {
       ) : null}
 
       <section className="section-grid">
-        <div className="stack">
+        <div className="stack sidebar-stack">
           {isConnected ? <WalletConnect variant="sidebar" /> : null}
           <CounterfactualAddress />
         </div>

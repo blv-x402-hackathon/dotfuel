@@ -286,6 +286,12 @@ textarea {
   gap: 18px;
 }
 
+.sidebar-stack {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+}
+
 .flow-tabs-shell {
   position: relative;
 }
@@ -1054,6 +1060,10 @@ textarea {
 
   .hero-brand {
     flex-direction: column;
+  }
+
+  .sidebar-stack {
+    position: static;
   }
 
   .card-header {

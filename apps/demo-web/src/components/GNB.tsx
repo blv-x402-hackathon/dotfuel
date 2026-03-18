@@ -82,6 +82,22 @@ export function GNB() {
             <span className="gnb__network-label">{HEALTH_LABEL[health.overall]}</span>
           </span>
           <button
+            className="gnb__cmd-btn"
+            type="button"
+            aria-label="Open command palette (⌘K)"
+            title="Command palette (⌘K)"
+            onClick={() => {
+              // Dispatch a synthetic Cmd+K to open the palette
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
+            }}
+          >
+            <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden>
+              <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M10 10l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <kbd aria-hidden>⌘K</kbd>
+          </button>
+          <button
             className="gnb__theme-btn"
             onClick={cycleTheme}
             type="button"
@@ -190,6 +206,31 @@ export function GNB() {
           align-items: center;
           gap: 12px;
           flex: none;
+        }
+
+        .gnb__cmd-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 10px;
+          border-radius: var(--radius-full);
+          border: 1px solid var(--line);
+          background: transparent;
+          color: var(--muted);
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 120ms, color 120ms;
+        }
+
+        .gnb__cmd-btn kbd {
+          font-family: inherit;
+          font-size: 11px;
+        }
+
+        .gnb__cmd-btn:hover {
+          background: rgba(36, 24, 14, 0.06);
+          color: var(--ink);
         }
 
         .gnb__theme-btn {

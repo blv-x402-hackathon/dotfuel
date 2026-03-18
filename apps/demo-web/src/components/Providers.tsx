@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { WagmiProvider } from "wagmi";
 
+import { CommandPalette } from "@/components/CommandPalette";
 import { ToastProvider } from "@/components/ToastContext";
 import { ToastStack } from "@/components/ToastStack";
 import { WalletContextProvider } from "@/components/WalletContext";
@@ -19,6 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
             {children}
             <WalletModal />
             <ToastStack />
+            <CommandPalette />
           </WalletContextProvider>
         </ToastProvider>
       </QueryClientProvider>

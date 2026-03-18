@@ -93,7 +93,9 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const [manualRefreshKey, setManualRefreshKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [highlight, setHighlight] = useState(false);
   const snapshotRef = useRef<BalanceSnapshot | null>(null);
+  const prevRefreshKey = useRef(refreshKey);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
@@ -151,9 +153,22 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
           refreshedAt: Date.now()
         };
 
+        const hadPrevious = snapshotRef.current !== null;
+        const changed =
+          hadPrevious &&
+          (snapshotRef.current!.smartAccountToken !== nextSnapshot.smartAccountToken ||
+            snapshotRef.current!.eoaPas !== nextSnapshot.eoaPas);
+
         setPreviousSnapshot(snapshotRef.current);
         snapshotRef.current = nextSnapshot;
         setSnapshot(nextSnapshot);
+
+        // Flash highlight when values change after an external refresh
+        if (changed && prevRefreshKey.current !== refreshKey) {
+          prevRefreshKey.current = refreshKey;
+          setHighlight(true);
+          setTimeout(() => setHighlight(false), 2000);
+        }
       } catch (nextError) {
         setError(nextError instanceof Error ? nextError.message : "Failed to refresh balances");
       } finally {
@@ -199,7 +214,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       : "Pending";
 
   return (
-    <section className="card card--data" id="balance-panel">
+    <section className={`card card--data${highlight ? " card--highlight" : ""}`} id="balance-panel">
       <div className="card-header">
         <div>
           <h2 className="card-title">Balances</h2>
@@ -273,7 +288,9 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
 
       <div className="balance-footer">
         <span className="label">Last Refreshed</span>
-        <span className="value">{refreshedLabel}</span>
+        <span className={`value${highlight ? " balance-footer__updated" : ""}`}>
+          {highlight ? "✓ Updated just now" : refreshedLabel}
+        </span>
       </div>
     </section>
   );

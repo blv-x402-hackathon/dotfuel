@@ -396,6 +396,21 @@ textarea {
   border-color: rgba(78, 54, 32, 0.16);
 }
 
+.card--highlight {
+  animation: cardHighlight 2s ease forwards;
+}
+
+@keyframes cardHighlight {
+  0% { box-shadow: 0 0 0 2px var(--success), var(--shadow-md); }
+  60% { box-shadow: 0 0 0 2px var(--success), var(--shadow-md); }
+  100% { box-shadow: var(--shadow-md); }
+}
+
+.balance-footer__updated {
+  color: var(--success);
+  font-weight: 600;
+}
+
 .card--log {
   padding: 16px;
   background: rgba(255, 255, 255, 0.45);

@@ -60,8 +60,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className={`${inter.variable} ${fraunces.variable}`}>
         <Providers>
+          <a href="#main-content" className="skip-to-content">Skip to content</a>
           <GNB />
-          {children}
+          <div id="main-content">{children}</div>
           <Footer />
           <BottomNav />
         </Providers>

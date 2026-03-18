@@ -8,7 +8,7 @@
 
   /* Colors — text */
   --ink: #24180e;
-  --muted: #6f6256;
+  --muted: #5e5347;
 
   /* Colors — interactive */
   --accent: #c75a2e;
@@ -102,6 +102,26 @@ body {
 
 a {
   color: inherit;
+}
+
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--card-strong);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: top 120ms ease;
+}
+
+.skip-to-content:focus {
+  top: 12px;
 }
 
 button,

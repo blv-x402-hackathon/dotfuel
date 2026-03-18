@@ -63,6 +63,7 @@ export function CopyableHex(props: {
           copyText(value).then(() => setCopied(true)).catch(() => setCopied(false));
         }}
         title={copied ? "Copied!" : "Copy to clipboard"}
+        aria-label={copied ? "Copied to clipboard" : `Copy ${truncateHex(value)} to clipboard`}
         type="button"
       >
         {copied ? (

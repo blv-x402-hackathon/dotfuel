@@ -123,7 +123,8 @@ export default function SponsorPage() {
         perUserMaxOps: perUser
       });
       setCampaignId(newId);
-      setFeedback(`Campaign ready: ${newId.slice(0, 12)}... (${result.txHash.slice(0, 12)}...)`);
+      setFeedback(`Campaign created: ${newId.slice(0, 12)}...`);
+      toast("success", "Campaign created", `ID: ${newId.slice(0, 16)}...`);
     } catch (e) {
       setFormError(toUiError(e, "campaign"));
     } finally {

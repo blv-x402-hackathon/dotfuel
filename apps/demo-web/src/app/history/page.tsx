@@ -19,6 +19,79 @@ function formatTime(ts: number) {
 
 type FilterMode = "all" | "token" | "sponsor";
 
+function TxItemRow({ item }: { item: StoredTxItem }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <li className="history-item history-item--bordered">
+      <button
+        className="history-item__summary"
+        onClick={() => setExpanded((v) => !v)}
+        type="button"
+        aria-expanded={expanded}
+      >
+        <div className="history-item__head">
+          <span className={`badge ${item.mode === "token" ? "badge--accent" : "badge--neutral"}`}>
+            {item.mode === "token" ? "Token Mode" : "Sponsor Mode"}
+          </span>
+          <span className="history-item__time">{formatTime(item.createdAt)}</span>
+        </div>
+        <div className="history-item__preview">
+          <span className="history-item__detail">{item.gasCostLabel}</span>
+          <span className="history-item__sep">→</span>
+          <span className="history-item__detail">{item.settlementLabel}</span>
+        </div>
+        <span className="history-item__chevron" aria-hidden>
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            width="14"
+            height="14"
+            style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform 160ms ease" }}
+          >
+            <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </button>
+
+      {expanded ? (
+        <div className="history-item__detail-panel">
+          <div className="history-detail-grid">
+            <div className="history-detail-row">
+              <span className="label">Gas Cost</span>
+              <strong>{item.gasCostLabel}</strong>
+            </div>
+            <div className="history-detail-row">
+              <span className="label">Settlement</span>
+              <strong>{item.settlementLabel}</strong>
+            </div>
+            <div className="history-detail-row">
+              <span className="label">Mode</span>
+              <strong>{item.mode === "token" ? "Token (Permit2)" : "Sponsored"}</strong>
+            </div>
+            <div className="history-detail-row">
+              <span className="label">Time</span>
+              <strong>{formatTime(item.createdAt)}</strong>
+            </div>
+          </div>
+          <div className="history-detail-hash">
+            <span className="label">Transaction Hash</span>
+            <CopyableHex value={item.hash ?? null} fallback="Pending" />
+          </div>
+          {item.explorerUrl ? (
+            <a className="inline-link explorer-link" href={item.explorerUrl} target="_blank" rel="noreferrer">
+              View on Blockscout
+              <svg className="external-icon" aria-hidden viewBox="0 0 16 16" fill="none">
+                <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3M9 2h5m0 0v5m0-5L7 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
 export default function HistoryPage() {
   const [items, setItems] = useState<StoredTxItem[]>([]);
   const [filter, setFilter] = useState<FilterMode>("all");
@@ -53,7 +126,7 @@ export default function HistoryPage() {
                   onClick={() => setFilter(mode)}
                   type="button"
                 >
-                  {mode === "all" ? "All" : mode === "token" ? "Token" : "Sponsor"}
+                  {mode === "all" ? `All (${items.length})` : mode === "token" ? "Token" : "Sponsor"}
                 </button>
               ))}
             </div>
@@ -71,7 +144,6 @@ export default function HistoryPage() {
           {isEmpty ? (
             <div className="history-empty">
               {hasNoHistory ? (
-                /* First-time empty state */
                 <>
                   <svg className="history-empty__icon" viewBox="0 0 56 56" fill="none" aria-hidden>
                     <circle cx="28" cy="28" r="26" stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="6 4" />
@@ -85,7 +157,6 @@ export default function HistoryPage() {
                   </Link>
                 </>
               ) : (
-                /* No results for current filter/search */
                 <>
                   <svg className="history-empty__icon" viewBox="0 0 56 56" fill="none" aria-hidden>
                     <circle cx="28" cy="28" r="26" stroke="var(--muted)" strokeWidth="1.5" strokeDasharray="6 4" />
@@ -112,27 +183,7 @@ export default function HistoryPage() {
           ) : (
             <ul className="history-list">
               {filtered.map((item, idx) => (
-                <li className="history-item history-item--bordered" key={`${item.createdAt}-${idx}`}>
-                  <div className="history-item__head">
-                    <span className={`badge ${item.mode === "token" ? "badge--accent" : "badge--neutral"}`}>
-                      {item.mode === "token" ? "Token Mode" : "Sponsor Mode"}
-                    </span>
-                    <span className="history-item__time">{formatTime(item.createdAt)}</span>
-                  </div>
-                  <span className="history-item__detail">{item.gasCostLabel}</span>
-                  <span className="history-item__detail">{item.settlementLabel}</span>
-                  <div className="history-item__foot">
-                    <CopyableHex value={item.hash ?? null} fallback="Pending" />
-                    {item.explorerUrl ? (
-                      <a className="inline-link explorer-link" href={item.explorerUrl} target="_blank" rel="noreferrer">
-                        View on Blockscout
-                        <svg className="external-icon" aria-hidden viewBox="0 0 16 16" fill="none">
-                          <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3M9 2h5m0 0v5m0-5L7 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </a>
-                    ) : null}
-                  </div>
-                </li>
+                <TxItemRow key={`${item.createdAt}-${idx}`} item={item} />
               ))}
             </ul>
           )}

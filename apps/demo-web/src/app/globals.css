@@ -759,6 +759,77 @@ textarea {
   min-width: 180px;
 }
 
+/* ─── History item expand ─────────────────────────── */
+
+.history-item__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+}
+
+.history-item__preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.history-item__sep {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-item__chevron {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: var(--muted);
+}
+
+.history-item__detail-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+}
+
+.history-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.history-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+}
+
+.history-detail-row .label {
+  font-size: 11px;
+}
+
+.history-detail-row strong {
+  font-size: 13px;
+}
+
+.history-detail-hash {
+  display: grid;
+  gap: 4px;
+}
+
 /* ─── Sponsor empty state ─────────────────────────── */
 
 .sponsor-empty-state {

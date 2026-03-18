@@ -159,6 +159,7 @@ export function SponsorConsole(props: {
   const spent = status ? formatAmount(hexToBigInt(status.spent), 18, 5) : null;
   const budget = status ? formatAmount(hexToBigInt(status.budget), 18, 5) : null;
   const remaining = status ? formatAmount(hexToBigInt(status.remainingBudget), 18, 5) : null;
+  const isCampaignIdValid = /^0x[a-fA-F0-9]{64}$/.test(campaignIdInput);
 
   return (
     <section className="card card--data">
@@ -176,7 +177,7 @@ export function SponsorConsole(props: {
       <div className="field" style={{ marginTop: 18 }}>
         <span className="label">Active Campaign ID</span>
         <input
-          className="input"
+          className={`input ${campaignIdInput.length > 0 ? (isCampaignIdValid ? "input--valid" : "input--invalid") : ""}`}
           placeholder="0x0000...0000 (32 bytes)"
           value={campaignIdInput}
           onChange={(event) => setCampaignIdInput(event.target.value)}
@@ -207,6 +208,9 @@ export function SponsorConsole(props: {
             <span className="label">Budget (PAS)</span>
             <input
               className="input"
+              min={0.001}
+              step={0.001}
+              type="number"
               placeholder="0.25"
               value={budgetPas}
               onChange={(event) => setBudgetPas(event.target.value)}
@@ -219,6 +223,7 @@ export function SponsorConsole(props: {
               min={1}
               step={1}
               type="number"
+              placeholder="3"
               value={perUserMaxOps}
               onChange={(event) => setPerUserMaxOps(event.target.value)}
             />
@@ -230,6 +235,7 @@ export function SponsorConsole(props: {
               min={1}
               step={1}
               type="number"
+              placeholder="90"
               value={durationMinutes}
               onChange={(event) => setDurationMinutes(event.target.value)}
             />

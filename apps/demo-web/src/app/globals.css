@@ -763,6 +763,19 @@ textarea {
   color: var(--ink);
 }
 
+.input:focus-visible {
+  border-color: rgba(199, 90, 46, 0.7);
+  box-shadow: 0 0 0 3px rgba(199, 90, 46, 0.24);
+}
+
+.input--valid {
+  border-color: rgba(12, 122, 92, 0.4);
+}
+
+.input--invalid {
+  border-color: rgba(181, 67, 48, 0.45);
+}
+
 .input--textarea {
   min-height: 92px;
   resize: vertical;

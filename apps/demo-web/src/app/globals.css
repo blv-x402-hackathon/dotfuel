@@ -1668,7 +1668,9 @@ textarea {
   line-height: 1.5;
 }
 
-@media (max-width: 900px) {
+/* ─── Breakpoints: sm 640, md 768, lg 1024, xl 1280 ─ */
+
+@media (max-width: 768px) {
   .hero-grid--two,
   .section-grid,
   .stat-grid,
@@ -1699,7 +1701,7 @@ textarea {
     padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* compact sidebar on mobile — hide verbose content, keep essentials */
+  /* compact sidebar on mobile */
   .sidebar-stack .card-title {
     font-size: 16px;
     margin-bottom: 4px;
@@ -1752,11 +1754,19 @@ textarea {
   .target-input-row {
     grid-template-columns: 1fr;
   }
+
+  .wizard-indicator__label {
+    display: none;
+  }
+
+  .wizard-indicator__line {
+    margin: 0 4px;
+  }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .page-shell {
-    padding: 28px 14px 56px;
+    padding: 28px 14px calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
   .page-header {
@@ -1797,7 +1807,7 @@ textarea {
   }
 }
 
-@media (min-width: 1400px) {
+@media (min-width: 1280px) {
   .page-shell {
     max-width: 1360px;
   }

@@ -181,13 +181,13 @@ export function GNB() {
           }
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
           .gnb__nav {
             display: none;
           }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
           .gnb__inner {
             padding: 8px 14px;
           }

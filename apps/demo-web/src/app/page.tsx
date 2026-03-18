@@ -28,7 +28,9 @@ export default function HomePage() {
       <main className="page-shell">
         <section className="hero">
           <h1 className="hero-title">DotFuel</h1>
-          <p className="hero-copy">Pay blockchain gas with any token. Zero native balance required.</p>
+          <p className="hero-copy">
+            Execute Polkadot Hub transactions with <strong>zero PAS</strong>. Pay gas in tUSDT or any supported token — no native balance required.
+          </p>
           <div className="stat-grid">
             <div className="stat">
               <span className="stat-label">Gas Required</span>
@@ -51,14 +53,59 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div className="hero-grid hero-grid--two hero-grid--sm">
+        {/* How it works — 3 steps */}
+        <section className="how-it-works mt-6">
+          <h2 className="how-it-works__title">How it works</h2>
+          <ol className="how-it-works__steps" aria-label="How DotFuel works">
+            <li className="how-it-works__step">
+              <div className="how-it-works__icon" aria-hidden>
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28">
+                  <circle cx="16" cy="16" r="14" stroke="var(--accent)" strokeWidth="1.5" />
+                  <path d="M10 16c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="16" cy="16" r="2.5" fill="var(--accent)" />
+                </svg>
+              </div>
+              <div className="how-it-works__text">
+                <strong>Connect your wallet</strong>
+                <span>DotFuel derives a smart account address — no deployment needed upfront.</span>
+              </div>
+            </li>
+            <li className="how-it-works__step">
+              <div className="how-it-works__icon" aria-hidden>
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28">
+                  <rect x="3" y="7" width="26" height="18" rx="5" stroke="var(--accent)" strokeWidth="1.5" />
+                  <path d="M3 13h26" stroke="var(--accent)" strokeWidth="1.5" />
+                  <circle cx="9" cy="19" r="2" fill="var(--accent)" />
+                </svg>
+              </div>
+              <div className="how-it-works__text">
+                <strong>Choose a payment token</strong>
+                <span>Select tUSDT or any supported Asset Hub token to settle gas fees.</span>
+              </div>
+            </li>
+            <li className="how-it-works__step">
+              <div className="how-it-works__icon" aria-hidden>
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28">
+                  <path d="M6 16h14M16 10l6 6-6 6" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M26 8v16" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" opacity="0.4" />
+                </svg>
+              </div>
+              <div className="how-it-works__text">
+                <strong>Send transactions — gas settled in your token</strong>
+                <span>Sign once with Permit2. Gas is deducted in your chosen token, never PAS.</span>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <div className="hero-grid hero-grid--two hero-grid--sm mt-4">
           <div className="card">
             <h3 className="card-title">Pay with Token</h3>
-            <p className="card-subtitle">Use any supported ERC-20 token to pay for gas. No native balance needed.</p>
+            <p className="card-subtitle mt-2">Use any supported ERC-20 token to pay for gas. No native balance needed.</p>
           </div>
           <div className="card">
             <h3 className="card-title">Sponsored Gas</h3>
-            <p className="card-subtitle">dApps can sponsor gas for their users through onboarding campaigns.</p>
+            <p className="card-subtitle mt-2">dApps can sponsor gas for their users through onboarding campaigns.</p>
           </div>
         </div>
       </main>

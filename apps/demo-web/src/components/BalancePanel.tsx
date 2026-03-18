@@ -190,6 +190,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
           </p>
         </div>
         <button className="button button--ghost" disabled={isRefreshing} onClick={() => setManualRefreshKey((current) => current + 1)}>
+          {isRefreshing ? <span className="button__spinner" aria-hidden /> : null}
           {isRefreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>

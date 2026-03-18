@@ -46,6 +46,7 @@ export function SponsorModeFlow({
           onClick={executeSponsored}
           title={walletRequired ? "Wallet required" : undefined}
         >
+          {isLoading ? <span className="button__spinner" aria-hidden /> : null}
         {isLoading ? "Submitting..." : "Execute Sponsored"}
         </button>
       </div>

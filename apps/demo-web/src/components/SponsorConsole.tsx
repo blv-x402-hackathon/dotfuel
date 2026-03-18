@@ -147,6 +147,7 @@ export function SponsorConsole(props: {
           <p className="card-subtitle">Create a campaign, switch the active sponsor budget, and keep the spend meter live while polling.</p>
         </div>
         <button className="button button--ghost" disabled={isRefreshing} onClick={handleLoad}>
+          {isRefreshing ? <span className="button__spinner" aria-hidden /> : null}
           {isRefreshing ? "Refreshing..." : "Load Campaign"}
         </button>
       </div>
@@ -180,6 +181,7 @@ export function SponsorConsole(props: {
 
       <div className="button-row" style={{ marginTop: 16 }}>
         <button className="button" disabled={isSubmitting} onClick={handleCreate}>
+          {isSubmitting ? <span className="button__spinner" aria-hidden /> : null}
           {isSubmitting ? "Creating..." : "Create Campaign"}
         </button>
       </div>

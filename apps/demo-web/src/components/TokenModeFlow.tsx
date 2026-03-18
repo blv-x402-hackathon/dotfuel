@@ -40,6 +40,7 @@ export function TokenModeFlow({
           onClick={executeTokenMode}
           title={walletRequired ? "Wallet required" : undefined}
         >
+          {isLoading ? <span className="button__spinner" aria-hidden /> : null}
         {isLoading ? "Submitting..." : "Pay gas in tUSDT"}
         </button>
       </div>

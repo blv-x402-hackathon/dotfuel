@@ -25,7 +25,7 @@ body {
 
 body {
   color: var(--ink);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Segoe UI", sans-serif;
   background:
     radial-gradient(circle at top left, rgba(199, 90, 46, 0.16), transparent 34%),
     radial-gradient(circle at 85% 12%, rgba(12, 122, 92, 0.12), transparent 22%),
@@ -106,7 +106,7 @@ textarea {
 .hero-title {
   max-width: 9ch;
   margin: 18px 0 10px;
-  font-family: "Iowan Old Style", "Palatino Linotype", serif;
+  font-family: var(--font-serif), "Palatino Linotype", serif;
   font-size: clamp(48px, 10vw, 88px);
   line-height: 0.96;
   letter-spacing: -0.04em;
@@ -184,7 +184,7 @@ textarea {
 
 .card-title {
   margin: 0 0 8px;
-  font-family: "Iowan Old Style", "Palatino Linotype", serif;
+  font-family: var(--font-serif), "Palatino Linotype", serif;
   font-size: 26px;
   letter-spacing: -0.04em;
 }

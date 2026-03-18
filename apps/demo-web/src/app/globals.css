@@ -761,6 +761,19 @@ textarea {
   line-height: 1.5;
 }
 
+.history-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.history-limit-notice {
+  margin: 16px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .history-filter-row {
   display: flex;
   gap: 12px;

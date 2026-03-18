@@ -93,16 +93,27 @@ function TxItemRow({ item }: { item: StoredTxItem }) {
   );
 }
 
+const PAGE_SIZE = 20;
+
 export default function HistoryPage() {
   const [items, setItems] = useState<StoredTxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterMode>("all");
   const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     setItems(loadTxHistory());
     setLoading(false);
   }, []);
+
+  // Reset pagination when filter/search changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filter, search]);
+
+  const tokenCount = items.filter((i) => i.mode === "token").length;
+  const sponsorCount = items.filter((i) => i.mode === "sponsor").length;
 
   const filtered = items.filter((item) => {
     if (filter !== "all" && item.mode !== filter) return false;
@@ -110,6 +121,8 @@ export default function HistoryPage() {
     return true;
   });
 
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = filtered.length > visibleCount;
   const isEmpty = filtered.length === 0;
   const hasNoHistory = items.length === 0;
 
@@ -129,7 +142,7 @@ export default function HistoryPage() {
                   onClick={() => setFilter(mode)}
                   type="button"
                 >
-                  {mode === "all" ? `All (${items.length})` : mode === "token" ? "Token" : "Sponsor"}
+                  {mode === "all" ? `All (${items.length})` : mode === "token" ? `Token (${tokenCount})` : `Sponsor (${sponsorCount})`}
                 </button>
               ))}
             </div>
@@ -198,11 +211,26 @@ export default function HistoryPage() {
               )}
             </div>
           ) : (
-            <ul className="history-list">
-              {filtered.map((item, idx) => (
-                <TxItemRow key={`${item.createdAt}-${idx}`} item={item} />
-              ))}
-            </ul>
+            <>
+              <ul className="history-list">
+                {visible.map((item, idx) => (
+                  <TxItemRow key={`${item.createdAt}-${idx}`} item={item} />
+                ))}
+              </ul>
+              {hasMore ? (
+                <div className="history-load-more">
+                  <button
+                    className="button button--ghost button--sm"
+                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                    type="button"
+                  >
+                    Load More ({filtered.length - visibleCount} remaining)
+                  </button>
+                </div>
+              ) : items.length >= 100 ? (
+                <p className="history-limit-notice">Oldest transactions are automatically removed after 100 entries.</p>
+              ) : null}
+            </>
           )}
         </div>
       </div>

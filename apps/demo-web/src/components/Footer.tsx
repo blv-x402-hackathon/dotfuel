@@ -3,15 +3,14 @@
 import { LogoMark } from "@/components/LogoMark";
 
 const PRODUCT_LINKS = [
-  { label: "Dashboard", href: "/" },
+  { label: "Home", href: "/" },
   { label: "Send", href: "/send" },
   { label: "Sponsor", href: "/sponsor" },
   { label: "History", href: "/history" }
 ];
 
 const RESOURCE_LINKS = [
-  { label: "Documentation", href: "#" },
-  { label: "GitHub", href: "#" },
+  { label: "GitHub", href: "https://github.com/blv-x402-hackathon/dotfuel" },
   { label: "Block Explorer", href: "https://blockscout-testnet.polkadot.io/" }
 ];
 
@@ -133,18 +132,25 @@ export function Footer() {
           }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
           .footer__inner {
             flex-direction: column;
             gap: 24px;
+            padding-left: 14px;
+            padding-right: 14px;
           }
 
           .footer__links {
             gap: 32px;
           }
+
+          .footer__bottom {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
           .footer {
             margin-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
           }

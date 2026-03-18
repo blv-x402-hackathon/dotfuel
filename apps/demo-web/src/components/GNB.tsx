@@ -23,7 +23,7 @@ const HEALTH_LABEL: Record<HealthStatus, string> = {
 };
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard" },
+  { href: "/", label: "Home" },
   { href: "/send", label: "Send" },
   { href: "/sponsor", label: "Sponsor" },
   { href: "/history", label: "History" }
@@ -190,6 +190,7 @@ export function GNB() {
         @media (max-width: 640px) {
           .gnb__inner {
             padding: 8px 14px;
+            max-width: none;
           }
 
           .gnb__brand-name {

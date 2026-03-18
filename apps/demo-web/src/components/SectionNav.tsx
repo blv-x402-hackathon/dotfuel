@@ -3,23 +3,29 @@
 import { useEffect, useState } from "react";
 
 const SECTIONS = [
-  { id: "balance-panel", label: "Balance" },
-  { id: "token-flow", label: "Token" },
-  { id: "sponsor-flow", label: "Sponsor" },
-  { id: "tx-history", label: "History" }
+  { id: "balance-panel", label: "Balance", tab: null },
+  { id: "flow-tabs", label: "Token", tab: "token" as const },
+  { id: "flow-tabs", label: "Sponsor", tab: "sponsor" as const },
+  { id: "tx-history", label: "History", tab: null }
 ] as const;
 
-export function SectionNav() {
-  const [activeId, setActiveId] = useState<string>(SECTIONS[0].id);
+export function SectionNav({ onTabChange }: { onTabChange?: (tab: "token" | "sponsor") => void }) {
+  const [activeLabel, setActiveLabel] = useState<string>(SECTIONS[0].label);
 
   useEffect(() => {
+    const targets = [
+      { id: "balance-panel", label: "Balance" },
+      { id: "flow-tabs", label: "Token" },
+      { id: "tx-history", label: "History" }
+    ];
+
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
         if (visible.length > 0) {
-          setActiveId(visible[0].target.id);
+          setActiveLabel(visible[0].target.dataset.navLabel ?? visible[0].target.id);
         }
       },
       {
@@ -28,9 +34,12 @@ export function SectionNav() {
       }
     );
 
-    for (const section of SECTIONS) {
-      const node = document.getElementById(section.id);
-      if (node) observer.observe(node);
+    for (const target of targets) {
+      const node = document.getElementById(target.id);
+      if (node) {
+        node.dataset.navLabel = target.label;
+        observer.observe(node);
+      }
     }
 
     return () => observer.disconnect();
@@ -40,9 +49,12 @@ export function SectionNav() {
     <nav aria-label="Section navigation" className="section-nav">
       {SECTIONS.map((section) => (
         <button
-          className={`section-nav__button ${activeId === section.id ? "section-nav__button--active" : ""}`}
-          key={section.id}
-          onClick={() => document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          className={`section-nav__button ${activeLabel === section.label ? "section-nav__button--active" : ""}`}
+          key={`${section.id}-${section.label}`}
+          onClick={() => {
+            if (section.tab) onTabChange?.(section.tab);
+            document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
           type="button"
         >
           {section.label}

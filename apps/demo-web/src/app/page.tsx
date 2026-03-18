@@ -176,7 +176,7 @@ export default function HomePage() {
       </section>
 
       <StepIndicator steps={steps} onQuickDemo={handleQuickDemo} />
-      <SectionNav />
+      <SectionNav onTabChange={setPreferredTab} />
 
       <section className="section-grid">
         <div className="stack sidebar-stack">

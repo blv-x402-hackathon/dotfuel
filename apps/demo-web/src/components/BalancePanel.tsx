@@ -223,15 +223,16 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
           </div>
           <div className="balance-card__value">{animatedPasValue ? `${animatedPasValue} PAS` : "Connect wallet"}</div>
           <div className="balance-card__meta">Target state: keep native gas at zero.</div>
-          <details className="balance-details">
-            <summary>View delta snapshot</summary>
-            <div className="balance-card__meta">
-              {previousPasValue ? `Before: ${previousPasValue} PAS` : "Waiting for first refresh"}
-            </div>
-            <div className="balance-card__meta">
-              {pasDelta ? `Delta: ${pasDelta} PAS` : "Delta will appear after a refresh cycle"}
-            </div>
-          </details>
+          <div className="balance-delta">
+            <span className="balance-delta__label">Δ PAS</span>
+            {pasDelta ? (
+              Number(pasDelta) === 0
+                ? <span className="balance-delta__value balance-delta__value--neutral">No change (gasless ✓)</span>
+                : <span className={`balance-delta__value ${Number(pasDelta) < 0 ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{pasDelta} PAS</span>
+            ) : (
+              <span className="balance-delta__value balance-delta__value--empty">—</span>
+            )}
+          </div>
         </article>
 
         <article className="balance-card">
@@ -241,15 +242,14 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
           </div>
           <div className="balance-card__value">{animatedTokenValue ? `${animatedTokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
           <div className="balance-card__meta">Watch tUSDT move only on token mode.</div>
-          <details className="balance-details">
-            <summary>View delta snapshot</summary>
-            <div className="balance-card__meta">
-              {previousTokenValue ? `Before: ${previousTokenValue} ${tokenSymbol}` : "Refresh after a UserOperation"}
-            </div>
-            <div className="balance-card__meta">
-              {tokenDelta ? `Delta: ${tokenDelta} ${tokenSymbol}` : "Delta will appear after a refresh cycle"}
-            </div>
-          </details>
+          <div className="balance-delta">
+            <span className="balance-delta__label">Δ {tokenSymbol}</span>
+            {tokenDelta ? (
+              <span className={`balance-delta__value ${Number(tokenDelta) < 0 ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{tokenDelta} {tokenSymbol}</span>
+            ) : (
+              <span className="balance-delta__value balance-delta__value--empty">—</span>
+            )}
+          </div>
         </article>
       </div>
 

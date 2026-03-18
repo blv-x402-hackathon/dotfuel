@@ -713,16 +713,45 @@ textarea {
   font-size: 14px;
 }
 
-.balance-details {
-  display: grid;
-  gap: 6px;
+.balance-delta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(36, 24, 14, 0.05);
 }
 
-.balance-details summary {
-  cursor: pointer;
-  color: var(--accent-strong);
+.balance-delta__label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex: none;
+}
+
+.balance-delta__value {
   font-size: 13px;
   font-weight: 700;
+}
+
+.balance-delta__value--empty {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.balance-delta__value--neutral {
+  color: var(--success);
+}
+
+.balance-delta__value--pos {
+  color: var(--success);
+}
+
+.balance-delta__value--neg {
+  color: var(--danger);
 }
 
 .badge {

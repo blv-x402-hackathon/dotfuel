@@ -59,7 +59,7 @@
   --shadow: var(--shadow-lg);
 
   /* Typography scale */
-  --text-hero: clamp(48px, 10vw, 88px);
+  --text-hero: clamp(36px, 8vw, 80px);
   --text-2xl: 32px;
   --text-xl: 24px;
   --text-lg: 18px;
@@ -1049,7 +1049,7 @@ textarea {
 }
 
 .balance-card__value {
-  font-size: clamp(24px, 4vw, 34px);
+  font-size: clamp(20px, 4vw, 34px);
   font-weight: 700;
   letter-spacing: -0.04em;
 }
@@ -1895,10 +1895,6 @@ html[data-theme="dark"] .copyable-hex__button { border-color: rgba(240, 230, 216
     padding: 22px;
   }
 
-  .hero-title {
-    font-size: clamp(38px, 15vw, 56px);
-  }
-
   .stat-grid,
   .status-grid {
     grid-template-columns: 1fr;
@@ -1913,10 +1909,6 @@ html[data-theme="dark"] .copyable-hex__button { border-color: rgba(240, 230, 216
 
   .balance-card {
     padding: 12px;
-  }
-
-  .balance-card__value {
-    font-size: clamp(20px, 8vw, 28px);
   }
 }
 

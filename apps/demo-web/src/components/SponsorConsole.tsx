@@ -18,7 +18,14 @@ export function SponsorConsole(props: {
   const [campaignIdInput, setCampaignIdInput] = useState<string>(props.campaignId);
   const [name, setName] = useState("DotFuel Launch Day");
   const [budgetPas, setBudgetPas] = useState("0.25");
-  const [targets, setTargets] = useState(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS ?? "");
+  const [targets, setTargets] = useState<string[]>(() => {
+    const defaultTarget = process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS;
+    if (!defaultTarget || !isAddress(defaultTarget)) {
+      return [];
+    }
+    return [getAddress(defaultTarget)];
+  });
+  const [targetDraft, setTargetDraft] = useState("");
   const [perUserMaxOps, setPerUserMaxOps] = useState("3");
   const [durationMinutes, setDurationMinutes] = useState("90");
   const [status, setStatus] = useState<CampaignStatus | null>(null);
@@ -79,16 +86,12 @@ export function SponsorConsole(props: {
         throw new Error("Campaign name is required");
       }
 
-      const allowedTargets = targets
-        .split(",")
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .map((value) => {
-          if (!isAddress(value)) {
-            throw new Error(`Invalid target: ${value}`);
-          }
-          return getAddress(value);
-        });
+      const allowedTargets = targets.map((value) => {
+        if (!isAddress(value)) {
+          throw new Error(`Invalid target: ${value}`);
+        }
+        return getAddress(value);
+      });
 
       if (allowedTargets.length === 0) {
         throw new Error("At least one allowed target is required");
@@ -135,6 +138,24 @@ export function SponsorConsole(props: {
     props.onCampaignChange(campaignIdInput as `0x${string}`);
   }
 
+  function handleAddTarget() {
+    setError(null);
+    const value = targetDraft.trim();
+    if (!value) return;
+    if (!isAddress(value)) {
+      setError(toUiError(`Invalid target: ${value}`, "campaign"));
+      return;
+    }
+
+    const normalized = getAddress(value);
+    setTargets((current) => (current.includes(normalized) ? current : [...current, normalized]));
+    setTargetDraft("");
+  }
+
+  function handleRemoveTarget(target: string) {
+    setTargets((current) => current.filter((value) => value !== target));
+  }
+
   const spent = status ? formatAmount(hexToBigInt(status.spent), 18, 5) : null;
   const budget = status ? formatAmount(hexToBigInt(status.budget), 18, 5) : null;
   const remaining = status ? formatAmount(hexToBigInt(status.remainingBudget), 18, 5) : null;
@@ -152,39 +173,100 @@ export function SponsorConsole(props: {
         </button>
       </div>
 
-      <div className="form-grid" style={{ marginTop: 18 }}>
-        <label className="field">
-          <span className="label">Active Campaign ID</span>
-          <input className="input" value={campaignIdInput} onChange={(event) => setCampaignIdInput(event.target.value)} />
-        </label>
-        <label className="field">
-          <span className="label">Campaign Name</span>
-          <input className="input" value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
-        <label className="field">
-          <span className="label">Budget (PAS)</span>
-          <input className="input" value={budgetPas} onChange={(event) => setBudgetPas(event.target.value)} />
-        </label>
-        <label className="field">
-          <span className="label">Allowed Targets</span>
-          <textarea className="input input--textarea" value={targets} onChange={(event) => setTargets(event.target.value)} />
-        </label>
-        <label className="field">
-          <span className="label">Per-User Max Ops</span>
-          <input className="input" value={perUserMaxOps} onChange={(event) => setPerUserMaxOps(event.target.value)} />
-        </label>
-        <label className="field">
-          <span className="label">Duration (Minutes)</span>
-          <input className="input" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} />
-        </label>
+      <div className="field" style={{ marginTop: 18 }}>
+        <span className="label">Active Campaign ID</span>
+        <input
+          className="input"
+          placeholder="0x0000...0000 (32 bytes)"
+          value={campaignIdInput}
+          onChange={(event) => setCampaignIdInput(event.target.value)}
+        />
+        <span className="field-hint">Format: 0x0000...0000 (32-byte hex)</span>
       </div>
 
       <div className="button-row" style={{ marginTop: 16 }}>
-        <button className="button" disabled={isSubmitting} onClick={handleCreate}>
+        <button className="button button--accent" disabled={isSubmitting} onClick={handleCreate}>
           {isSubmitting ? <span className="button__spinner" aria-hidden /> : null}
-          {isSubmitting ? "Creating..." : "Create Campaign"}
+          {isSubmitting ? "Creating..." : "Create Demo Campaign"}
         </button>
       </div>
+
+      <details className="advanced-console">
+        <summary>Advanced Campaign Settings</summary>
+        <div className="form-grid" style={{ marginTop: 14 }}>
+          <label className="field">
+            <span className="label">Campaign Name</span>
+            <input
+              className="input"
+              placeholder="DotFuel Launch Day"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="label">Budget (PAS)</span>
+            <input
+              className="input"
+              placeholder="0.25"
+              value={budgetPas}
+              onChange={(event) => setBudgetPas(event.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="label">Per-User Max Ops</span>
+            <input
+              className="input"
+              min={1}
+              step={1}
+              type="number"
+              value={perUserMaxOps}
+              onChange={(event) => setPerUserMaxOps(event.target.value)}
+            />
+          </label>
+          <label className="field">
+            <span className="label">Duration (Minutes)</span>
+            <input
+              className="input"
+              min={1}
+              step={1}
+              type="number"
+              value={durationMinutes}
+              onChange={(event) => setDurationMinutes(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="field" style={{ marginTop: 12 }}>
+          <span className="label">Allowed Targets</span>
+          <div className="target-tag-list">
+            {targets.length === 0 ? <span className="card-subtitle">Add at least one target address.</span> : null}
+            {targets.map((target) => (
+              <span className="target-tag" key={target}>
+                {target.slice(0, 8)}...{target.slice(-4)}
+                <button className="target-tag__remove" onClick={() => handleRemoveTarget(target)} type="button">
+                  Remove
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="target-input-row">
+            <input
+              className="input"
+              placeholder="0x0000000000000000000000000000000000000000"
+              value={targetDraft}
+              onChange={(event) => setTargetDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleAddTarget();
+                }
+              }}
+            />
+            <button className="button button--ghost" onClick={handleAddTarget} type="button">
+              Add target
+            </button>
+          </div>
+        </div>
+      </details>
 
       {feedback ? <div className="feedback feedback--success">{feedback}</div> : null}
       {error ? <ErrorNotice error={error} /> : null}

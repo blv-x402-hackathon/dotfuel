@@ -729,6 +729,11 @@ textarea {
   gap: 8px;
 }
 
+.field-hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .input {
   width: 100%;
   padding: 12px 14px;
@@ -741,6 +746,55 @@ textarea {
 .input--textarea {
   min-height: 92px;
   resize: vertical;
+}
+
+.advanced-console {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px dashed rgba(78, 54, 32, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.advanced-console summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.target-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.target-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 54, 32, 0.2);
+  background: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.target-tag__remove {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(36, 24, 14, 0.1);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.target-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
 }
 
 .status-grid {
@@ -924,6 +978,21 @@ textarea {
     color: var(--ink);
   }
 
+  .advanced-console {
+    background: rgba(47, 36, 27, 0.6);
+    border-color: rgba(240, 230, 216, 0.2);
+  }
+
+  .target-tag {
+    background: rgba(38, 29, 22, 0.88);
+    border-color: rgba(240, 230, 216, 0.2);
+  }
+
+  .target-tag__remove {
+    background: rgba(240, 230, 216, 0.14);
+    color: var(--ink);
+  }
+
   .flow-tabs-shell__overlay {
     background: rgba(59, 44, 34, 0.94);
     border-color: rgba(211, 130, 82, 0.35);
@@ -1000,5 +1069,9 @@ textarea {
 
   .input--textarea {
     min-height: 120px;
+  }
+
+  .target-input-row {
+    grid-template-columns: 1fr;
   }
 }

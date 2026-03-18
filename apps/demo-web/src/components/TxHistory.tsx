@@ -12,6 +12,10 @@ export interface TxHistoryItem {
   createdAt: number;
 }
 
+function formatTime(ts: number) {
+  return new Date(ts).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+
 export function TxHistory({ items }: { items: TxHistoryItem[] }) {
   return (
     <section className="card card--log" id="tx-history">
@@ -30,11 +34,26 @@ export function TxHistory({ items }: { items: TxHistoryItem[] }) {
       {items.length > 0 ? (
         <ul className="history-list" style={{ marginTop: 16 }}>
           {items.map((item, idx) => (
-            <li className="history-item" key={`${item.createdAt}-${idx}`}>
-              <strong>{item.mode === "token" ? "Token Mode" : "Sponsor Mode"}</strong>
-              <span>{item.gasCostLabel}</span>
-              <span>{item.settlementLabel}</span>
-              <CopyableHex value={item.hash ?? null} href={item.explorerUrl} fallback="Pending" />
+            <li className="history-item history-item--bordered" key={`${item.createdAt}-${idx}`}>
+              <div className="history-item__head">
+                <span className={`badge ${item.mode === "token" ? "badge--accent" : "badge--neutral"}`}>
+                  {item.mode === "token" ? "Token Mode" : "Sponsor Mode"}
+                </span>
+                <span className="history-item__time">{formatTime(item.createdAt)}</span>
+              </div>
+              <span className="history-item__detail">{item.gasCostLabel}</span>
+              <span className="history-item__detail">{item.settlementLabel}</span>
+              <div className="history-item__foot">
+                <CopyableHex value={item.hash ?? null} fallback="Pending" />
+                {item.explorerUrl ? (
+                  <a className="inline-link explorer-link" href={item.explorerUrl} target="_blank" rel="noreferrer">
+                    View on Blockscout
+                    <svg className="external-icon" aria-hidden viewBox="0 0 16 16" fill="none">
+                      <path d="M6 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3M9 2h5m0 0v5m0-5L7 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </a>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

@@ -60,7 +60,7 @@ export function FlowTabs(props: {
         createdAt: Date.now()
       },
       ...prev
-    ].slice(0, 5));
+    ].slice(0, 10));
 
     setToast({
       id: Date.now(),

@@ -511,6 +511,56 @@ textarea {
   border: 1px solid rgba(78, 54, 32, 0.08);
 }
 
+.history-item--bordered {
+  border-left: 4px solid rgba(199, 90, 46, 0.36);
+  padding-left: 12px;
+}
+
+.history-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-item__time {
+  color: var(--muted);
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.history-item__detail {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.history-item__foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.explorer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.external-icon {
+  width: 13px;
+  height: 13px;
+  vertical-align: middle;
+  flex: none;
+}
+
+.badge--accent {
+  background: rgba(199, 90, 46, 0.12);
+  color: var(--accent-strong);
+}
+
 .history-empty {
   display: grid;
   justify-items: center;

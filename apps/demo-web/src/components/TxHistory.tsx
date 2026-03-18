@@ -20,7 +20,7 @@ export function TxHistory({ items }: { items: TxHistoryItem[] }) {
   return (
     <section className="card card--log" id="tx-history">
       <h3 className="card-title">Recent Transactions</h3>
-      <p className="card-subtitle">Keep the latest demo steps visible for judges during repeat runs.</p>
+      <p className="card-subtitle">Your recent gasless transactions from this session.</p>
       {items.length === 0 ? (
         <div className="history-empty">
           <svg aria-hidden viewBox="0 0 24 24">

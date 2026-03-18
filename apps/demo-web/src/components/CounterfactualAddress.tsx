@@ -35,7 +35,7 @@ export function CounterfactualAddress() {
   return (
     <section className="card card--info">
       <h2 className="card-title">Smart Account</h2>
-      <p className="card-subtitle">Counterfactual address derived from the GasStationFactory on sender salt `0`.</p>
+      <p className="card-subtitle">Your smart account address, derived deterministically from your wallet.</p>
       <div className="address-line" style={{ marginTop: 16 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
           <span className="label">Counterfactual Address</span>

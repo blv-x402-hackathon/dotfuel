@@ -171,7 +171,7 @@ export function SponsorConsole(props: {
       <div className="card-header">
         <div>
           <h2 className="card-title">Sponsor Console</h2>
-          <p className="card-subtitle">Create a campaign, switch the active sponsor budget, and keep the spend meter live while polling.</p>
+          <p className="card-subtitle">Create and manage gas sponsorship campaigns for your users.</p>
         </div>
       </div>
 
@@ -201,7 +201,7 @@ export function SponsorConsole(props: {
       <div className="button-row" style={{ marginTop: 16 }}>
         <button className="button button--accent" disabled={isSubmitting} onClick={handleCreate}>
           {isSubmitting ? <span className="button__spinner" aria-hidden /> : null}
-          {isSubmitting ? "Creating..." : "Create Demo Campaign"}
+          {isSubmitting ? "Creating..." : "Create Campaign"}
         </button>
       </div>
 

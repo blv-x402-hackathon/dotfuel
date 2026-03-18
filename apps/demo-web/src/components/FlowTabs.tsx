@@ -71,7 +71,7 @@ export function FlowTabs(props: {
     });
 
     if (typeof document !== "undefined") {
-      document.title = "✅ TX Confirmed | DotFuel";
+      document.title = "TX Confirmed | DotFuel";
       if (successTitleTimerRef.current) {
         window.clearTimeout(successTitleTimerRef.current);
       }
@@ -92,7 +92,7 @@ export function FlowTabs(props: {
     });
 
     if (typeof document !== "undefined") {
-      document.title = "❌ TX Failed | DotFuel";
+      document.title = "TX Failed | DotFuel";
     }
   };
 
@@ -103,11 +103,11 @@ export function FlowTabs(props: {
       if (successTitleTimerRef.current) {
         window.clearTimeout(successTitleTimerRef.current);
       }
-      document.title = "⏳ Processing... | DotFuel";
+      document.title = "Processing... | DotFuel";
       return;
     }
 
-    if (document.title === "⏳ Processing... | DotFuel") {
+    if (document.title === "Processing... | DotFuel") {
       document.title = DEFAULT_TITLE;
     }
   };
@@ -172,7 +172,7 @@ export function FlowTabs(props: {
         toast={toast}
         onDismiss={() => {
           setToast(null);
-          if (typeof document !== "undefined" && document.title === "❌ TX Failed | DotFuel" && !isProcessing) {
+          if (typeof document !== "undefined" && document.title === "TX Failed | DotFuel" && !isProcessing) {
             document.title = DEFAULT_TITLE;
           }
         }}

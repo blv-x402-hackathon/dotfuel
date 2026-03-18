@@ -193,10 +193,9 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
     <section className="card card--data" id="balance-panel">
       <div className="card-header">
         <div>
-          <h2 className="card-title">Live Balances</h2>
+          <h2 className="card-title">Balances</h2>
           <p className="card-subtitle">
-            Capture the before/after proof that the EOA stays at zero PAS while the smart account settles in token
-            mode.
+            Your wallet and smart account balances, updated after each transaction.
           </p>
         </div>
         <button className="button button--ghost" disabled={isRefreshing} onClick={() => setManualRefreshKey((current) => current + 1)}>
@@ -211,23 +210,16 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       <div className="balance-grid">
         <article className="balance-card">
           <div className="balance-card__head">
-            <span className="label">EOA Native</span>
-            <div style={{ display: "grid", justifyItems: "end", gap: 6 }}>
-              <span className={pasBadgeClass}>{pasBadgeLabel}</span>
-              {snapshot ? (
-                <span style={{ maxWidth: "21ch", color: "var(--muted)", fontSize: 12, textAlign: "right" }}>
-                  {isGasless ? "This is the magic: no native gas needed." : "Native gas is available on this wallet."}
-                </span>
-              ) : null}
-            </div>
+            <span className="label">Native Balance</span>
+            <span className={pasBadgeClass}>{pasBadgeLabel}</span>
           </div>
           <div className="balance-card__value">{animatedPasValue ? `${animatedPasValue} PAS` : "Connect wallet"}</div>
-          <div className="balance-card__meta">Target state: keep native gas at zero.</div>
+          <div className="balance-card__meta">Used for network gas fees.</div>
           <div className="balance-delta">
             <span className="balance-delta__label">Δ PAS</span>
             {pasDelta ? (
               Number(pasDelta) === 0
-                ? <span className="balance-delta__value balance-delta__value--neutral">No change (gasless ✓)</span>
+                ? <span className="balance-delta__value balance-delta__value--neutral">No change</span>
                 : <span className={`balance-delta__value ${Number(pasDelta) < 0 ? "balance-delta__value--neg" : "balance-delta__value--pos"}`}>{pasDelta} PAS</span>
             ) : (
               <span className="balance-delta__value balance-delta__value--empty">—</span>
@@ -241,7 +233,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             <span className="badge badge--success">{tokenSymbol}</span>
           </div>
           <div className="balance-card__value">{animatedTokenValue ? `${animatedTokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
-          <div className="balance-card__meta">Watch tUSDT move only on token mode.</div>
+          <div className="balance-card__meta">Deducted when paying gas with token.</div>
           <div className="balance-delta">
             <span className="balance-delta__label">Δ {tokenSymbol}</span>
             {tokenDelta ? (

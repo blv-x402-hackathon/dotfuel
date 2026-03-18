@@ -97,14 +97,32 @@ export function BottomNav() {
         }
 
         .bottom-nav__icon {
+          position: relative;
           width: 22px;
           height: 22px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 14px;
+          border-radius: 12px;
+          transition: background 120ms ease, transform 120ms ease;
+        }
+
+        .bottom-nav__item--active .bottom-nav__icon {
+          background: rgba(199, 90, 46, 0.1);
+          transform: scale(1.05);
         }
 
         .bottom-nav__icon :global(svg) {
-          width: 100%;
-          height: 100%;
+          width: 22px;
+          height: 22px;
           stroke: currentColor;
+          flex: none;
+        }
+
+        .bottom-nav__item--active .bottom-nav__icon :global(svg path),
+        .bottom-nav__item--active .bottom-nav__icon :global(svg circle) {
+          fill: rgba(199, 90, 46, 0.15);
         }
 
         .bottom-nav__label {

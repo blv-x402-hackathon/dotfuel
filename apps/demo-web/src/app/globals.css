@@ -43,6 +43,16 @@ textarea {
   font-size: 16px;
 }
 
+:where(button, a, input, textarea, summary, [role="button"]):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(199, 90, 46, 0.4);
+}
+
+:where(button, a, input, textarea, summary, [role="button"]):focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
 .page-shell {
   max-width: 1180px;
   margin: 0 auto;

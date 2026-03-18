@@ -154,25 +154,17 @@ export function FlowTabs(props: {
       <div className={`tab-panel ${tab === "sponsor" ? "tab-panel--active" : "tab-panel--inactive"}`}>
         <div className="stack">
           {hasActiveCampaign ? (
-            <>
-              <SponsorModeFlow
-                campaignId={campaignId}
-                onTx={onTx}
-                onFlowError={(message) => onFlowError("sponsor", message)}
-                onLoadingChange={onFlowLoadingChange}
-                walletRequired={!isConnected}
-              />
-              <details className="campaign-panel">
-                <summary>Campaign Management</summary>
-                <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
-              </details>
-            </>
+            <SponsorModeFlow
+              campaignId={campaignId}
+              onTx={onTx}
+              onFlowError={(message) => onFlowError("sponsor", message)}
+              onLoadingChange={onFlowLoadingChange}
+              walletRequired={!isConnected}
+            />
           ) : (
-            <>
-              <p className="card-subtitle">No active campaign yet. Create one below to enable sponsored execution.</p>
-              <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
-            </>
+            <p className="card-subtitle">No active campaign yet. Create one below to enable sponsored execution.</p>
           )}
+          <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
         </div>
       </div>
       <TxHistory items={history} />

@@ -99,15 +99,15 @@ export function FlowTabs(props: {
         </button>
       </div>
 
-      {tab === "token" ? (
+      <div className={`tab-panel ${tab === "token" ? "tab-panel--active" : "tab-panel--inactive"}`}>
         <TokenModeFlow
           onTx={onTx}
           onFlowError={(message) => onFlowError("token", message)}
           walletRequired={!isConnected}
         />
-      ) : null}
-      {tab === "sponsor" ? (
-        <>
+      </div>
+      <div className={`tab-panel ${tab === "sponsor" ? "tab-panel--active" : "tab-panel--inactive"}`}>
+        <div className="stack">
           <SponsorConsole campaignId={campaignId} onCampaignChange={setCampaignId} refreshKey={campaignRefreshKey} />
           <SponsorModeFlow
             campaignId={campaignId}
@@ -115,8 +115,8 @@ export function FlowTabs(props: {
             onFlowError={(message) => onFlowError("sponsor", message)}
             walletRequired={!isConnected}
           />
-        </>
-      ) : null}
+        </div>
+      </div>
       <TxHistory items={history} />
       <Toast
         toast={toast}

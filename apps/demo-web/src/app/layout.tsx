@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import "@/app/globals.css";
 import { BottomNav } from "@/components/BottomNav";
+import { Footer } from "@/components/Footer";
 import { GNB } from "@/components/GNB";
 import { Providers } from "@/components/Providers";
 
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <GNB />
           {children}
+          <Footer />
           <BottomNav />
         </Providers>
       </body>

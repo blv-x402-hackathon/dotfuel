@@ -1,18 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAccount, usePublicClient } from "wagmi";
 
 import { BalancePanel } from "@/components/BalancePanel";
 import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { Button } from "@/components/ui/Button";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
 import { useWalletModal } from "@/components/WalletContext";
-import { useAccount } from "wagmi";
+import { getRecentCampaigns } from "@/lib/campaign-client";
+import { loadTxHistory } from "@/lib/txHistory";
+
+// Contextual hints shown based on user state
+type HintKind = "deploy" | "last-failed" | "campaign";
+interface SmartHint {
+  kind: HintKind;
+  message: string;
+  action: { label: string; href?: string; onClick?: () => void };
+}
+
+function useSmartHints() {
+  const { address } = useAccount();
+  const publicClient = usePublicClient();
+  const [hints, setHints] = useState<SmartHint[]>([]);
+
+  useEffect(() => {
+    if (!address || !publicClient) { setHints([]); return; }
+    const next: SmartHint[] = [];
+
+    // Last tx failed?
+    const history = loadTxHistory();
+    if (history.length > 0 && !history[0].explorerUrl) {
+      next.push({
+        kind: "last-failed",
+        message: "Your last transaction may have failed or is still pending.",
+        action: { label: "View History", href: "/history" }
+      });
+    }
+
+    // Recent campaign exists?
+    const recentCampaigns = getRecentCampaigns();
+    if (recentCampaigns.length > 0) {
+      next.push({
+        kind: "campaign",
+        message: `Active campaign: ${recentCampaigns[0].name}`,
+        action: { label: "Manage →", href: "/sponsor" }
+      });
+    }
+
+    setHints(next);
+
+    // Check account deployment status async
+    const counterfactual = process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}` | undefined;
+    if (counterfactual) {
+      publicClient.getCode({ address: counterfactual }).then((code) => {
+        if (!code || code === "0x") {
+          setHints((prev) => [
+            {
+              kind: "deploy",
+              message: "Your smart account is not yet deployed. Send a transaction to deploy it.",
+              action: { label: "Send Transaction →", href: "/send" }
+            },
+            ...prev.filter((h) => h.kind !== "deploy")
+          ]);
+        }
+      }).catch(() => {});
+    }
+  }, [address, publicClient]);
+
+  return hints;
+}
 
 export default function HomePage() {
   const { isConnected } = useAccount();
   const { openModal } = useWalletModal();
+  const hints = useSmartHints();
   const [history] = useState<TxHistoryItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -128,6 +191,20 @@ export default function HomePage() {
 
           <div className="card">
             <h3 className="card-title">Quick Actions</h3>
+            {hints.length > 0 ? (
+              <ul className="smart-hints" aria-label="Contextual recommendations">
+                {hints.map((hint) => (
+                  <li key={hint.kind} className={`smart-hint smart-hint--${hint.kind}`}>
+                    <span className="smart-hint__msg">{hint.message}</span>
+                    {hint.action.href ? (
+                      <Link href={hint.action.href} className="smart-hint__action">{hint.action.label}</Link>
+                    ) : (
+                      <button className="smart-hint__action" type="button" onClick={hint.action.onClick}>{hint.action.label}</button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             <div className="button-row mt-3">
               <Link href="/send" className="button button--accent">
                 Pay with Token

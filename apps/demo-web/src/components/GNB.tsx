@@ -62,65 +62,53 @@ export function GNB() {
         </Link>
 
         <nav className="gnb__nav" aria-label="Main navigation">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`gnb__link ${isActive ? "gnb__link--active" : ""}`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+          <div className="gnb__nav-track">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`gnb__link ${isActive ? "gnb__link--active" : ""}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="gnb__right">
-          <span className="gnb__network">
+          <span className="gnb__status">
             <span className={`hero-live-dot ${HEALTH_DOT_CLASS[health.overall]}`} aria-hidden />
-            <span className="gnb__network-label">{HEALTH_LABEL[health.overall]}</span>
+            <span className="gnb__status-label">{HEALTH_LABEL[health.overall]}</span>
           </span>
-          <button
-            className="gnb__cmd-btn"
-            type="button"
-            aria-label="Open command palette (⌘K)"
-            title="Command palette (⌘K)"
-            onClick={() => {
-              // Dispatch a synthetic Cmd+K to open the palette
-              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
-            }}
-          >
-            <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden>
-              <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M10 10l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <kbd aria-hidden>⌘K</kbd>
-          </button>
-          <button
-            className="gnb__theme-btn"
-            onClick={cycleTheme}
-            type="button"
-            aria-label={themeLabel}
-            title={themeLabel}
-          >
-            {preference === "dark" ? (
-              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
-                <path d="M17.3 13.3A8 8 0 0 1 6.7 2.7a8 8 0 1 0 10.6 10.6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : preference === "light" ? (
-              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
-                <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
-                <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            )}
-          </button>
-          <NotificationCenter />
+          <div className="gnb__actions">
+            <button
+              className="gnb__icon-btn"
+              onClick={cycleTheme}
+              type="button"
+              aria-label={themeLabel}
+              title={themeLabel}
+            >
+              {preference === "dark" ? (
+                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                  <path d="M17.3 13.3A8 8 0 0 1 6.7 2.7a8 8 0 1 0 10.6 10.6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : preference === "light" ? (
+                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                  <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
+                  <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
+            <NotificationCenter />
+          </div>
           <WalletButton />
         </div>
       </div>
@@ -129,25 +117,27 @@ export function GNB() {
           position: sticky;
           top: 0;
           z-index: 40;
-          border-bottom: 1px solid var(--line);
-          background: rgba(246, 239, 227, 0.88);
-          backdrop-filter: blur(12px);
-          box-shadow: none;
-          transition: box-shadow 200ms ease;
+          border-bottom: 1px solid transparent;
+          background: rgba(246, 239, 227, 0.72);
+          backdrop-filter: blur(20px) saturate(1.4);
+          -webkit-backdrop-filter: blur(20px) saturate(1.4);
+          transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
         }
 
         .gnb--scrolled {
-          box-shadow: var(--shadow-sm);
+          border-bottom-color: var(--line);
+          box-shadow: 0 1px 12px rgba(40, 24, 10, 0.06);
+          background: rgba(246, 239, 227, 0.92);
         }
 
         .gnb__inner {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 16px;
+          gap: 20px;
           max-width: 1180px;
           margin: 0 auto;
-          padding: 10px 20px;
+          padding: 0 24px;
+          height: 56px;
         }
 
         .gnb__brand {
@@ -159,139 +149,182 @@ export function GNB() {
           flex: none;
         }
 
+        .gnb__brand:hover {
+          opacity: 0.85;
+        }
+
         .gnb__brand-name {
           font-family: var(--font-serif), "Palatino Linotype", serif;
-          font-size: 20px;
+          font-size: 19px;
           font-weight: 700;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.04em;
         }
 
         :global(.gnb__logo) {
-          width: 32px;
-          height: 32px;
+          width: 30px;
+          height: 30px;
           flex: none;
           border-radius: 8px;
         }
 
+        /* ─── Nav ───────────────────────────────── */
+
         .gnb__nav {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+        }
+
+        .gnb__nav-track {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          padding: 3px;
+          border-radius: 12px;
+          background: rgba(36, 24, 14, 0.04);
+        }
+
+        .gnb__link {
+          position: relative;
+          padding: 6px 16px;
+          border-radius: 9px;
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.005em;
+          text-decoration: none;
+          transition: color 160ms ease, background 160ms ease;
+          white-space: nowrap;
+          user-select: none;
+        }
+
+        .gnb__link:hover {
+          color: var(--ink);
+          background: rgba(36, 24, 14, 0.04);
+        }
+
+        .gnb__link--active {
+          color: var(--ink);
+          background: var(--card-strong);
+          box-shadow: 0 1px 3px rgba(40, 24, 10, 0.08), 0 0 0 1px rgba(40, 24, 10, 0.04);
+        }
+
+        .gnb__link--active:hover {
+          color: var(--ink);
+          background: var(--card-strong);
+        }
+
+        /* ─── Right ─────────────────────────────── */
+
+        .gnb__right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex: none;
+        }
+
+        .gnb__status {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 10px 4px 8px;
+          border-radius: 999px;
+          background: rgba(36, 24, 14, 0.03);
+          color: var(--muted);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          white-space: nowrap;
+        }
+
+        .gnb__status-label {
+          display: inline;
+        }
+
+        .gnb__actions {
           display: flex;
           align-items: center;
           gap: 2px;
         }
 
-        .gnb__link {
-          position: relative;
-          padding: 6px 14px;
-          color: var(--muted);
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.01em;
-          text-decoration: none;
-          transition: color 160ms ease;
-          white-space: nowrap;
-        }
-
-        .gnb__link::after {
-          content: "";
-          position: absolute;
-          bottom: -2px;
-          left: 50%;
-          width: 0;
-          height: 2px;
-          border-radius: 1px;
-          background: var(--accent);
-          transition: width 180ms ease, left 180ms ease;
-        }
-
-        .gnb__link:hover {
-          color: var(--ink);
-        }
-
-        .gnb__link--active {
-          color: var(--ink);
-        }
-
-        .gnb__link--active::after {
-          width: 16px;
-          left: calc(50% - 8px);
-        }
-
-        .gnb__link--active:hover {
-          color: var(--ink);
-        }
-
-        .gnb__right {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex: none;
-        }
-
-        .gnb__cmd-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 4px 10px;
-          border-radius: var(--radius-full);
-          border: 1px solid var(--line);
-          background: transparent;
-          color: var(--muted);
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 120ms, color 120ms;
-        }
-
-        .gnb__cmd-btn kbd {
-          font-family: inherit;
-          font-size: 11px;
-        }
-
-        .gnb__cmd-btn:hover {
-          background: rgba(36, 24, 14, 0.06);
-          color: var(--ink);
-        }
-
-        .gnb__theme-btn {
+        .gnb__icon-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
-          border-radius: 999px;
-          border: 1px solid var(--line);
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          border: none;
           background: transparent;
           color: var(--muted);
           cursor: pointer;
-          transition: background 120ms ease, color 120ms ease;
+          transition: background 140ms ease, color 140ms ease;
         }
 
-        .gnb__theme-btn:hover {
+        .gnb__icon-btn:hover {
           background: rgba(36, 24, 14, 0.06);
           color: var(--ink);
         }
 
-        .gnb__network {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          color: var(--muted);
-          font-size: 12px;
-          font-weight: 600;
-          white-space: nowrap;
-        }
-
-        .gnb__network-label {
-          display: inline;
-        }
+        /* ─── Dark mode ─────────────────────────── */
 
         @media (prefers-color-scheme: dark) {
-          :global(html:not([data-theme="light"])) .gnb { background: rgba(26, 20, 16, 0.88); }
+          :global(html:not([data-theme="light"])) .gnb {
+            background: rgba(26, 20, 16, 0.72);
+          }
+          :global(html:not([data-theme="light"])) .gnb--scrolled {
+            background: rgba(26, 20, 16, 0.92);
+            box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2);
+          }
+          :global(html:not([data-theme="light"])) .gnb__nav-track {
+            background: rgba(255, 255, 255, 0.05);
+          }
+          :global(html:not([data-theme="light"])) .gnb__link:hover {
+            background: rgba(255, 255, 255, 0.06);
+          }
+          :global(html:not([data-theme="light"])) .gnb__link--active {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06);
+          }
+          :global(html:not([data-theme="light"])) .gnb__link--active:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          :global(html:not([data-theme="light"])) .gnb__status {
+            background: rgba(255, 255, 255, 0.05);
+          }
+          :global(html:not([data-theme="light"])) .gnb__icon-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+          }
         }
 
-        :global(html[data-theme="dark"]) .gnb { background: rgba(26, 20, 16, 0.88); }
-        :global(html[data-theme="dark"]) .gnb__link--active { color: var(--ink); }
-        :global(html[data-theme="dark"]) .gnb__link--active::after { background: var(--accent); }
+        :global(html[data-theme="dark"]) .gnb {
+          background: rgba(26, 20, 16, 0.72);
+        }
+        :global(html[data-theme="dark"]) .gnb--scrolled {
+          background: rgba(26, 20, 16, 0.92);
+          box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2);
+        }
+        :global(html[data-theme="dark"]) .gnb__nav-track {
+          background: rgba(255, 255, 255, 0.05);
+        }
+        :global(html[data-theme="dark"]) .gnb__link:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+        :global(html[data-theme="dark"]) .gnb__link--active {
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+        :global(html[data-theme="dark"]) .gnb__link--active:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        :global(html[data-theme="dark"]) .gnb__status {
+          background: rgba(255, 255, 255, 0.05);
+        }
+        :global(html[data-theme="dark"]) .gnb__icon-btn:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ─── Responsive ────────────────────────── */
 
         @media (max-width: 768px) {
           .gnb__nav {
@@ -301,16 +334,21 @@ export function GNB() {
 
         @media (max-width: 640px) {
           .gnb__inner {
-            padding: 8px 14px;
-            max-width: none;
+            padding: 0 14px;
+            height: 50px;
+            gap: 10px;
           }
 
           .gnb__brand-name {
             display: none;
           }
 
-          .gnb__network-label {
+          .gnb__status-label {
             display: none;
+          }
+
+          .gnb__status {
+            padding: 4px 6px;
           }
         }
       `}</style>

@@ -23,7 +23,7 @@ function connectorIcon(name: string) {
   const n = name.toLowerCase();
   if (n.includes("metamask")) {
     return (
-      <svg viewBox="0 0 32 32" fill="none" className="wallet-modal__icon">
+      <svg viewBox="0 0 32 32" fill="none" width="32" height="32" className="wallet-modal__icon">
         <rect width="32" height="32" rx="8" fill="#F6851B" />
         <path d="M22.5 8l-5.3 3.9 1-2.3L22.5 8z" fill="#E2761B" stroke="#E2761B" strokeWidth=".2" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M9.5 8l5.2 4-1-2.4L9.5 8zM21.2 19.8l-1.4 2.1 3 .8.9-2.9h-2.5zM8.3 19.8l.8 2.9 3-.8-1.4-2.1H8.3z" fill="#E4761B" stroke="#E4761B" strokeWidth=".2" strokeLinecap="round" strokeLinejoin="round" />
@@ -34,14 +34,14 @@ function connectorIcon(name: string) {
   }
   if (n.includes("walletconnect")) {
     return (
-      <svg viewBox="0 0 32 32" fill="none" className="wallet-modal__icon">
+      <svg viewBox="0 0 32 32" fill="none" width="32" height="32" className="wallet-modal__icon">
         <rect width="32" height="32" rx="8" fill="#3B99FC" />
         <path d="M11.6 13.4c2.4-2.4 6.4-2.4 8.8 0l.3.3c.1.1.1.3 0 .4l-1 1c-.1.1-.2.1-.2 0l-.4-.4c-1.7-1.7-4.5-1.7-6.2 0l-.5.4c-.1.1-.2.1-.2 0l-1-1c-.1-.1-.1-.3 0-.4l.4-.3zm10.9 2l.9.9c.1.1.1.3 0 .4l-4 4c-.1.1-.3.1-.4 0l-2.8-2.9c0-.1-.1-.1-.1 0L13.3 20.7c-.1.1-.3.1-.4 0l-4-4c-.1-.1-.1-.3 0-.4l.9-.9c.1-.1.3-.1.4 0l2.8 2.9c.1.1.1.1.2 0l2.8-2.9c.1-.1.3-.1.4 0l2.9 2.9c0 .1.1.1.1 0l2.8-2.9c.1-.1.3-.1.5 0z" fill="#fff" />
       </svg>
     );
   }
   return (
-    <svg viewBox="0 0 32 32" fill="none" className="wallet-modal__icon">
+    <svg viewBox="0 0 32 32" fill="none" width="32" height="32" className="wallet-modal__icon">
       <rect width="32" height="32" rx="8" fill="var(--muted)" fillOpacity=".2" />
       <path d="M16 10a6 6 0 0 1 6 6v4H10v-4a6 6 0 0 1 6-6z" stroke="var(--muted)" strokeWidth="1.5" fill="none" />
       <rect x="9" y="19" width="14" height="3" rx="1.5" fill="var(--muted)" fillOpacity=".3" />
@@ -333,6 +333,13 @@ export function WalletModal() {
         .wallet-modal__connector--connecting {
           border-color: rgba(199, 90, 46, 0.36);
           background: rgba(199, 90, 46, 0.06);
+        }
+
+        :global(.wallet-modal__icon) {
+          width: 32px;
+          height: 32px;
+          flex: none;
+          border-radius: 8px;
         }
 
         .wallet-modal__connector-name {

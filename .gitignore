@@ -11,3 +11,5 @@ deployments/testnet.json
 .next/
 .vercel
 *.tsbuildinfo
+DEMO.md
+DORAHACKS.md

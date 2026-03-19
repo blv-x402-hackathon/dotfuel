@@ -2340,6 +2340,7 @@ html[data-theme="dark"] .copyable-hex__button { border-color: rgba(240, 230, 216
 .empty-state__icon {
   width: 56px;
   height: 56px;
+  flex: none;
   opacity: 0.6;
 }
 

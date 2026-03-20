@@ -17,13 +17,6 @@ const HEALTH_DOT_CLASS: Record<HealthStatus, string> = {
   down: "health-dot--down"
 };
 
-const HEALTH_LABEL: Record<HealthStatus, string> = {
-  checking: "Connecting...",
-  ok: "Live",
-  degraded: "Degraded",
-  down: "Offline"
-};
-
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/send", label: "Send" },
@@ -51,167 +44,173 @@ export function GNB() {
     else setPreference("system");
   }
 
+  const themeIcon = preference === "dark" ? (
+    <svg viewBox="0 0 18 18" fill="none" width="15" height="15" aria-hidden>
+      <path d="M15.5 11.5A7 7 0 0 1 6.5 2.5a7 7 0 1 0 9 9z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : preference === "light" ? (
+    <svg viewBox="0 0 18 18" fill="none" width="15" height="15" aria-hidden>
+      <circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M9 2v1.5M9 14.5V16M2 9h1.5M14.5 9H16M4 4l1.1 1.1M12.9 12.9L14 14M4 14l1.1-1.1M12.9 5.1L14 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 18 18" fill="none" width="15" height="15" aria-hidden>
+      <rect x="2" y="3" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M6 16h6M9 13v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+
   const themeLabel = preference === "system" ? "System theme" : preference === "light" ? "Light mode" : "Dark mode";
 
   return (
     <header className={`gnb${scrolled ? " gnb--scrolled" : ""}`}>
       <div className="gnb__inner">
-        <Link href="/" className="gnb__brand" aria-label="DotFuel Home">
-          <LogoMark className="gnb__logo" />
-          <span className="gnb__brand-name">DotFuel</span>
-        </Link>
+        {/* Left: brand + status */}
+        <div className="gnb__left">
+          <Link href="/" className="gnb__brand" aria-label="DotFuel Home">
+            <LogoMark className="gnb__logo" />
+            <span className="gnb__wordmark">DotFuel</span>
+          </Link>
+          <span className="gnb__live">
+            <span className={`gnb__live-dot ${HEALTH_DOT_CLASS[health.overall]}`} aria-hidden />
+          </span>
+        </div>
 
+        {/* Center: nav */}
         <nav className="gnb__nav" aria-label="Main navigation">
-          <div className="gnb__nav-track">
-            {NAV_ITEMS.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`gnb__link ${isActive ? "gnb__link--active" : ""}`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`gnb__link${isActive ? " gnb__link--active" : ""}`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
+        {/* Right: actions */}
         <div className="gnb__right">
-          <span className="gnb__status">
-            <span className={`hero-live-dot ${HEALTH_DOT_CLASS[health.overall]}`} aria-hidden />
-            <span className="gnb__status-label">{HEALTH_LABEL[health.overall]}</span>
-          </span>
-          <div className="gnb__actions">
-            <button
-              className="gnb__icon-btn"
-              onClick={cycleTheme}
-              type="button"
-              aria-label={themeLabel}
-              title={themeLabel}
-            >
-              {preference === "dark" ? (
-                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
-                  <path d="M17.3 13.3A8 8 0 0 1 6.7 2.7a8 8 0 1 0 10.6 10.6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : preference === "light" ? (
-                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
-                  <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden>
-                  <circle cx="10" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M10 2v2M10 16v2M2 10h2M16 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              )}
-            </button>
-            <NotificationCenter />
-          </div>
+          <button
+            className="gnb__icon-btn"
+            onClick={cycleTheme}
+            type="button"
+            aria-label={themeLabel}
+            title={themeLabel}
+          >
+            {themeIcon}
+          </button>
+          <NotificationCenter />
+          <div className="gnb__sep" aria-hidden />
           <WalletButton />
         </div>
       </div>
+
       <style jsx>{`
         .gnb {
           position: sticky;
           top: 0;
           z-index: 40;
+          background: rgba(246, 239, 227, 0.82);
+          backdrop-filter: blur(24px) saturate(1.6);
+          -webkit-backdrop-filter: blur(24px) saturate(1.6);
           border-bottom: 1px solid transparent;
-          background: rgba(246, 239, 227, 0.72);
-          backdrop-filter: blur(20px) saturate(1.4);
-          -webkit-backdrop-filter: blur(20px) saturate(1.4);
-          transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
+          transition: border-color 200ms ease, box-shadow 200ms ease;
         }
 
         .gnb--scrolled {
-          border-bottom-color: var(--line);
-          box-shadow: 0 1px 12px rgba(40, 24, 10, 0.06);
-          background: rgba(246, 239, 227, 0.92);
+          border-bottom-color: rgba(78, 54, 32, 0.08);
+          box-shadow: 0 1px 0 rgba(78, 54, 32, 0.04);
         }
 
         .gnb__inner {
           display: flex;
           align-items: center;
-          gap: 20px;
-          max-width: 1180px;
+          justify-content: space-between;
+          max-width: 1120px;
           margin: 0 auto;
           padding: 0 24px;
-          height: 56px;
+          height: 54px;
+        }
+
+        /* ─── Left ──────────────────────────────── */
+
+        .gnb__left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: none;
+          min-width: 0;
         }
 
         .gnb__brand {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 9px;
           text-decoration: none;
           color: var(--ink);
           flex: none;
+          transition: opacity 150ms ease;
         }
 
-        .gnb__brand:hover {
-          opacity: 0.85;
+        .gnb__brand:hover { opacity: 0.7; }
+
+        :global(.gnb__logo) {
+          width: 28px;
+          height: 28px;
+          flex: none;
+          border-radius: 7px;
         }
 
-        .gnb__brand-name {
+        .gnb__wordmark {
           font-family: var(--font-serif), "Palatino Linotype", serif;
-          font-size: 19px;
+          font-size: 18px;
           font-weight: 700;
           letter-spacing: -0.04em;
         }
 
-        :global(.gnb__logo) {
-          width: 30px;
-          height: 30px;
-          flex: none;
-          border-radius: 8px;
+        .gnb__live {
+          display: inline-flex;
+          align-items: center;
+          margin-left: 2px;
+        }
+
+        :global(.gnb__live-dot) {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
         }
 
         /* ─── Nav ───────────────────────────────── */
 
         .gnb__nav {
-          flex: 1;
-          display: flex;
-          justify-content: center;
-        }
-
-        .gnb__nav-track {
           display: flex;
           align-items: center;
-          gap: 2px;
-          padding: 3px;
-          border-radius: 12px;
-          background: rgba(36, 24, 14, 0.04);
+          gap: 4px;
         }
 
         .gnb__link {
-          position: relative;
-          padding: 6px 16px;
-          border-radius: 9px;
+          padding: 5px 14px;
           color: var(--muted);
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.005em;
+          font-size: 13.5px;
+          font-weight: 500;
           text-decoration: none;
-          transition: color 160ms ease, background 160ms ease;
+          border-radius: 8px;
+          transition: color 140ms ease, background 140ms ease;
           white-space: nowrap;
-          user-select: none;
         }
 
         .gnb__link:hover {
           color: var(--ink);
-          background: rgba(36, 24, 14, 0.04);
         }
 
         .gnb__link--active {
           color: var(--ink);
-          background: var(--card-strong);
-          box-shadow: 0 1px 3px rgba(40, 24, 10, 0.08), 0 0 0 1px rgba(40, 24, 10, 0.04);
-        }
-
-        .gnb__link--active:hover {
-          color: var(--ink);
-          background: var(--card-strong);
+          font-weight: 650;
+          background: rgba(36, 24, 14, 0.06);
         }
 
         /* ─── Right ─────────────────────────────── */
@@ -219,78 +218,52 @@ export function GNB() {
         .gnb__right {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 4px;
           flex: none;
-        }
-
-        .gnb__status {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 4px 10px 4px 8px;
-          border-radius: 999px;
-          background: rgba(36, 24, 14, 0.03);
-          color: var(--muted);
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          white-space: nowrap;
-        }
-
-        .gnb__status-label {
-          display: inline;
-        }
-
-        .gnb__actions {
-          display: flex;
-          align-items: center;
-          gap: 2px;
         }
 
         .gnb__icon-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
+          width: 32px;
+          height: 32px;
           border: none;
+          border-radius: 8px;
           background: transparent;
           color: var(--muted);
           cursor: pointer;
-          transition: background 140ms ease, color 140ms ease;
+          transition: color 140ms ease, background 140ms ease;
         }
 
         .gnb__icon-btn:hover {
-          background: rgba(36, 24, 14, 0.06);
           color: var(--ink);
+          background: rgba(36, 24, 14, 0.06);
         }
 
-        /* ─── Dark mode ─────────────────────────── */
+        .gnb__sep {
+          width: 1px;
+          height: 18px;
+          margin: 0 6px;
+          background: var(--line);
+          border-radius: 1px;
+        }
+
+        /* ─── Dark ──────────────────────────────── */
 
         @media (prefers-color-scheme: dark) {
           :global(html:not([data-theme="light"])) .gnb {
-            background: rgba(26, 20, 16, 0.72);
+            background: rgba(22, 18, 14, 0.82);
           }
           :global(html:not([data-theme="light"])) .gnb--scrolled {
-            background: rgba(26, 20, 16, 0.92);
-            box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2);
-          }
-          :global(html:not([data-theme="light"])) .gnb__nav-track {
-            background: rgba(255, 255, 255, 0.05);
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
           }
           :global(html:not([data-theme="light"])) .gnb__link:hover {
-            background: rgba(255, 255, 255, 0.06);
+            color: var(--ink);
           }
           :global(html:not([data-theme="light"])) .gnb__link--active {
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06);
-          }
-          :global(html:not([data-theme="light"])) .gnb__link--active:hover {
-            background: rgba(255, 255, 255, 0.1);
-          }
-          :global(html:not([data-theme="light"])) .gnb__status {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
           }
           :global(html:not([data-theme="light"])) .gnb__icon-btn:hover {
             background: rgba(255, 255, 255, 0.08);
@@ -298,27 +271,17 @@ export function GNB() {
         }
 
         :global(html[data-theme="dark"]) .gnb {
-          background: rgba(26, 20, 16, 0.72);
+          background: rgba(22, 18, 14, 0.82);
         }
         :global(html[data-theme="dark"]) .gnb--scrolled {
-          background: rgba(26, 20, 16, 0.92);
-          box-shadow: 0 1px 12px rgba(0, 0, 0, 0.2);
-        }
-        :global(html[data-theme="dark"]) .gnb__nav-track {
-          background: rgba(255, 255, 255, 0.05);
+          border-bottom-color: rgba(255, 255, 255, 0.06);
+          box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
         }
         :global(html[data-theme="dark"]) .gnb__link:hover {
-          background: rgba(255, 255, 255, 0.06);
+          color: var(--ink);
         }
         :global(html[data-theme="dark"]) .gnb__link--active {
-          background: rgba(255, 255, 255, 0.1);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.06);
-        }
-        :global(html[data-theme="dark"]) .gnb__link--active:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-        :global(html[data-theme="dark"]) .gnb__status {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255, 255, 255, 0.08);
         }
         :global(html[data-theme="dark"]) .gnb__icon-btn:hover {
           background: rgba(255, 255, 255, 0.08);
@@ -327,29 +290,16 @@ export function GNB() {
         /* ─── Responsive ────────────────────────── */
 
         @media (max-width: 768px) {
-          .gnb__nav {
-            display: none;
-          }
+          .gnb__nav { display: none; }
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 480px) {
           .gnb__inner {
             padding: 0 14px;
-            height: 50px;
-            gap: 10px;
+            height: 48px;
           }
-
-          .gnb__brand-name {
-            display: none;
-          }
-
-          .gnb__status-label {
-            display: none;
-          }
-
-          .gnb__status {
-            padding: 4px 6px;
-          }
+          .gnb__wordmark { display: none; }
+          .gnb__sep { display: none; }
         }
       `}</style>
     </header>

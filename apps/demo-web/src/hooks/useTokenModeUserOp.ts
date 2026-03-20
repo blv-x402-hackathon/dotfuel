@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { decodePaymasterAndData, encodePaymasterAndData } from "@dotfuel/shared";
 import { GasStationPaymasterAbi } from "@dotfuel/shared";
-import { decodeEventLog, getAddress, hexToBigInt, parseAbi, toHex } from "viem";
+import { decodeEventLog, hexToBigInt, parseAbi, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import type { InlineProgressStage } from "@/components/InlineProgressStepper";
@@ -19,6 +19,7 @@ import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { toUiError, type UiError } from "@/lib/uiError";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
+import { requireEnvAddress } from "@/lib/envAddress";
 import {
   buildTokenModeBatchCalls,
   buildTokenModeUserOp,
@@ -59,10 +60,10 @@ export function useTokenModeUserOp() {
     setProgressStartedAt(Date.now());
 
     try {
-      const token = getAddress(process.env.NEXT_PUBLIC_TOKEN_ADDRESS as `0x${string}`);
-      const permit2 = getAddress(process.env.NEXT_PUBLIC_PERMIT2_ADDRESS as `0x${string}`);
-      const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
-      const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
+      const token = requireEnvAddress(process.env.NEXT_PUBLIC_TOKEN_ADDRESS, "NEXT_PUBLIC_TOKEN_ADDRESS");
+      const permit2 = requireEnvAddress(process.env.NEXT_PUBLIC_PERMIT2_ADDRESS, "NEXT_PUBLIC_PERMIT2_ADDRESS");
+      const demoDapp = requireEnvAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS, "NEXT_PUBLIC_DEMO_DAPP_ADDRESS");
+      const entryPoint = requireEnvAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS, "NEXT_PUBLIC_ENTRYPOINT_ADDRESS");
 
       const sender = smartAccountAddress;
       const senderCode = await publicClient.getCode({ address: sender });

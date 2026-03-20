@@ -58,6 +58,13 @@ export function toUiError(error: unknown, context: "token" | "sponsor" | "campai
     return { message: "Some campaign fields are invalid. Review the form values and try again.", debug: raw };
   }
 
+  if (normalized.includes("next_public_") && normalized.includes("is invalid")) {
+    return {
+      message: "One of the configured contract addresses is invalid. Remove extra spaces/newlines and verify checksum.",
+      debug: raw
+    };
+  }
+
   if (normalized.includes("admin key not configured")) {
     return {
       message: "Campaign controls are unavailable because the admin signer is not configured on the API.",

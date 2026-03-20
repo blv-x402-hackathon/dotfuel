@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAddress, parseAbi } from "viem";
+import { parseAbi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
+
+import { requireEnvAddress } from "@/lib/envAddress";
 
 const factoryAbi = parseAbi([
   "function getAddress(address owner, uint256 userSalt) view returns (address)"
@@ -35,7 +37,7 @@ export function useCounterfactualAddress() {
       }
 
       const factoryAddressRaw = process.env.NEXT_PUBLIC_FACTORY_ADDRESS;
-      if (!factoryAddressRaw) {
+      if (!factoryAddressRaw?.trim()) {
         setState({
           address: null,
           status: "error",
@@ -51,7 +53,7 @@ export function useCounterfactualAddress() {
       }));
 
       try {
-        const factoryAddress = getAddress(factoryAddressRaw as `0x${string}`);
+        const factoryAddress = requireEnvAddress(factoryAddressRaw, "NEXT_PUBLIC_FACTORY_ADDRESS");
         const counterfactual = await publicClient.readContract({
           address: factoryAddress,
           abi: factoryAbi,

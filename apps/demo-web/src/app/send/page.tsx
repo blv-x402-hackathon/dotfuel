@@ -57,7 +57,7 @@ function GasComparisonBanner({ quoteCtx }: { quoteCtx: QuoteContext }) {
 
 const SUPPORTED_TOKENS: TokenOption[] = [
   {
-    address: (process.env.NEXT_PUBLIC_TOKEN_ADDRESS as `0x${string}`) ?? "0x0",
+    address: ((process.env.NEXT_PUBLIC_TOKEN_ADDRESS ?? "0x0").trim() as `0x${string}`),
     symbol: "tUSDT",
     name: "Test USDT",
     decimals: 6

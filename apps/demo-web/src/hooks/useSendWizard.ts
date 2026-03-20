@@ -2,11 +2,12 @@
 
 import { useCallback, useRef, useState } from "react";
 import { decodePaymasterAndData, encodePaymasterAndData, GasStationPaymasterAbi } from "@dotfuel/shared";
-import { decodeEventLog, getAddress, hexToBigInt, parseAbi, toHex } from "viem";
+import { decodeEventLog, hexToBigInt, parseAbi, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import type { InlineProgressStage } from "@/components/InlineProgressStepper";
 import { buildAccountInitCode } from "@/lib/accountInitCode";
+import { requireEnvAddress } from "@/lib/envAddress";
 import { fetchTokenQuote } from "@/lib/paymaster-client";
 import { estimateUserOperationGas, sendUserOperation, waitForUserOperationReceipt } from "@/lib/bundlerClient";
 import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
@@ -71,10 +72,10 @@ export function useSendWizard() {
     setError(null);
 
     try {
-      const token = getAddress(process.env.NEXT_PUBLIC_TOKEN_ADDRESS as `0x${string}`);
-      const permit2 = getAddress(process.env.NEXT_PUBLIC_PERMIT2_ADDRESS as `0x${string}`);
-      const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
-      const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
+      const token = requireEnvAddress(process.env.NEXT_PUBLIC_TOKEN_ADDRESS, "NEXT_PUBLIC_TOKEN_ADDRESS");
+      const permit2 = requireEnvAddress(process.env.NEXT_PUBLIC_PERMIT2_ADDRESS, "NEXT_PUBLIC_PERMIT2_ADDRESS");
+      const demoDapp = requireEnvAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS, "NEXT_PUBLIC_DEMO_DAPP_ADDRESS");
+      const entryPoint = requireEnvAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS, "NEXT_PUBLIC_ENTRYPOINT_ADDRESS");
       const sender = smartAccountAddress;
 
       const senderCode = await publicClient.getCode({ address: sender });
@@ -158,7 +159,7 @@ export function useSendWizard() {
         token, tokenDecimals, tokenSymbol,
         paymasterAndDataNoPermitSig, requiresDeployment, maxTokenCharge
       } = quoteCtx;
-      const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
+      const entryPoint = requireEnvAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS, "NEXT_PUBLIC_ENTRYPOINT_ADDRESS");
 
       const decodedPmd = decodePaymasterAndData(paymasterAndDataNoPermitSig as `0x${string}`);
       const paymasterAndData = encodePaymasterAndData(decodedPmd.paymasterAddress, {

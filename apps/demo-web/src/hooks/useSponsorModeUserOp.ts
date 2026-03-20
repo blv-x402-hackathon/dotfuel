@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { GasStationPaymasterAbi } from "@dotfuel/shared";
-import { decodeEventLog, getAddress, hexToBigInt } from "viem";
+import { decodeEventLog, hexToBigInt } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import type { InlineProgressStage } from "@/components/InlineProgressStepper";
 import { buildAccountInitCode } from "@/lib/accountInitCode";
+import { requireEnvAddress } from "@/lib/envAddress";
 import { fetchSponsorQuote } from "@/lib/paymaster-client";
 import {
   estimateUserOperationGas,
@@ -49,8 +50,8 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
     setProgressStartedAt(Date.now());
 
     try {
-      const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
-      const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
+      const entryPoint = requireEnvAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS, "NEXT_PUBLIC_ENTRYPOINT_ADDRESS");
+      const demoDapp = requireEnvAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS, "NEXT_PUBLIC_DEMO_DAPP_ADDRESS");
       const sender = smartAccountAddress;
       const senderCode = await publicClient.getCode({ address: sender });
       const requiresDeployment = !senderCode || senderCode === "0x";

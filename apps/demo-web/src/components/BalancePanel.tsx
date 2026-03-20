@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatUnits, getAddress, parseAbi } from "viem";
+import { formatUnits, parseAbi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
+import { requireEnvAddress } from "@/lib/envAddress";
 
 const erc20Abi = parseAbi([
   "function balanceOf(address owner) view returns (uint256)",
@@ -119,7 +120,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       }
 
       const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS;
-      if (!tokenAddress) {
+      if (!tokenAddress?.trim()) {
         setSnapshot(null);
         setPreviousSnapshot(null);
         setError("Set NEXT_PUBLIC_TOKEN_ADDRESS");
@@ -131,7 +132,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       setError(null);
 
       try {
-        const tokenAddressOnChain = getAddress(tokenAddress as `0x${string}`);
+        const tokenAddressOnChain = requireEnvAddress(tokenAddress, "NEXT_PUBLIC_TOKEN_ADDRESS");
         const [eoaPasResult, smartAccountTokenResult, tokenDecimalsResult, tokenSymbolResult] = await Promise.allSettled([
           publicClient.getBalance({ address: eoaAddress }),
           publicClient.readContract({

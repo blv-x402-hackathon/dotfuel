@@ -6,6 +6,7 @@ import { decodeEventLog, getAddress, hexToBigInt, parseAbi, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import type { InlineProgressStage } from "@/components/InlineProgressStepper";
+import { buildAccountInitCode } from "@/lib/accountInitCode";
 import { fetchTokenQuote } from "@/lib/paymaster-client";
 import { estimateUserOperationGas, sendUserOperation, waitForUserOperationReceipt } from "@/lib/bundlerClient";
 import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
@@ -13,6 +14,7 @@ import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { appendTxHistory } from "@/lib/txHistory";
 import { toUiError, type UiError } from "@/lib/uiError";
+import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 import { buildTokenModeBatchCalls, buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
 const erc20MetadataAbi = parseAbi([
@@ -43,6 +45,7 @@ export function useSendWizard() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { address: smartAccountAddress, status: smartAccountStatus, error: smartAccountError } = useCounterfactualAddress();
 
   const [step, setStep] = useState<SendStep>("configure");
   const [isFetchingQuote, setIsFetchingQuote] = useState(false);
@@ -59,6 +62,10 @@ export function useSendWizard() {
       setError(toUiError("Wallet not connected", "token"));
       return;
     }
+    if (smartAccountStatus !== "ready" || !smartAccountAddress) {
+      setError(toUiError(smartAccountError ?? "Smart account is not ready yet", "token"));
+      return;
+    }
 
     setIsFetchingQuote(true);
     setError(null);
@@ -68,11 +75,11 @@ export function useSendWizard() {
       const permit2 = getAddress(process.env.NEXT_PUBLIC_PERMIT2_ADDRESS as `0x${string}`);
       const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
       const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
-      const sender = getAddress((process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}`) || address);
-      const initCode = (process.env.NEXT_PUBLIC_ACCOUNT_INIT_CODE as `0x${string}` | undefined) ?? "0x";
+      const sender = smartAccountAddress;
 
       const senderCode = await publicClient.getCode({ address: sender });
       const requiresDeployment = !senderCode || senderCode === "0x";
+      const initCode = buildAccountInitCode(address, requiresDeployment);
 
       const calls = buildTokenModeBatchCalls({
         token, permit2, demoDapp,
@@ -113,7 +120,7 @@ export function useSendWizard() {
     } finally {
       setIsFetchingQuote(false);
     }
-  }, [address, walletClient, publicClient]);
+  }, [address, walletClient, publicClient, smartAccountAddress, smartAccountError, smartAccountStatus]);
 
   const signPermit2 = useCallback(async () => {
     if (!walletClient || !quoteCtx) {

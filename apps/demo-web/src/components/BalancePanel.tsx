@@ -13,6 +13,12 @@ const erc20Abi = parseAbi([
   "function symbol() view returns (string)"
 ]);
 
+const parsedFallbackTokenDecimals = Number(process.env.NEXT_PUBLIC_TOKEN_DECIMALS ?? "6");
+const fallbackTokenDecimals = Number.isFinite(parsedFallbackTokenDecimals) && parsedFallbackTokenDecimals >= 0
+  ? Math.floor(parsedFallbackTokenDecimals)
+  : 6;
+const fallbackTokenSymbol = process.env.NEXT_PUBLIC_TOKEN_SYMBOL ?? "tUSDT";
+
 interface BalanceSnapshot {
   eoaPas: bigint;
   smartAccountToken: bigint;
@@ -125,31 +131,50 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       setError(null);
 
       try {
-        const [eoaPas, smartAccountToken, tokenDecimals, tokenSymbol] = await Promise.all([
+        const tokenAddressOnChain = getAddress(tokenAddress as `0x${string}`);
+        const [eoaPasResult, smartAccountTokenResult, tokenDecimalsResult, tokenSymbolResult] = await Promise.allSettled([
           publicClient.getBalance({ address: eoaAddress }),
           publicClient.readContract({
-            address: getAddress(tokenAddress as `0x${string}`),
+            address: tokenAddressOnChain,
             abi: erc20Abi,
             functionName: "balanceOf",
             args: [smartAccountAddress]
           }),
           publicClient.readContract({
-            address: getAddress(tokenAddress as `0x${string}`),
+            address: tokenAddressOnChain,
             abi: erc20Abi,
             functionName: "decimals"
           }),
           publicClient.readContract({
-            address: getAddress(tokenAddress as `0x${string}`),
+            address: tokenAddressOnChain,
             abi: erc20Abi,
             functionName: "symbol"
           })
         ]);
 
+        if (eoaPasResult.status !== "fulfilled") {
+          throw eoaPasResult.reason;
+        }
+        if (smartAccountTokenResult.status !== "fulfilled") {
+          throw smartAccountTokenResult.reason;
+        }
+
+        const tokenDecimals = tokenDecimalsResult.status === "fulfilled"
+          ? Number(tokenDecimalsResult.value)
+          : fallbackTokenDecimals;
+        const safeTokenDecimals = Number.isFinite(tokenDecimals) && tokenDecimals >= 0
+          ? Math.floor(tokenDecimals)
+          : fallbackTokenDecimals;
+        const tokenSymbol = tokenSymbolResult.status === "fulfilled"
+          ? tokenSymbolResult.value
+          : fallbackTokenSymbol;
+        const safeTokenSymbol = tokenSymbol.trim() ? tokenSymbol : fallbackTokenSymbol;
+
         const nextSnapshot: BalanceSnapshot = {
-          eoaPas,
-          smartAccountToken,
-          tokenDecimals,
-          tokenSymbol,
+          eoaPas: eoaPasResult.value,
+          smartAccountToken: smartAccountTokenResult.value,
+          tokenDecimals: safeTokenDecimals,
+          tokenSymbol: safeTokenSymbol,
           refreshedAt: Date.now()
         };
 
@@ -181,13 +206,9 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
 
   const tokenSymbol = snapshot?.tokenSymbol ?? "Token";
   const pasValue = snapshot ? formatAmount(snapshot.eoaPas, 18, 4) : null;
-  const previousPasValue = previousSnapshot ? formatAmount(previousSnapshot.eoaPas, 18, 4) : null;
   const tokenValue = snapshot ? formatAmount(snapshot.smartAccountToken, snapshot.tokenDecimals, 4) : null;
   const animatedPasValue = useAnimatedNumber(pasValue);
   const animatedTokenValue = useAnimatedNumber(tokenValue);
-  const previousTokenValue = previousSnapshot
-    ? formatAmount(previousSnapshot.smartAccountToken, previousSnapshot.tokenDecimals, 4)
-    : null;
   const pasDeltaRaw = snapshot && previousSnapshot
     ? snapshot.eoaPas - previousSnapshot.eoaPas
     : null;
@@ -206,12 +227,42 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
   const pasBadgeClass = snapshot ? (isGasless ? "badge badge--success" : "badge badge--neutral") : "badge badge--neutral";
   const pasBadgeLabel = snapshot
     ? (isGasless ? "Gasless ✓" : `${formatAmount(snapshot.eoaPas, 18, 4)} PAS`)
-    : "Pending";
+    : !eoaAddress
+      ? "Connect wallet"
+      : smartAccountStatus === "loading"
+        ? "Awaiting account"
+        : error
+          ? "Unavailable"
+          : "Pending";
+  const nativeValueLabel = animatedPasValue
+    ? `${animatedPasValue} PAS`
+    : !eoaAddress
+      ? "Connect wallet"
+      : smartAccountStatus === "loading"
+        ? "Awaiting account"
+        : error
+          ? "Unavailable"
+          : "Pending";
+  const tokenValueLabel = animatedTokenValue
+    ? `${animatedTokenValue} ${tokenSymbol}`
+    : !eoaAddress
+      ? "Connect wallet"
+      : smartAccountStatus === "loading"
+        ? "Awaiting account"
+        : error
+          ? "Unavailable"
+          : "Awaiting account";
   const refreshedLabel = snapshot
     ? `${Math.max(0, Math.floor((now - snapshot.refreshedAt) / 1000))}s ago`
     : isRefreshing
       ? "Refreshing..."
-      : "Pending";
+      : !eoaAddress
+        ? "Connect wallet"
+        : smartAccountStatus === "loading"
+          ? "Awaiting account"
+          : error
+            ? "Unavailable"
+            : "Not refreshed yet";
 
   return (
     <section className={`card card--data${highlight ? " card--highlight" : ""}`} id="balance-panel">
@@ -252,7 +303,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             <span className="label">Native Balance</span>
             <span className={pasBadgeClass}>{pasBadgeLabel}</span>
           </div>
-          <div className="balance-card__value">{animatedPasValue ? `${animatedPasValue} PAS` : "Connect wallet"}</div>
+          <div className="balance-card__value">{nativeValueLabel}</div>
           <div className="balance-card__meta">Used for network gas fees.</div>
           <div className={`balance-delta${pasDeltaRaw === 0n ? " balance-delta--dim" : ""}`}>
             <span className="balance-delta__label">Δ PAS</span>
@@ -271,7 +322,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
             <span className="label">Smart Account Token</span>
             <span className="badge badge--success">{tokenSymbol}</span>
           </div>
-          <div className="balance-card__value">{animatedTokenValue ? `${animatedTokenValue} ${tokenSymbol}` : "Awaiting account"}</div>
+          <div className="balance-card__value">{tokenValueLabel}</div>
           <div className="balance-card__meta">Deducted when paying gas with token.</div>
           <div className={`balance-delta${tokenDeltaRaw === 0n ? " balance-delta--dim" : ""}`}>
             <span className="balance-delta__label">Δ {tokenSymbol}</span>
@@ -287,7 +338,7 @@ export function BalancePanel({ refreshKey }: { refreshKey: number }) {
       </div> : null}
 
       <div className="balance-footer">
-        <span className="label">Last Refreshed</span>
+        <span className="label">Last Refreshed:</span>
         <span className={`value${highlight ? " balance-footer__updated" : ""}`}>
           {highlight ? "✓ Updated just now" : refreshedLabel}
         </span>

@@ -34,16 +34,6 @@ export function useCounterfactualAddress() {
         return;
       }
 
-      const explicitCounterfactual = process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS;
-      if (explicitCounterfactual) {
-        setState({
-          address: getAddress(explicitCounterfactual as `0x${string}`),
-          status: "ready",
-          error: null
-        });
-        return;
-      }
-
       const factoryAddressRaw = process.env.NEXT_PUBLIC_FACTORY_ADDRESS;
       if (!factoryAddressRaw) {
         setState({

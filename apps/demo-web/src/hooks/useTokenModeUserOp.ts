@@ -7,6 +7,7 @@ import { decodeEventLog, getAddress, hexToBigInt, parseAbi, toHex } from "viem";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
 import type { InlineProgressStage } from "@/components/InlineProgressStepper";
+import { buildAccountInitCode } from "@/lib/accountInitCode";
 import { fetchTokenQuote } from "@/lib/paymaster-client";
 import {
   estimateUserOperationGas,
@@ -17,6 +18,7 @@ import { getAccountNonce, getUserOperationHash } from "@/lib/entryPointClient";
 import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { toUiError, type UiError } from "@/lib/uiError";
+import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 import {
   buildTokenModeBatchCalls,
   buildTokenModeUserOp,
@@ -32,6 +34,7 @@ export function useTokenModeUserOp() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { address: smartAccountAddress, status: smartAccountStatus, error: smartAccountError } = useCounterfactualAddress();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<UiError | null>(null);
@@ -42,6 +45,10 @@ export function useTokenModeUserOp() {
   async function executeTokenMode() {
     if (!address || !walletClient || !publicClient) {
       setError(toUiError("Wallet not connected", "token"));
+      return;
+    }
+    if (smartAccountStatus !== "ready" || !smartAccountAddress) {
+      setError(toUiError(smartAccountError ?? "Smart account is not ready yet", "token"));
       return;
     }
 
@@ -57,10 +64,10 @@ export function useTokenModeUserOp() {
       const demoDapp = getAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS as `0x${string}`);
       const entryPoint = getAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS as `0x${string}`);
 
-      const sender = getAddress((process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}`) || address);
-      const initCode = (process.env.NEXT_PUBLIC_ACCOUNT_INIT_CODE as `0x${string}` | undefined) ?? "0x";
+      const sender = smartAccountAddress;
       const senderCode = await publicClient.getCode({ address: sender });
       const requiresDeployment = !senderCode || senderCode === "0x";
+      const initCode = buildAccountInitCode(address, requiresDeployment);
 
       const calls = buildTokenModeBatchCalls({
         token,

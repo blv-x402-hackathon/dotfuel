@@ -9,6 +9,7 @@ import { CounterfactualAddress } from "@/components/CounterfactualAddress";
 import { Button } from "@/components/ui/Button";
 import { TxHistory, type TxHistoryItem } from "@/components/TxHistory";
 import { useWalletModal } from "@/components/WalletContext";
+import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { getRecentCampaigns } from "@/lib/campaign-client";
 import { loadTxHistory } from "@/lib/txHistory";
@@ -24,6 +25,7 @@ interface SmartHint {
 function useSmartHints() {
   const { address } = useAccount();
   const publicClient = usePublicClient();
+  const { address: smartAccountAddress } = useCounterfactualAddress();
   const [hints, setHints] = useState<SmartHint[]>([]);
 
   useEffect(() => {
@@ -53,9 +55,8 @@ function useSmartHints() {
     setHints(next);
 
     // Check account deployment status async
-    const counterfactual = process.env.NEXT_PUBLIC_COUNTERFACTUAL_ADDRESS as `0x${string}` | undefined;
-    if (counterfactual) {
-      publicClient.getCode({ address: counterfactual }).then((code) => {
+    if (smartAccountAddress) {
+      publicClient.getCode({ address: smartAccountAddress }).then((code) => {
         if (!code || code === "0x") {
           setHints((prev) => [
             {
@@ -68,7 +69,7 @@ function useSmartHints() {
         }
       }).catch(() => {});
     }
-  }, [address, publicClient]);
+  }, [address, publicClient, smartAccountAddress]);
 
   return hints;
 }

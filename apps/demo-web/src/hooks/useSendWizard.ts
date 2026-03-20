@@ -16,6 +16,7 @@ import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { appendTxHistory } from "@/lib/txHistory";
 import { toUiError, type UiError } from "@/lib/uiError";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
+import { resolveCounterfactualAddress } from "@/lib/counterfactual";
 import { buildTokenModeBatchCalls, buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
 const erc20MetadataAbi = parseAbi([
@@ -63,8 +64,8 @@ export function useSendWizard() {
       setError(toUiError("Wallet not connected", "token"));
       return;
     }
-    if (smartAccountStatus !== "ready" || !smartAccountAddress) {
-      setError(toUiError(smartAccountError ?? "Smart account is not ready yet", "token"));
+    if (smartAccountStatus === "error") {
+      setError(toUiError(smartAccountError ?? "Failed to derive smart account", "token"));
       return;
     }
 
@@ -76,7 +77,7 @@ export function useSendWizard() {
       const permit2 = requireEnvAddress(process.env.NEXT_PUBLIC_PERMIT2_ADDRESS, "NEXT_PUBLIC_PERMIT2_ADDRESS");
       const demoDapp = requireEnvAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS, "NEXT_PUBLIC_DEMO_DAPP_ADDRESS");
       const entryPoint = requireEnvAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS, "NEXT_PUBLIC_ENTRYPOINT_ADDRESS");
-      const sender = smartAccountAddress;
+      const sender = smartAccountAddress ?? await resolveCounterfactualAddress(publicClient, address);
 
       const senderCode = await publicClient.getCode({ address: sender });
       const requiresDeployment = !senderCode || senderCode === "0x";

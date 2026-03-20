@@ -54,6 +54,10 @@ export function toUiError(error: unknown, context: "token" | "sponsor" | "campai
     return { message: "This token is not enabled for paymaster settlement.", debug: raw };
   }
 
+  if (normalized.includes("smart account is not ready yet")) {
+    return { message: "Smart account address is still being derived. Try again in a moment.", debug: raw };
+  }
+
   if (normalized.includes("invalid request")) {
     return { message: "Some campaign fields are invalid. Review the form values and try again.", debug: raw };
   }

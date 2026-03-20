@@ -19,6 +19,7 @@ import { type FlowResult, formatAmount } from "@/lib/flowResults";
 import { getUserOpGasFees } from "@/lib/gasPriceClient";
 import { toUiError, type UiError } from "@/lib/uiError";
 import { useCounterfactualAddress } from "@/hooks/useCounterfactualAddress";
+import { resolveCounterfactualAddress } from "@/lib/counterfactual";
 import { buildTokenModeUserOp, encodeExecuteBatch } from "@/lib/userOpBuilder";
 
 export function useSponsorModeUserOp(campaignId: `0x${string}`) {
@@ -38,8 +39,8 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
       setError(toUiError("Wallet not connected", "sponsor"));
       return;
     }
-    if (smartAccountStatus !== "ready" || !smartAccountAddress) {
-      setError(toUiError(smartAccountError ?? "Smart account is not ready yet", "sponsor"));
+    if (smartAccountStatus === "error") {
+      setError(toUiError(smartAccountError ?? "Failed to derive smart account", "sponsor"));
       return;
     }
 
@@ -52,7 +53,7 @@ export function useSponsorModeUserOp(campaignId: `0x${string}`) {
     try {
       const entryPoint = requireEnvAddress(process.env.NEXT_PUBLIC_ENTRYPOINT_ADDRESS, "NEXT_PUBLIC_ENTRYPOINT_ADDRESS");
       const demoDapp = requireEnvAddress(process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS, "NEXT_PUBLIC_DEMO_DAPP_ADDRESS");
-      const sender = smartAccountAddress;
+      const sender = smartAccountAddress ?? await resolveCounterfactualAddress(publicClient, address);
       const senderCode = await publicClient.getCode({ address: sender });
       const requiresDeployment = !senderCode || senderCode === "0x";
       const initCode = buildAccountInitCode(address, requiresDeployment);

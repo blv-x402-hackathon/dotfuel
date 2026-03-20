@@ -80,6 +80,17 @@ contract CampaignRegistryTest is Test {
         assertFalse(allowed);
     }
 
+    function test_isAllowedTarget_true_whenAllowlistEmpty() public {
+        CampaignRegistry.Campaign memory cfg =
+            _campaignWithoutTargets(uint48(block.timestamp), uint48(block.timestamp + 1 days), 1 ether);
+
+        vm.prank(admin);
+        registry.createCampaign(campaignId, cfg);
+
+        bool allowed = registry.isAllowedTarget(campaignId, makeAddr("any-target"));
+        assertTrue(allowed);
+    }
+
     function test_recordUsage_incrementsSpent() public {
         CampaignRegistry.Campaign memory cfg = _campaign(uint48(block.timestamp), uint48(block.timestamp + 1 days), 1 ether);
 
@@ -137,6 +148,23 @@ contract CampaignRegistryTest is Test {
         allowed[0] = target1;
         allowed[1] = target2;
 
+        cfg = CampaignRegistry.Campaign({
+            enabled: true,
+            start: start,
+            end: end,
+            budget: budget,
+            spent: 0,
+            allowedTargets: allowed,
+            perUserMaxOps: 5
+        });
+    }
+
+    function _campaignWithoutTargets(
+        uint48 start,
+        uint48 end,
+        uint256 budget
+    ) internal pure returns (CampaignRegistry.Campaign memory cfg) {
+        address[] memory allowed = new address[](0);
         cfg = CampaignRegistry.Campaign({
             enabled: true,
             start: start,

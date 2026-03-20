@@ -266,6 +266,27 @@ contract GasStationPaymasterTest is Test {
         assertEq(uint48(validationData >> 160), data.validUntil);
     }
 
+    function test_sponsorMode_validateOk_whenAllowlistEmpty() public {
+        bytes32 openCampaignId = keccak256("campaign-open");
+        _createCampaignWithoutTargets(
+            openCampaignId, 10 ether, 2, uint48(block.timestamp - 1), uint48(block.timestamp + 1 days)
+        );
+
+        bytes memory callData = _buildExecuteBatch(false, address(otherTarget));
+        GasStationPaymaster.PaymasterData memory data =
+            _buildSponsorDataForCampaign(callData, uint48(block.timestamp + 300), openCampaignId);
+        UserOperation memory userOp = _buildUserOp(callData, data);
+
+        (bytes memory context, uint256 validationData) = entryPoint.callValidate(paymaster, userOp, 1 ether);
+
+        (uint8 mode, bytes32 gotCampaignId, address sender) =
+            abi.decode(_stripModePrefix(context), (uint8, bytes32, address));
+        assertEq(mode, 1);
+        assertEq(gotCampaignId, openCampaignId);
+        assertEq(sender, address(senderAccount));
+        assertEq(uint48(validationData >> 160), data.validUntil);
+    }
+
     function test_sponsorMode_expiredCampaign() public {
         bytes memory callData = _buildExecuteBatch(false, address(target));
         GasStationPaymaster.PaymasterData memory data = _buildSponsorData(callData, uint48(block.timestamp + 3 days));
@@ -302,7 +323,24 @@ contract GasStationPaymasterTest is Test {
     function _createCampaign(bytes32 id, uint256 budget, uint32 perUserMaxOps, uint48 start, uint48 end) internal {
         address[] memory allowed = new address[](1);
         allowed[0] = address(target);
+        _createCampaignWithTargets(id, budget, perUserMaxOps, start, end, allowed);
+    }
 
+    function _createCampaignWithoutTargets(bytes32 id, uint256 budget, uint32 perUserMaxOps, uint48 start, uint48 end)
+        internal
+    {
+        address[] memory allowed = new address[](0);
+        _createCampaignWithTargets(id, budget, perUserMaxOps, start, end, allowed);
+    }
+
+    function _createCampaignWithTargets(
+        bytes32 id,
+        uint256 budget,
+        uint32 perUserMaxOps,
+        uint48 start,
+        uint48 end,
+        address[] memory allowed
+    ) internal {
         CampaignRegistry.Campaign memory cfg = CampaignRegistry.Campaign({
             enabled: true,
             start: start,
@@ -344,11 +382,19 @@ contract GasStationPaymasterTest is Test {
         view
         returns (GasStationPaymaster.PaymasterData memory data)
     {
+        return _buildSponsorDataForCampaign(callData, validUntil, campaignId);
+    }
+
+    function _buildSponsorDataForCampaign(bytes memory callData, uint48 validUntil, bytes32 dataCampaignId)
+        internal
+        view
+        returns (GasStationPaymaster.PaymasterData memory data)
+    {
         data.mode = 1;
         data.validUntil = validUntil;
-        data.campaignId = campaignId;
+        data.campaignId = dataCampaignId;
 
-        bytes32 digest = _sponsorQuoteDigest(keccak256(callData), data.campaignId, validUntil);
+        bytes32 digest = _sponsorQuoteDigest(keccak256(callData), dataCampaignId, validUntil);
         data.signature = _sign(quoteSignerPk, digest);
     }
 

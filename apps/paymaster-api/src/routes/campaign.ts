@@ -15,7 +15,7 @@ const createSchema = z.object({
   start: z.number().int().nonnegative(),
   end: z.number().int().positive(),
   budget: z.string().regex(/^0x[a-fA-F0-9]+$/),
-  allowedTargets: z.array(z.string().regex(/^0x[a-fA-F0-9]{40}$/)).min(1),
+  allowedTargets: z.array(z.string().regex(/^0x[a-fA-F0-9]{40}$/)),
   perUserMaxOps: z.number().int().positive()
 });
 

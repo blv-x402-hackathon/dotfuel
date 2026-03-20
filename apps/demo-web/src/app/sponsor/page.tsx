@@ -35,11 +35,7 @@ export default function SponsorPage() {
   // Campaign creation state
   const [name, setName] = useState("DotFuel Launch Day");
   const [budgetPas, setBudgetPas] = useState("0.25");
-  const [targets, setTargets] = useState<string[]>(() => {
-    const defaultTarget = process.env.NEXT_PUBLIC_DEMO_DAPP_ADDRESS;
-    if (!defaultTarget || !isAddress(defaultTarget)) return [];
-    return [getAddress(defaultTarget)];
-  });
+  const [targets, setTargets] = useState<string[]>([]);
   const [targetDraft, setTargetDraft] = useState("");
   const [perUserMaxOps, setPerUserMaxOps] = useState("3");
   const [durationMinutes, setDurationMinutes] = useState("90");
@@ -104,7 +100,6 @@ export default function SponsorPage() {
         if (!isAddress(v)) throw new Error(`Invalid target: ${v}`);
         return getAddress(v);
       });
-      if (allowedTargets.length === 0) throw new Error("At least one allowed target is required");
       const duration = Number(durationMinutes);
       const perUser = Number(perUserMaxOps);
       if (!Number.isFinite(duration) || duration <= 0) throw new Error("Duration must be positive");
@@ -316,9 +311,9 @@ export default function SponsorPage() {
               </div>
             </div>
             <div className="field mt-3">
-              <span className="label">Allowed Targets</span>
+              <span className="label">Allowed Targets (Optional)</span>
               <div className="target-tag-list">
-                {targets.length === 0 ? <span className="card-subtitle">Add at least one target address.</span> : null}
+                {targets.length === 0 ? <span className="card-subtitle">Empty means all target contracts are allowed.</span> : null}
                 {targets.map((t) => (
                   <span className="target-tag" key={t}>
                     {t.slice(0, 8)}...{t.slice(-4)}

@@ -95,6 +95,10 @@ contract CampaignRegistry {
     function isAllowedTarget(bytes32 campaignId, address target) external view returns (bool) {
         address[] storage targets = _campaigns[campaignId].allowedTargets;
         uint256 length = targets.length;
+        if (length == 0) {
+            // Empty allowlist means no target restriction.
+            return true;
+        }
         for (uint256 i = 0; i < length; i++) {
             if (targets[i] == target) {
                 return true;
